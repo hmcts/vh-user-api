@@ -7,7 +7,7 @@ variables:
   integrationTestsAppSettingsTransform: ''
   vhAzureKeyVault: 'https://vhwebsitepreview.vault.azure.net/' # Used during integration tests
   keyVaultName: vhcoreinfrahtpreview # Used to get secrets for integration tests
-  secretsFilter: '' # filters out secrets returned from key vault
+  secretsFilter: 'vh-user-api-appid' # filters out secrets returned from key vault
 
 # GitHub Repo that conatins build templates. Reference https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=vsts#using-other-repositories
 resources:
