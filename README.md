@@ -12,7 +12,8 @@
 *Swashbuckle.AspNetCore 3.0.0
 *Swashbuckle.AspNetCore.Annotations 3.0.0
 *AutoMapper 7.0.1
-*FluentValidation 7.6.104
+*AutoMapper.Extensions.Microsoft.DependencyInjection 5.01
+*FluentValidation.AspNetCore 7.6.105
 *Microsoft.ApplicationInsights.AspNetCore 2.4.0
 *Microsoft.AspNetCore.All 2.1.3
 *Microsoft.Extensions.Configuration.AzureKeyVault 2.1.1
