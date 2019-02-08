@@ -22,6 +22,11 @@
 *SonarAnalyzer.CSharp 7.3.0.5690
 
 
+Test Projects
+*SonarAnalyzer.CSharp 7.3.0.5690
+*coverlet.msbuild 2.3.0
+
+
 ## Use of service
 Handle operations related to user operations
 
