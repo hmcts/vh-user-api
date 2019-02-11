@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
+using UserApi.Common;
 
 namespace UserApi.Security
 {
@@ -13,12 +14,12 @@ namespace UserApi.Security
     public class ActiveDirectoryGroup : IActiveDirectoryGroup
     {
         private readonly ITokenProvider _tokenProvider;
-        private readonly SecuritySettings _securitySettings;
+        private readonly AzureAdConfiguration _securitySettings;
 
-        public ActiveDirectoryGroup(ITokenProvider tokenProvider, IOptions<SecuritySettings> securitySettings)
+        public ActiveDirectoryGroup(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigurationOptions)
         {
             _tokenProvider = tokenProvider;
-            _securitySettings = securitySettings.Value;
+            _securitySettings = azureAdConfigurationOptions.Value;
         }
 
         public string GetGroupDisplayName(string id)

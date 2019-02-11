@@ -8,5 +8,7 @@ namespace UserApi.Common
         public string VhUserApiResourceId { get; set; }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
+        public string GraphApiBaseUri { get; set; }
+        public string VhBookingsApiResourceId { get; set; }
     }
 }

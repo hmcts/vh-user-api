@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
+using Testing.Common;
+using UserApi.Common;
 
 namespace UserApi.IntegrationTests.Controllers
 {
@@ -20,8 +22,12 @@ namespace UserApi.IntegrationTests.Controllers
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
-            var webHostBuilder = WebHost.CreateDefaultBuilder().UseStartup<Startup>();
+            var webHostBuilder = WebHost.CreateDefaultBuilder()
+                .UseKestrel(c => c.AddServerHeader = false)
+                .UseEnvironment("Development")
+                .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
+
             GetClientAccessTokenForBookHearingApi();
         }
 
@@ -31,29 +37,20 @@ namespace UserApi.IntegrationTests.Controllers
                 .AddJsonFile("appsettings.json")
                 .AddUserSecrets<Startup>();
             
-            LoadKeyVaultSettings(configRootBuilder);
-            
             var configRoot = configRootBuilder.Build();
-            
-            var securitySettingsOptions = Options.Create(configRoot.Get<SecuritySettings>());
-            var securitySettings = securitySettingsOptions.Value;
-            _bearerToken = new TokenProvider(securitySettingsOptions).GetClientAccessToken(
-                securitySettings.BookHearingUIClientId, securitySettings.BookHearingUIClientSecret,
-                securitySettings.BookHearingApiResourceId);
 
-            GraphApiToken = new TokenProvider(securitySettingsOptions).GetClientAccessToken(
-                securitySettings.BookHearingUIClientId, securitySettings.BookHearingUIClientSecret,
+            var testSettingsOptions = Options.Create(configRoot.GetSection("Testing").Get<TestSettings>());
+            var testSettings = testSettingsOptions.Value;
+
+            var azureAdConfigOptions = Options.Create(configRoot.GetSection("AzureAd").Get<AzureAdConfiguration>());
+            var azureAdConfiguration = azureAdConfigOptions.Value;
+            _bearerToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
+                testSettings.TestClientId, testSettings.TestClientSecret,
+                azureAdConfiguration.VhUserApiResourceId);
+
+            GraphApiToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
+                testSettings.TestClientId, testSettings.TestClientSecret,
                 "https://graph.microsoft.com");
-        }
-
-        private void LoadKeyVaultSettings(IConfigurationBuilder builder)
-        {
-            var tempConfigRoot = builder.Build();
-            var keyVaultSettings = new KeyVaultSettings();
-            tempConfigRoot.Bind("KeyVaultSettings", keyVaultSettings);
-
-            builder.AddAzureKeyVault(keyVaultSettings.KeyVaultUri, keyVaultSettings.ClientId,
-                keyVaultSettings.ClientSecret);
         }
         
         [OneTimeTearDown]

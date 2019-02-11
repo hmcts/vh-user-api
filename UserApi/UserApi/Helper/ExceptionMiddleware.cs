@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Hearings.Common;
 using Microsoft.AspNetCore.Http;
-using HearingsAPI.Client;
+using UserApi.Common;
+using UserApi.Common.Helpers;
 
 namespace UserApi.Helper
 {
@@ -23,15 +23,15 @@ namespace UserApi.Helper
             {
                 await _next(httpContext);
             }
-            catch (HearingApiException ex)
+            catch (BadRequestException ex)
             {
-                ApplicationLogger.TraceException(TraceCategory.HearingsApi, "API response error", ex, null, null);
-                await HandleExceptionAsync(httpContext, ex.StatusCode, ex);
+                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "400 Exception", ex, null, null);
+                await HandleExceptionAsync(httpContext, (int)HttpStatusCode.BadRequest, ex);
             }
             catch (Exception ex)
             {
-                ApplicationLogger.TraceException(TraceCategory.General, "Unhandled exception", ex,null, null);
-                await HandleExceptionAsync(httpContext, (int) HttpStatusCode.InternalServerError, ex);   
+                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "API Exception", ex, null, null);
+                await HandleExceptionAsync(httpContext, (int)HttpStatusCode.InternalServerError, ex);
             }
         }
 

@@ -8,10 +8,10 @@ using UserApi.Services;
 using UserApi.Swagger;
 using UserApi.Validations;
 using FluentValidation.AspNetCore;
-using HearingsAPI.Client;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using UserApi.Common;
 
 namespace UserApi
 {
@@ -20,12 +20,11 @@ namespace UserApi
         public static IServiceCollection AddCustomTypes(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddMemoryCache();
-            
-            serviceCollection.AddScoped<IVhApiClient, VhApiClient>();
+
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
             serviceCollection.AddScoped<IActiveDirectoryGroup, ActiveDirectoryGroup>();
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
-            serviceCollection.AddScoped<SecuritySettings>();
+            serviceCollection.AddScoped<AzureAdConfiguration>();
             serviceCollection.AddScoped<UserManager>();
 
             serviceCollection.AddTransient<IUserIdentity, UserIdentity>((ctx) =>
@@ -36,12 +35,9 @@ namespace UserApi
             });
 
             serviceCollection.AddTransient<AddBearerTokenHeaderHandler>();
-
-            var container = serviceCollection.BuildServiceProvider();
-            serviceCollection.AddHttpClient<IVhApiClient, VhApiClient>()
-                .AddHttpMessageHandler(() => container.GetService<AddBearerTokenHeaderHandler>());
-            
+            serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
+
             return serviceCollection;
         }
 
@@ -55,7 +51,7 @@ namespace UserApi
                 // Adds fluent validators to Asp.net
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreateUserRequestValidation>());
 
-            
+
             serviceCollection.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "User API", Version = "v1" });

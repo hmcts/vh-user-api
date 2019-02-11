@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using UserApi.Common;
 
 namespace UserApi.Security
 {
@@ -12,11 +13,11 @@ namespace UserApi.Security
     
     public class TokenProvider : ITokenProvider
     {
-        private readonly SecuritySettings _securitySettings;
+        private readonly AzureAdConfiguration _azureAdConfiguration;
 
-        public TokenProvider(IOptions<SecuritySettings> securitySettings)
+        public TokenProvider(IOptions<AzureAdConfiguration> azureAdConfiguration)
         {
-            _securitySettings = securitySettings.Value;
+            _azureAdConfiguration = azureAdConfiguration.Value;
         }
         
         public string GetClientAccessToken(string clientId, string clientSecret, string clientResource)
@@ -29,7 +30,7 @@ namespace UserApi.Security
         {
             AuthenticationResult result;
             var credential = new ClientCredential(clientId, clientSecret);
-            var authContext = new AuthenticationContext($"{_securitySettings.Authority}{_securitySettings.TenantId}");
+            var authContext = new AuthenticationContext($"{_azureAdConfiguration.Authority}");
 
             try
             {

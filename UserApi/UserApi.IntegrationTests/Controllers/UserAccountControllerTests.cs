@@ -14,20 +14,12 @@ using Testing.Common.Helpers;
 
 namespace UserApi.IntegrationTests.Controllers
 {
-    public class UserAccountControllerTests  //: ControllerTestsBase
+    public class UserAccountControllerTests  : ControllerTestsBase
     {
         private readonly UserAccountEndpoints _userAccountEndpoints = new ApiUriFactory().UserAccountEndpoints;
         private string _newUserId;
-
+        
         [Test]
-        public void dummy_test_for_pipe_line()
-        {
-            const bool actual = true;
-            const bool expected = true;
-            Assert.AreEqual(actual, expected);
-        }
-        /*
-        [Ignore("")][Test]
         public async Task should_get_group_by_name_not_found_with_bogus_group_name()
         {
             var groupName = "foo";
@@ -35,7 +27,7 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_group_by_name()
         {
             var groupName = "SSPR Enabled";
@@ -48,7 +40,7 @@ namespace UserApi.IntegrationTests.Controllers
             groupResponseModel.GroupId.Should().NotBeNullOrWhiteSpace();
         }
         
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_group_by_id()
         {
             var groupId = "8881ea85-e0c0-4a0b-aa9c-979b9f0c05cd";
@@ -60,7 +52,7 @@ namespace UserApi.IntegrationTests.Controllers
             groupResponseModel.GroupId.Should().Be(groupId);
         }
         
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_group_by_id_not_found_with_bogus_id()
         {
             var groupId = Guid.Empty.ToString();
@@ -68,7 +60,7 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_user_by_id_not_found_with_bogus_user_id()
         {
             var userId = "foo";
@@ -76,7 +68,7 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_user_by_id()
         {
             const string userId = "84fa0832-cd70-4788-8f48-e869571e0c56";
@@ -90,7 +82,7 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.DisplayName.Should().NotBeNullOrWhiteSpace();
         }
         
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_user_by_recovery_email()
         {
             const string alternativeEmail = "judge@kinly.com";
@@ -104,7 +96,7 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.DisplayName.Should().NotBeNullOrWhiteSpace();
         }
         
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_user_by_recovery_email_not_found_with_bogus_mail()
         {
             const string alternativeEmail = "i.do.not.exist@nowhere.ever.com";
@@ -112,7 +104,7 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        [Ignore("")][Test]
+        [Test]
         public async Task should_create_citizen_user_on_ad()
         {
             var createUserRequest = new CreateUserRequest
@@ -160,7 +152,7 @@ namespace UserApi.IntegrationTests.Controllers
             addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
         }
         
-        [Ignore("")][Test]
+        [Test]
         public async Task should_get_groups_for_user()
         {
             const string userId = "84fa0832-cd70-4788-8f48-e869571e0c56";
@@ -186,6 +178,6 @@ namespace UserApi.IntegrationTests.Controllers
                 _newUserId = null;
             }
         }
-        */
+
     }
 }

@@ -2,7 +2,6 @@
 using System.IO;
 using AutoMapper;
 using UserApi.Helper;
-using UserApi.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -12,21 +11,15 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Serialization;
+using UserApi.Common;
 
 namespace UserApi
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", false, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-                .AddEnvironmentVariables();
-
-            builder.AddUserSecrets<Startup>();
-            Configuration = builder.Build();
+            Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
@@ -42,11 +35,9 @@ namespace UserApi
 
             services.AddCustomTypes();
 
-            var settings = Configuration.Get<SecuritySettings>();
-            services.AddApplicationInsightsTelemetry(settings.AppInsightsKey);
-
             RegisterAuth(services);
-            services.AddMvc();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
         }
 
 
@@ -71,8 +62,7 @@ namespace UserApi
 
         private void RegisterSettings(IServiceCollection services)
         {
-            services.Configure<SecuritySettings>(options => Configuration.Bind(options));
-            services.Configure<AppConfigSettings>(options => Configuration.Bind(options));
+            services.Configure<AzureAdConfiguration>(options => Configuration.Bind("AzureAd", options));
         }
 
         private void RegisterAuth(IServiceCollection services)
@@ -80,20 +70,23 @@ namespace UserApi
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build();
+
             services.AddMvc(options => { options.Filters.Add(new AuthorizeFilter(policy)); });
 
-            var settings = Configuration.Get<SecuritySettings>();
+            var securitySettings = Configuration.GetSection("AzureAd").Get<AzureAdConfiguration>();
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                options.Authority = settings.Authority + settings.TenantId;
-                options.Audience = settings.BookHearingApiResourceId;
+                options.Authority = securitySettings.Authority;
                 options.TokenValidationParameters.ValidateLifetime = true;
+                options.Audience = securitySettings.VhUserApiResourceId;
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
             });
+
             services.AddAuthorization();
         }
 

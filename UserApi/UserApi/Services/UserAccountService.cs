@@ -8,10 +8,10 @@ using UserApi.Contracts.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
-using Hearings.Common;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Newtonsoft.Json;
+using UserApi.Common;
 
 namespace UserApi.Services
 {
@@ -39,20 +39,20 @@ namespace UserApi.Services
     {
         private readonly TimeSpan _retryTimeout;
         private readonly ITokenProvider _tokenProvider;
-        private readonly SecuritySettings _securitySettings;
+        private readonly AzureAdConfiguration _azureAdConfiguration;
 
-        public UserAccountService(ITokenProvider tokenProvider, IOptions<SecuritySettings> securitySettings, IOptions<AppConfigSettings> appSettings)
+        public UserAccountService(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
         {
-            _retryTimeout = TimeSpan.FromSeconds(appSettings.Value.APIFailureRetryTimeoutSeconds);
+            _retryTimeout = TimeSpan.FromSeconds(60);
             _tokenProvider = tokenProvider;
-            _securitySettings = securitySettings.Value;
+            _azureAdConfiguration = azureAdConfigOptions.Value;
         }
 
         public NewAdUserAccount CreateUser(User newUser)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret,
-                _securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,
+                _azureAdConfiguration.GraphApiBaseUri);
             
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
@@ -64,7 +64,7 @@ namespace UserApi.Services
                 var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Post, $"{_securitySettings.GraphApiBaseUri}v1.0/users");
+                    new HttpRequestMessage(HttpMethod.Post, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users");
                 httpRequestMessage.Content = stringContent;
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
             }
@@ -113,12 +113,12 @@ namespace UserApi.Services
 
         public void AddUserToGroup(User user, Group group)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId, _securitySettings.ClientSecret,
-                _securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId, _azureAdConfiguration.ClientSecret,
+                _azureAdConfiguration.GraphApiBaseUri);
             
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_securitySettings.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
             };
 
             HttpResponseMessage responseMessage;
@@ -132,7 +132,7 @@ namespace UserApi.Services
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 var httpRequestMessage =
                     new HttpRequestMessage(HttpMethod.Post,
-                        $@"{_securitySettings.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref")
+                        $@"{_azureAdConfiguration.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref")
                     {
                         Content = stringContent
                     };
@@ -153,8 +153,8 @@ namespace UserApi.Services
         
         private void UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret, "https://graph.windows.net/");
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
 
             var model = new UpdateAuthenticationInformationRequest
             {
@@ -172,7 +172,7 @@ namespace UserApi.Services
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 var httpRequestMessage =
                     new HttpRequestMessage(HttpMethod.Patch,
-                        $"https://graph.windows.net/{_securitySettings.TenantId}/users/{userId}?api-version=1.6")
+                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6")
                     {
                         Content = stringContent
                     };
@@ -199,16 +199,16 @@ namespace UserApi.Services
 
         public User GetUserById(string userId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret,
-                _securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,
+                _azureAdConfiguration.GraphApiBaseUri);
 
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get, $"{_securitySettings.GraphApiBaseUri}v1.0/users/{userId}");
+                    new HttpRequestMessage(HttpMethod.Get, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}");
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
             }
 
@@ -229,16 +229,16 @@ namespace UserApi.Services
 
         public IList<User> QueryUsers(string filter)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret,
-                _securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,
+                _azureAdConfiguration.GraphApiBaseUri);
 
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get, $"{_securitySettings.GraphApiBaseUri}v1.0/users?$filter={filter}");
+                    new HttpRequestMessage(HttpMethod.Get, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users?$filter={filter}");
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
                 
             }
@@ -255,8 +255,8 @@ namespace UserApi.Services
 
         public User GetUserByAlternativeEmail(string alternativeEmail)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret, "https://graph.windows.net/");
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
 
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
@@ -267,7 +267,7 @@ namespace UserApi.Services
 
                 var httpRequestMessage =
                     new HttpRequestMessage(HttpMethod.Get,
-                        $"https://graph.windows.net/{_securitySettings.TenantId}/users?$filter=otherMails/any(c:c eq '{alternativeEmail}')&api-version=1.6");
+                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter=otherMails/any(c:c eq '{alternativeEmail}')&api-version=1.6");
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
             }
             
@@ -295,15 +295,15 @@ namespace UserApi.Services
 
         public Group GetGroupByName(string groupName)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret, _securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
 
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $"{_securitySettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'");
+                    $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'");
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
                     
             }
@@ -321,15 +321,15 @@ namespace UserApi.Services
 
         public Group GetGroupById(string groupId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret,_securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,_azureAdConfiguration.GraphApiBaseUri);
 
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get, $"{_securitySettings.GraphApiBaseUri}v1.0/groups/{groupId}");
+                    new HttpRequestMessage(HttpMethod.Get, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups/{groupId}");
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
             }
             
@@ -350,15 +350,15 @@ namespace UserApi.Services
 
         public List<Group> GetGroupsForUser(string userId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret,_securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,_azureAdConfiguration.GraphApiBaseUri);
 
             HttpResponseMessage responseMessage;
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $"{_securitySettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf");
+                    $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}/memberOf");
                 responseMessage = client.SendAsync(httpRequestMessage).Result;
             }
 
@@ -377,8 +377,8 @@ namespace UserApi.Services
 
         public void ResetPassword(string userId, string password = null)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_securitySettings.ClientId,
-                _securitySettings.ClientSecret, _securitySettings.GraphApiBaseUri);
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
 
             var createdPassword = password ?? new PasswordGenerator().IncludeLowercase().IncludeUppercase()
                                       .IncludeNumeric().IncludeSpecial().LengthRequired(8).Next();
@@ -402,7 +402,7 @@ namespace UserApi.Services
                 var stringContent = new StringContent(JsonConvert.SerializeObject(model));
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Patch, $"{_securitySettings.GraphApiBaseUri}v1.0/users/{userId}")
+                    new HttpRequestMessage(HttpMethod.Patch, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}")
                     {
                         Content = stringContent
                     };
