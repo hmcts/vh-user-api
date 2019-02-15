@@ -197,6 +197,22 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
 
+        [Test]
+        public async Task should_get_profile_by_email_not_found_with_bogus_mail()
+        {
+            const string email = "i.do.not.exist@nowhere.ever.com";
+            var getResponse = await SendGetRequestAsync(_userAccountEndpoints.GetUserProfileByEmail(email));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Test]
+        public async Task should_get_user_profile_by_user_principal_name_not_found_with_bogus_mail()
+        {
+            const string username = "i.do.not.exist@hearings.reform.hmcts.net";
+            var getResponse = await SendGetRequestAsync(_userAccountEndpoints.GetUserProfileByUserName(username));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
         [TearDown]
         public void ClearUp()
         {

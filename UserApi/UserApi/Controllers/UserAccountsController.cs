@@ -11,6 +11,7 @@ using UserApi.Contracts.Requests;
 using UserApi.Contracts.Responses;
 using UserApi.Helper;
 using UserApi.Services;
+using UserApi.Services.Models;
 using UserApi.Validations;
 
 namespace UserApi.Controllers
@@ -250,8 +251,7 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("user/profileByEmail", Name = "GetUserProfileByEmail")]
         [SwaggerOperation(OperationId = "GetUserProfileByEmail")]
-        [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserProfileByEmail([FromQuery]string email)
         {
@@ -272,8 +272,7 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("user/profileByUserName", Name = "GetUserProfileByUserName")]
         [SwaggerOperation(OperationId = "GetUserProfileByUserName")]
-        [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserProfileByUserName([FromQuery]string userName)
         {
