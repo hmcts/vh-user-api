@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Graph;
 using UserApi.Security;
 
@@ -23,9 +24,10 @@ namespace UserApi.Services
         /// <param name="recoveryEmail"></param>
         /// <param name="role"></param>
         /// <returns>The username</returns>
-        public virtual string CreateAdAccount(string firstName, string lastName, string recoveryEmail, string role)
+        public virtual async Task<string> CreateAdAccount(string firstName, string lastName, string recoveryEmail,
+            string role)
         {
-            var userPrincipalName = CheckForNextAvailableUsername(firstName, lastName);
+            var userPrincipalName = await CheckForNextAvailableUsername(firstName, lastName);
 
             var user = new User
             {
@@ -42,9 +44,9 @@ namespace UserApi.Services
                 UserPrincipalName = userPrincipalName
             };
 
-            var adUser = _userAccountService.CreateUser(user);
+            var adUser = await _userAccountService.CreateUser(user);
             _userAccountService.UpdateAuthenticationInformation(adUser.UserId, recoveryEmail);
-            AddToGroups(adUser.UserId, role);
+            await AddToGroups(adUser.UserId, role);
             return adUser.Username;
         }
 
@@ -53,9 +55,10 @@ namespace UserApi.Services
         /// </summary>
         /// <param name="recoveryEmail"></param>
         /// <returns>The username</returns>
-        public virtual string GetUsernameForUserWithRecoveryEmail(string recoveryEmail)
+        public virtual async Task<string> GetUsernameForUserWithRecoveryEmail(string recoveryEmail)
         {
-            return _userAccountService.GetUserByAlternativeEmail(recoveryEmail)?.UserPrincipalName;
+            var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
+            return (await _userAccountService.GetUserByFilter(filter))?.UserPrincipalName;
         }
 
         /// <summary>
@@ -64,11 +67,11 @@ namespace UserApi.Services
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <returns>next available user principal name</returns>
-        public virtual string CheckForNextAvailableUsername(string firstName, string lastName)
+        public virtual async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var userFilter = $@"startswith(userPrincipalName,'{baseUsername}')";
-            var users = _userAccountService.QueryUsers(userFilter).ToList();
+            var users = (await _userAccountService.QueryUsers(userFilter)).ToList();
             var domain = "@hearings.reform.hmcts.net";
             if (!users.Any())
             {
@@ -115,33 +118,33 @@ namespace UserApi.Services
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="role"></param>
-        public virtual void AddToGroups(string userId, string role)
+        public virtual async Task AddToGroups(string userId, string role)
         {
             var groups = GetGroupsForRole(role);
-            var existingGroups = _userAccountService.GetGroupsForUser(userId);
+            var existingGroups = await _userAccountService.GetGroupsForUser(userId);
             foreach (var adGroup in groups)
             {
                 if (existingGroups.All(g => g.DisplayName != adGroup))
                 {
-                    AddToGroupsByUserId(userId, adGroup);
+                    await AddToGroupsByUserId(userId, adGroup);
                 }
             }
         }
 
-        public virtual void AddToGroupsByUsername(string username, string role)
+        public virtual async Task AddToGroupsByUsername(string username, string role)
         {
-            var user = _userAccountService.GetUserById(username);
-            AddToGroups(user.Id, role);
+            var user = await _userAccountService.GetUserById(username);
+            await AddToGroups(user.Id, role);
         }
 
-        private void AddToGroupsByUserId(string userId, string groupName)
+        private async Task AddToGroupsByUserId(string userId, string groupName)
         {
-            var group = _userAccountService.GetGroupByName(groupName);
+            var group = await _userAccountService.GetGroupByName(groupName);
             if (group == null)
             {
                 throw new UserServiceException($"Group {groupName} does not exist", "Invalid group name");
             }
-            _userAccountService.AddUserToGroup(new User {Id = userId}, group);
+            await _userAccountService.AddUserToGroup(new User {Id = userId}, @group);
         }
     }
 }

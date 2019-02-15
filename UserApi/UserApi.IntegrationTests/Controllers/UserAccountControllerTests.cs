@@ -11,6 +11,7 @@ using UserApi.Contracts.Responses;
 using FluentAssertions;
 using NUnit.Framework.Constraints;
 using Testing.Common.Helpers;
+using UserApi.Services.Models;
 
 namespace UserApi.IntegrationTests.Controllers
 {
@@ -162,6 +163,38 @@ namespace UserApi.IntegrationTests.Controllers
                 ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
             groupsForUserModel.Should().NotBeEmpty();
+        }
+
+        [Test]
+        public async Task should_get_user_profile_by_email()
+        {
+            const string email = "VirtualRoomAdministrator@kinley.com";
+            var getResponse = await SendGetRequestAsync(_userAccountEndpoints.GetUserProfileByEmail(email));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var userResponseModel =
+                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                    .ReadAsStringAsync().Result);
+            userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
+        }
+
+        [Test]
+        public async Task should_get_user_profile_by_user_principal_name()
+        {
+            const string username = "VirtualRoomAdministrator@hearings.reform.hmcts.net";
+            var getResponse = await SendGetRequestAsync(_userAccountEndpoints.GetUserProfileByUserName(username));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var userResponseModel =
+                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                    .ReadAsStringAsync().Result);
+            userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
 
         [TearDown]

@@ -42,5 +42,7 @@ namespace Testing.Common.Helpers
         public string GetGroupsForUser(string userId) => $"{ApiRoot}/user/{userId}/groups";
         public string GetGroupByName(string groupName) => $"{ApiRoot}/group/?name={groupName}";
         public string GetGroupById(string groupId) => $"{ApiRoot}/group/{groupId}";
+        public string GetUserProfileByEmail(string email) => $"{ApiRoot}/user/profileByEmail?email={email}";
+        public string GetUserProfileByUserName(string userName) => $"{ApiRoot}/user/profileByUserName?userName={userName}";
     }
 }
