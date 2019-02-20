@@ -1,3 +1,7 @@
+using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,14 +9,11 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using UserApi.Common;
 using UserApi.Contracts.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
-using Microsoft.Extensions.Options;
-using Microsoft.Graph;
-using Newtonsoft.Json;
-using UserApi.Common;
 
 namespace UserApi.Services
 {
@@ -40,6 +41,8 @@ namespace UserApi.Services
 
     public class UserAccountService : IUserAccountService
     {
+        private const string odataType = "@odata.type";
+        private const string graphGroupType = "#microsoft.graph.group";
         private readonly TimeSpan _retryTimeout;
         private readonly ITokenProvider _tokenProvider;
         private readonly AzureAdConfiguration _azureAdConfiguration;
@@ -297,6 +300,11 @@ namespace UserApi.Services
                 };
             }
 
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
             var message = $"Failed to search user with filter {filter}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
@@ -374,9 +382,27 @@ namespace UserApi.Services
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
-                var groups =
-                    JsonConvert.DeserializeObject<List<Group>>(queryResponse.AdditionalData["value"].ToString());
+                var groupArray = JArray.Parse(queryResponse?.AdditionalData["value"].ToString());
+
+                var groups = new List<Group>();
+                foreach (var item in groupArray.Children())
+                {
+                    var itemProperties = item.Children<JProperty>();
+                    var type = itemProperties.FirstOrDefault(x => x.Name == odataType);
+
+                    //If #microsoft.graph.directoryRole ignore the group mappings
+                    if (type.Value.ToString() == graphGroupType)
+                    {
+                        var group = JsonConvert.DeserializeObject<Group>(item.ToString());
+                        groups.Add(group);
+                    }
+                }
                 return groups;
+            }
+
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
             }
 
             var message = $"Failed to get group for user {userId}";

@@ -19,6 +19,8 @@ namespace UserApi.Helper
 
         public async Task<UserProfile> GetUserProfile(string filter)
         {
+            var userRole = string.Empty;
+            var userCaseType = string.Empty;
             var user = await _userAccountService.GetUserByFilter(filter);
 
             if (user == null)
@@ -27,56 +29,62 @@ namespace UserApi.Helper
             }
 
             var userGroups = await _userAccountService.GetGroupsForUser(user.Id);
-            var userGroupIds = new List<int>();
-            foreach (var usrGrp in userGroups)
+            if (userGroups != null)
             {
-                userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), usrGrp.DisplayName));
-            }
+                var userGroupIds = new List<int>();
 
-            var userRole = string.Empty;
-            var userCaseType = string.Empty;
-            var lstVirtualRoomProfessionalPlusExternal = new List<int> { (int)AadGroup.VirtualRoomAdministrator, (int)AadGroup .External};
-            var lstMoneyClaimsPlusFinancialRemedy = new List<int> { (int)AadGroup.MoneyClaims, (int)AadGroup.FinancialRemedy};
-
-            if (userGroupIds.Count == 1)
-            {
-                switch (userGroupIds[0])
+                foreach (var usrGrp in userGroups)
                 {
-                    case 1:
-                        userRole = UserRole.VhOfficer.ToString();
-                        break;
-                    case 2:
-                        userRole = UserRole.Individual.ToString();
-                        break;
-                    case 3:
-                        userRole = UserRole.Judge.ToString();
-                        break;
-                    case 4:
-                        userRole = UserRole.CaseAdmin.ToString();
-                        userCaseType = CaseType.MoneyClaims.ToString();
-                        break;
-                    case 5:
-                        userRole = UserRole.CaseAdmin.ToString();
-                        userCaseType = CaseType.FinancialRemedy.ToString();
-                        break;
+                    userGroupIds.Add((int)Enum.Parse(typeof(AadGroup), usrGrp.DisplayName));
                 }
-            }
 
-            if (userGroupIds.Any(ug => lstVirtualRoomProfessionalPlusExternal.Contains(ug)))
-            {
-                userRole = UserRole.Representative.ToString();
-            }
+                var lstVirtualRoomProfessionalPlusExternal = new List<int>
+                    {(int) AadGroup.VirtualRoomAdministrator, (int) AadGroup.External};
+                var lstMoneyClaimsPlusFinancialRemedy = new List<int>
+                    {(int) AadGroup.MoneyClaims, (int) AadGroup.FinancialRemedy};
 
-            if (userGroupIds.Any(ug => lstMoneyClaimsPlusFinancialRemedy.Contains(ug)))
-            {
-                userRole = UserRole.CaseAdmin.ToString();
-                userCaseType = CaseType.MoneyClaimsPlusFinancialRemedy.ToString();
+                if (userGroupIds.Count == 1)
+                {
+                    switch (userGroupIds[0])
+                    {
+                        case 1:
+                            userRole = UserRole.VhOfficer.ToString();
+                            break;
+                        case 2:
+                            userRole = UserRole.Individual.ToString();
+                            break;
+                        case 3:
+                            userRole = UserRole.Judge.ToString();
+                            break;
+                        case 4:
+                            userRole = UserRole.CaseAdmin.ToString();
+                            userCaseType = CaseType.MoneyClaims.ToString();
+                            break;
+                        case 5:
+                            userRole = UserRole.CaseAdmin.ToString();
+                            userCaseType = CaseType.FinancialRemedy.ToString();
+                            break;
+                    }
+                }
+
+                if (userGroupIds.Any(ug => lstVirtualRoomProfessionalPlusExternal.Contains(ug)))
+                {
+                    userRole = UserRole.Representative.ToString();
+                }
+
+                if (userGroupIds.Any(ug => lstMoneyClaimsPlusFinancialRemedy.Contains(ug)))
+                {
+                    userRole = UserRole.CaseAdmin.ToString();
+                    userCaseType = CaseType.MoneyClaimsPlusFinancialRemedy.ToString();
+                }
             }
 
             var response = new UserProfile
             {
+                UserId = user.Id,
                 UserName = user.UserPrincipalName,
                 Email = user.Mail,
+                DisplayName = user.DisplayName,
                 FirstName = user.GivenName,
                 LastName = user.Surname,
                 UserRole = userRole,

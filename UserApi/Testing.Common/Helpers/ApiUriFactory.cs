@@ -4,13 +4,15 @@ namespace Testing.Common.Helpers
     {
         public HearingEndpoints HearingEndpoints { get; set; }
         public ReferenceEndpoints ReferenceEndpoints { get; set; }
-        public UserAccountEndpoints UserAccountEndpoints { get; set; }
+        public UserEndpoints UserEndpoints { get; set; }
+        public AccountEndpoints AccountEndpoints { get; set; }
 
         public ApiUriFactory()
         {
             HearingEndpoints = new HearingEndpoints();
             ReferenceEndpoints = new ReferenceEndpoints();
-            UserAccountEndpoints = new UserAccountEndpoints();
+            UserEndpoints = new UserEndpoints();
+            AccountEndpoints = new AccountEndpoints();
         }
     }
     
@@ -30,19 +32,21 @@ namespace Testing.Common.Helpers
         public string GetCourts => $"{ApiRoot}/courts";
     }
 
-    public class UserAccountEndpoints
+    public class AccountEndpoints
     {
-        private string ApiRoot => "api/accounts";
-
-        public string CreateUser => $"{ApiRoot}/user";
         public string AddUserToGroup => $"{ApiRoot}/user/group";
-        public string SetRecoveryEmail => $"{ApiRoot}/user/recovery";
-        public string GetUserByAdUserId(string userId) => $"{ApiRoot}/user/{userId}";
-        public string GetUserByRecoveryEmail(string recoveryEmail) => $"{ApiRoot}/user?recoveryMail={recoveryEmail}";
-        public string GetGroupsForUser(string userId) => $"{ApiRoot}/user/{userId}/groups";
+        private string ApiRoot => "accounts";
         public string GetGroupByName(string groupName) => $"{ApiRoot}/group/?name={groupName}";
         public string GetGroupById(string groupId) => $"{ApiRoot}/group/{groupId}";
-        public string GetUserProfileByEmail(string email) => $"{ApiRoot}/user/profileByEmail?email={email}";
-        public string GetUserProfileByUserName(string userName) => $"{ApiRoot}/user/profileByUserName?userName={userName}";
+        public string GetGroupsForUser(string userId) => $"{ApiRoot}/user/{userId}/groups";
+    }
+
+    public class UserEndpoints
+    {
+        private string ApiRoot => "users";
+        public string CreateUser => $"{ApiRoot}";
+        public string GetUserByAdUserId(string userId) => $"{ApiRoot}/{userId}";
+        public string GetUserByAdUserName(string userName) => $"{ApiRoot}/UserName/{userName}";
+        public string GetUserByEmail(string email) => $"{ApiRoot}/Email/{email}";
     }
 }

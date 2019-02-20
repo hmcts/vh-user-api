@@ -2,7 +2,7 @@
 -------------------
 
 ## Pre-Requisites
-* .NET Core 2.1
+* .NET Core 2.2
 ## Getting Started
 * Checkout this repository locally
 * Open the SLN file found in the root of the repository
