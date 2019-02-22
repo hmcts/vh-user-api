@@ -1,5 +1,6 @@
 # Set variables once
 variables:
+  cleanCheckout: true
   apiDirectory: 'UserApi/UserApi'
   sonarCloudPrepareExtraProperties: |
     sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)\Coverage\coverage.opencover.xml
@@ -34,6 +35,7 @@ jobs:
   
 - template: jobs/angularDotNetCore.yml@azureDevOpsTemplates # Template reference
   parameters:
+    cleanCheckout: $(cleanCheckout)
     sonarCloudExtraProperties: $(sonarCloudPrepareExtraProperties)
     integrationTestsAppSettingsTransform: $(integrationTestsAppSettingsTransform)
     coverletCoverageExclusions: $(coverletCoverageExclusions)
