@@ -20,19 +20,8 @@ namespace UserApi
             serviceCollection.AddMemoryCache();
 
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
-            serviceCollection.AddScoped<IActiveDirectoryGroup, ActiveDirectoryGroup>();
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
             serviceCollection.AddScoped<AzureAdConfiguration>();
-            serviceCollection.AddScoped<UserManager>();
-
-            serviceCollection.AddTransient<IUserIdentity, UserIdentity>((ctx) =>
-            {
-                var activeDirectory = ctx.GetService<IActiveDirectoryGroup>();
-                var userPrincipal = ctx.GetService<IHttpContextAccessor>().HttpContext.User;
-                return new UserIdentity(activeDirectory, userPrincipal);
-            });
-
-            serviceCollection.AddTransient<AddBearerTokenHeaderHandler>();
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
 
