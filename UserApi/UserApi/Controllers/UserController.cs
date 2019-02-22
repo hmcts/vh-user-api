@@ -55,7 +55,7 @@ namespace UserApi.Controllers
             }
 
             var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
-            _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
+            await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
 
             var response = new NewUserResponse
             {
@@ -90,7 +90,7 @@ namespace UserApi.Controllers
         /// <summary>
         /// Get User by User principle name
         /// </summary>
-        [HttpGet("UserName/{userName}", Name = "GetUserByAdUserName")]
+        [HttpGet("userName/{userName}", Name = "GetUserByAdUserName")]
         [SwaggerOperation(OperationId = "GetUserByAdUserName")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -111,7 +111,7 @@ namespace UserApi.Controllers
         /// <summary>
         /// Get user profile by email
         /// </summary>
-        [HttpGet("Email/{email}", Name = "GetUserByEmail")]
+        [HttpGet("email/{email}", Name = "GetUserByEmail")]
         [SwaggerOperation(OperationId = "GetUserByEmail")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]

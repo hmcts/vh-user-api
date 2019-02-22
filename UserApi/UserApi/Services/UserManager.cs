@@ -45,7 +45,7 @@ namespace UserApi.Services
             };
 
             var adUser = await _userAccountService.CreateUser(user);
-            _userAccountService.UpdateAuthenticationInformation(adUser.UserId, recoveryEmail);
+            await _userAccountService.UpdateAuthenticationInformation(adUser.UserId, recoveryEmail);
             await AddToGroups(adUser.UserId, role);
             return adUser.Username;
         }

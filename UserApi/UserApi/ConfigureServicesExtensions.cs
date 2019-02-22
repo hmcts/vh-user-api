@@ -6,8 +6,6 @@ using System.Reflection;
 using UserApi.Security;
 using UserApi.Services;
 using UserApi.Swagger;
-using UserApi.Validations;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
@@ -46,12 +44,6 @@ namespace UserApi
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
-            serviceCollection
-                .AddMvc()
-                // Adds fluent validators to Asp.net
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreateUserRequestValidation>());
-
-
             serviceCollection.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "User API", Version = "v1" });
@@ -62,7 +54,6 @@ namespace UserApi
                     { "Bearer", Enumerable.Empty<string>() },
                 });
                 c.OperationFilter<AuthResponsesOperationFilter>();
-                c.AddFluentValidationRules();
             });
         }
     }

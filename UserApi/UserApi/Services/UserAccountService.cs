@@ -23,7 +23,7 @@ namespace UserApi.Services
         Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
             string password = null);
         Task AddUserToGroup(User user, Group @group);
-        void UpdateAuthenticationInformation(string userId, string recoveryMail);
+        Task UpdateAuthenticationInformation(string userId, string recoveryMail);
 
         /// <summary>
         /// Get a user in AD either via Object ID or UserPrincipalName
@@ -41,8 +41,8 @@ namespace UserApi.Services
 
     public class UserAccountService : IUserAccountService
     {
-        private const string odataType = "@odata.type";
-        private const string graphGroupType = "#microsoft.graph.group";
+        private const string OdataType = "@odata.type";
+        private const string GraphGroupType = "#microsoft.graph.group";
         private readonly TimeSpan _retryTimeout;
         private readonly ITokenProvider _tokenProvider;
         private readonly AzureAdConfiguration _azureAdConfiguration;
@@ -152,10 +152,10 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
-        public void UpdateAuthenticationInformation(string userId, string recoveryMail)
+        public async Task UpdateAuthenticationInformation(string userId, string recoveryMail)
         {
             var timeout = DateTime.Now.Add(_retryTimeout);
-            UpdateAuthenticationInformation(userId, recoveryMail, timeout);
+            await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
         }
 
         private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
@@ -198,7 +198,7 @@ namespace UserApi.Services
                     throw new UserServiceException("Timed out trying to update alternative address for ${userId}", reason);
                 }
                 ApplicationLogger.Trace("APIFailure", "GraphAPI 404 PATCH /users/{id}", $"Failed to update authentication information for user {userId}, will retry.");
-                UpdateAuthenticationInformation(userId, recoveryMail, timeout);
+                await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
                 return;
             }
 
@@ -388,10 +388,10 @@ namespace UserApi.Services
                 foreach (var item in groupArray.Children())
                 {
                     var itemProperties = item.Children<JProperty>();
-                    var type = itemProperties.FirstOrDefault(x => x.Name == odataType);
+                    var type = itemProperties.FirstOrDefault(x => x.Name == OdataType);
 
                     //If #microsoft.graph.directoryRole ignore the group mappings
-                    if (type.Value.ToString() == graphGroupType)
+                    if (type.Value.ToString() == GraphGroupType)
                     {
                         var group = JsonConvert.DeserializeObject<Group>(item.ToString());
                         groups.Add(group);

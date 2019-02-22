@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using AutoMapper;
 using UserApi.Helper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +26,6 @@ namespace UserApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddAutoMapper();
 
             ConfigureJsonSerialization(services);
             RegisterSettings(services);
