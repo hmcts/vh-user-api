@@ -1,4 +1,4 @@
-namespace UserApi.Contracts.Responses
+namespace UserApi.Contract.Responses
 {
     public class UserDetailsResponse
     {

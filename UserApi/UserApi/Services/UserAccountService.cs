@@ -10,7 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using UserApi.Common;
-using UserApi.Contracts.Requests;
+using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;

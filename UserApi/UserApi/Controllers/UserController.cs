@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -7,8 +5,8 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using UserApi.Contracts.Requests;
-using UserApi.Contracts.Responses;
+using UserApi.Contract.Requests;
+using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;

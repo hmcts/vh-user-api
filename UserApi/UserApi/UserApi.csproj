@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
+    <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
   </ItemGroup>
 
 </Project>

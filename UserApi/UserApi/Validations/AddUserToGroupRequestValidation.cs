@@ -1,5 +1,5 @@
 using FluentValidation;
-using UserApi.Contracts.Requests;
+using UserApi.Contract.Requests;
 
 namespace UserApi.Validations
 {

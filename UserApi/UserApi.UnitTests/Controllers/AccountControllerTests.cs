@@ -7,7 +7,7 @@ using UserApi.Services;
 using Microsoft.ApplicationInsights;
 using Microsoft.Graph;
 using UserApi.Controllers;
-using UserApi.Contracts.Responses;
+using UserApi.Contract.Responses;
 using List = Microsoft.Graph.List;
 using System.Collections.Generic;
 using System.Linq;

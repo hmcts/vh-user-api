@@ -30,7 +30,7 @@ namespace UserApi.Security
         {
             AuthenticationResult result;
             var credential = new ClientCredential(clientId, clientSecret);
-            var authContext = new AuthenticationContext($"{_azureAdConfiguration.Authority}");
+            var authContext = new AuthenticationContext($"{_azureAdConfiguration.Authority}{_azureAdConfiguration.TenantId}");
 
             try
             {

@@ -1,4 +1,4 @@
-namespace UserApi.Contracts.Requests
+namespace UserApi.Contract.Requests
 {
     public class CreateUserRequest
     {

@@ -81,7 +81,7 @@ namespace UserApi
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                options.Authority = securitySettings.Authority;
+                options.Authority = $"{securitySettings.Authority}{securitySettings.TenantId}";
                 options.TokenValidationParameters.ValidateLifetime = true;
                 options.Audience = securitySettings.VhUserApiResourceId;
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;

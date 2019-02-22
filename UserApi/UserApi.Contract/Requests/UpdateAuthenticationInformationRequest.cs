@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
-namespace UserApi.Contracts.Requests
+namespace UserApi.Contract.Requests
 {
     public class UpdateAuthenticationInformationRequest
     {

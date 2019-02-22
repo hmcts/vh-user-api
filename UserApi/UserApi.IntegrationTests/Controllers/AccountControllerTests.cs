@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using NUnit.Framework;
 using System.Threading.Tasks;
-using UserApi.Contracts.Responses;
+using UserApi.Contract.Responses;
 using FluentAssertions;
 using Testing.Common.Helpers;
 

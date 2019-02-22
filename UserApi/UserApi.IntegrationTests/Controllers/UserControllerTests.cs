@@ -4,8 +4,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using NUnit.Framework;
 using System.Threading.Tasks;
-using UserApi.Contracts.Requests;
-using UserApi.Contracts.Responses;
+using UserApi.Contract.Requests;
+using UserApi.Contract.Responses;
 using FluentAssertions;
 using Testing.Common.Helpers;
 using UserApi.Services.Models;
@@ -69,7 +69,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_get_user_by_id()
         {
-            const string userId = "b67d648b-f226-4880-88e1-51b6d1ec7da7";
+            const string userId = "60c7fae1-8733-4d82-b912-eece8d55d54c";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
