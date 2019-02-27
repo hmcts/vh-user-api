@@ -1,13 +1,22 @@
 # Set variables once
 variables:
-  solutionType: dotNetCore
-  cleanCheckout: 'false'
-  sonarCloudPrepareExtraProperties: |  
+  apiDirectory: 'UserApi/UserApi'
+  sonarCloudPrepareExtraProperties: |
     sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)\Coverage\coverage.opencover.xml
-  integrationTestsAppSettingsTransform: ''
-  vhAzureKeyVault: 'https://vhwebsitepreview.vault.azure.net/' # Used during integration tests
-  keyVaultName: vhcoreinfrahtpreview # Used to get secrets for integration tests
-  secretsFilter: '*' # filters out secrets returned from key vault
+    sonar.coverage.exclusions="*UserApi/Swagger/**,**/Program.cs,**/Startup.cs,Testing.Common/**,UserApi.Common/**,UserApi.IntegrationTests/**,UserApi.UnitTests/**,UserApi/Helper/**,UserApi/ConfigureServicesExtensions.cs,UserApi/Extensions/**"
+    sonar.cpd.exclusions="**/Program.cs,**/Startup.cs,Testing.Common/**,UserApi/Swagger/**"
+  coverletCoverageExclusions: '"\"[UserApi.*Tests?]*,[UserApi.API]Startup,[UserApi.Common]*,[Testing.Common]*\""'
+  integrationTestsAppSettingsTransform: '
+    "AzureAd/ClientId":"$(vh-user-api-appid)",
+    "AzureAd/ClientSecret":"$(vh-user-api-key)",
+    "AzureAd/TenantId":"$(tenantid)",
+    "AzureAd/VhUserApiResourceId":"$(vh-user-api-identifieruris)",
+    "Testing/TestClientId":"$(vh-admin-web-appid)",
+    "Testing/TestClientSecret":"$(vh-admin-web-key)"
+    '
+  dalWorkingDirectory: ''
+  keyVaultName: vhcoreinfrahtdev # Used to get secrets for integration tests
+  secretsFilter: 'vh-user-api-appid,vh-user-api-key,vh-admin-web-appid,vh-admin-web-key,tenantid,vh-user-api-identifieruris' # filters out secrets returned from key vault
 
 # GitHub Repo that conatins build templates. Reference https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=vsts#using-other-repositories
 resources:
@@ -15,9 +24,8 @@ resources:
   - repository: azureDevOpsTemplates
     type: github
     name: hmcts/azure-devops-templates
-    endpoint: 'GitHub connection 1'
-    ref: refs/heads/master  # ref name to use, defaults to 'refs/heads/master'
-
+    ref: refs/heads/master # ref name to use, defaults to 'refs/heads/master'
+    endpoint: 'GitHubDevOps'
 
 trigger:
 - master
@@ -25,11 +33,14 @@ pr:
 - master
 
 jobs:
+  
 - template: jobs/angularDotNetCore.yml@azureDevOpsTemplates # Template reference
   parameters:
     cleanCheckout: $(cleanCheckout)
     sonarCloudExtraProperties: $(sonarCloudPrepareExtraProperties)
-    KeyVaultName: $(KeyVaultName)
-    SecretsFilter: $(SecretsFilter)
-    solutionType: $(solutionType)
     integrationTestsAppSettingsTransform: $(integrationTestsAppSettingsTransform)
+    coverletCoverageExclusions: $(coverletCoverageExclusions)
+    apiDirectory: $(apiDirectory)
+    dalWorkingDirectory: $(dalWorkingDirectory)
+    keyVaultName: $(keyVaultName)
+    secretsFilter: $(secretsFilter)

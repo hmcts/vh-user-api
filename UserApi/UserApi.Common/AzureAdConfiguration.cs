@@ -1,5 +1,4 @@
-﻿
-namespace UserApi.Common
+﻿namespace UserApi.Common
 {
     public class AzureAdConfiguration
     {

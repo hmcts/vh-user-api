@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Http;
 namespace UserApi.Common
 {
     /// <summary>
-    /// Adds bad request response bodies to AppInsights for better troubleshooting
+    ///     Adds bad request response bodies to AppInsights for better troubleshooting
     /// </summary>
     public class BadRequestTelemetry : ITelemetryInitializer
     {
-        readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public BadRequestTelemetry(IHttpContextAccessor httpContextAccessor)
         {
@@ -33,7 +33,7 @@ namespace UserApi.Common
         private bool IsReadableBadRequest(RequestTelemetry telemetry)
         {
             return _httpContextAccessor.HttpContext.Request.Body.CanRead
-                && telemetry.ResponseCode == "400";
+                   && telemetry.ResponseCode == "400";
         }
     }
 }

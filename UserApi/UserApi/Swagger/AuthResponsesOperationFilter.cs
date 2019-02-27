@@ -18,10 +18,7 @@ namespace UserApi.Swagger
 
             if (!isAuthorized || allowAnonymous) return;
 
-            if (operation.Responses == null)
-            {
-                operation.Responses = new Dictionary<string, Response>();
-            }
+            if (operation.Responses == null) operation.Responses = new Dictionary<string, Response>();
 
             operation.Responses.Add("401", new Response {Description = "Unauthorized"});
         }

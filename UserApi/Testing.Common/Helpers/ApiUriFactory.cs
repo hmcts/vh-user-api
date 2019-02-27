@@ -2,45 +2,55 @@ namespace Testing.Common.Helpers
 {
     public class ApiUriFactory
     {
-        public HearingEndpoints HearingEndpoints { get; set; }
-        public ReferenceEndpoints ReferenceEndpoints { get; set; }
-        public UserAccountEndpoints UserAccountEndpoints { get; set; }
-
         public ApiUriFactory()
         {
-            HearingEndpoints = new HearingEndpoints();
-            ReferenceEndpoints = new ReferenceEndpoints();
-            UserAccountEndpoints = new UserAccountEndpoints();
+            UserEndpoints = new UserEndpoints();
+            AccountEndpoints = new AccountEndpoints();
+        }
+
+        public UserEndpoints UserEndpoints { get; set; }
+        public AccountEndpoints AccountEndpoints { get; set; }
+    }
+
+    public class AccountEndpoints
+    {
+        private string ApiRoot => "accounts";
+        public string AddUserToGroup => $"{ApiRoot}/user/group";
+
+        public string GetGroupByName(string groupName)
+        {
+            return $"{ApiRoot}/group/?name={groupName}";
+        }
+
+        public string GetGroupById(string groupId)
+        {
+            return $"{ApiRoot}/group/{groupId}";
+        }
+
+        public string GetGroupsForUser(string userId)
+        {
+            return $"{ApiRoot}/user/{userId}/groups";
         }
     }
-    
-    public class HearingEndpoints
-    {
-        private string ApiRoot => "api/hearings";
-        public string CreateAHearing => ApiRoot;
-    }
 
-    public class ReferenceEndpoints
+    public class UserEndpoints
     {
-        private string ApiRoot => "api/hearings";
-        public string GetHearingTypes => $"{ApiRoot}/types";
-        public string GetHearingMediums => $"{ApiRoot}/mediums";
-        public string GetHearingStatusTypes => $"{ApiRoot}/statustypes";
-        public string GetParticipantRoles => $"{ApiRoot}/participantroles";
-        public string GetCourts => $"{ApiRoot}/courts";
-    }
+        private string ApiRoot => "users";
+        public string CreateUser => $"{ApiRoot}";
 
-    public class UserAccountEndpoints
-    {
-        private string ApiRoot => "api/accounts";
+        public string GetUserByAdUserId(string userId)
+        {
+            return $"{ApiRoot}/{userId}";
+        }
 
-        public string CreateUser => $"{ApiRoot}/user";
-        public string AddUserToGroup => $"{ApiRoot}/user/group";
-        public string SetRecoveryEmail => $"{ApiRoot}/user/recovery";
-        public string GetUserByAdUserId(string userId) => $"{ApiRoot}/user/{userId}";
-        public string GetUserByRecoveryEmail(string recoveryEmail) => $"{ApiRoot}/user?recoveryMail={recoveryEmail}";
-        public string GetGroupsForUser(string userId) => $"{ApiRoot}/user/{userId}/groups";
-        public string GetGroupByName(string groupName) => $"{ApiRoot}/group/?name={groupName}";
-        public string GetGroupById(string groupId) => $"{ApiRoot}/group/{groupId}";
+        public string GetUserByAdUserName(string userName)
+        {
+            return $"{ApiRoot}/username/{userName}";
+        }
+
+        public string GetUserByEmail(string email)
+        {
+            return $"{ApiRoot}/email/{email}";
+        }
     }
 }

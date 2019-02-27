@@ -5,12 +5,6 @@ VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{36F51DD8-423D-4FE7-AAC0-BB77E8B11A92}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{F6D813E7-627A-488E-BA83-F62F9E218ECF}"
-	ProjectSection(SolutionItems) = preProject
-		..\Infrastructure\azuredeploy.json = ..\Infrastructure\azuredeploy.json
-		..\Infrastructure\azuredeploy.parameters.json = ..\Infrastructure\azuredeploy.parameters.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserApi.UnitTests", "UserApi.UnitTests\UserApi.UnitTests.csproj", "{FDD1860B-0597-42B0-9E56-B44D117AEA6B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserApi.IntegrationTests", "UserApi.IntegrationTests\UserApi.IntegrationTests.csproj", "{58F691A4-5FA7-406A-AAE2-D830A23CBA4D}"

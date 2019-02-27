@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,14 +24,14 @@ namespace UserApi.Helper
             await context.Request.Body.CopyToAsync(requestBodyStream);
             requestBodyStream.Seek(0, SeekOrigin.Begin);
 
-            var url = UriHelper.GetDisplayUrl(context.Request);
+            var url = context.Request.GetDisplayUrl();
             var requestBodyText = new StreamReader(requestBodyStream).ReadToEnd();
             var message =
                 $"REQUEST METHOD: {context.Request.Method}, REQUEST BODY: {requestBodyText}, REQUEST URL: {url}";
-            Dictionary<string, string> headers 
+            var headers
                 = context.Request.Headers.ToDictionary(a => a.Key, a => string.Join(";", a.Value));
             ApplicationLogger.TraceEvent(message, headers);
-            
+
 
             requestBodyStream.Seek(0, SeekOrigin.Begin);
             context.Request.Body = requestBodyStream;
