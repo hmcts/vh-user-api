@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UserApi.Services.Models
 {
     public class UserProfile
@@ -9,6 +11,6 @@ namespace UserApi.Services.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string UserRole { get; set; }
-        public string CaseType { get; set; }
+        public List<string> CaseType { get; set; }
     }
 }

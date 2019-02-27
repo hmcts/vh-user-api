@@ -20,7 +20,7 @@ namespace UserApi.Helper
         public async Task<UserProfile> GetUserProfile(string filter)
         {
             var userRole = string.Empty;
-            var userCaseType = string.Empty;
+            var userCaseType = new List<string>();
             var user = await _userAccountService.GetUserByFilter(filter);
 
             if (user == null)
@@ -58,11 +58,11 @@ namespace UserApi.Helper
                             break;
                         case 4:
                             userRole = UserRole.CaseAdmin.ToString();
-                            userCaseType = CaseType.MoneyClaims.ToString();
+                            userCaseType.Add(CaseType.MoneyClaims.ToString());
                             break;
                         case 5:
                             userRole = UserRole.CaseAdmin.ToString();
-                            userCaseType = CaseType.FinancialRemedy.ToString();
+                            userCaseType.Add(CaseType.FinancialRemedy.ToString());
                             break;
                     }
                 }
@@ -75,7 +75,8 @@ namespace UserApi.Helper
                 if (userGroupIds.Any(ug => lstMoneyClaimsPlusFinancialRemedy.Contains(ug)))
                 {
                     userRole = UserRole.CaseAdmin.ToString();
-                    userCaseType = CaseType.MoneyClaimsPlusFinancialRemedy.ToString();
+                    userCaseType.Add(CaseType.MoneyClaims.ToString());
+                    userCaseType.Add(CaseType.FinancialRemedy.ToString());
                 }
             }
 
