@@ -1,6 +1,5 @@
 # Set variables once
 variables:
-  cleanCheckout: true
   apiDirectory: 'UserApi/UserApi'
   sonarCloudPrepareExtraProperties: |
     sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)\Coverage\coverage.opencover.xml
