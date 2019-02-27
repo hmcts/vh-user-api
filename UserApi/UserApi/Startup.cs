@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using UserApi.Helper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -9,8 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using UserApi.Common;
+using UserApi.Helper;
 
 namespace UserApi
 {
@@ -44,7 +44,7 @@ namespace UserApi
             services.AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(options =>
-                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter())
                 );
 
             var contractResolver = new DefaultContractResolver
@@ -55,7 +55,7 @@ namespace UserApi
             services.AddMvc().AddJsonOptions(options =>
                     options.SerializerSettings.ContractResolver = contractResolver)
                 .AddJsonOptions(options =>
-                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter()));
         }
 
         private void RegisterSettings(IServiceCollection services)
@@ -89,7 +89,7 @@ namespace UserApi
         }
 
         /// <summary>
-        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        ///     This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
@@ -111,6 +111,7 @@ namespace UserApi
                 app.UseHsts();
                 app.UseHttpsRedirection();
             }
+
             app.UseAuthentication();
 
             app.UseCors(builder => builder

@@ -10,7 +10,7 @@ namespace UserApi.Security
         string GetClientAccessToken(string clientId, string clientSecret, string clientResource);
         AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string clientResource);
     }
-    
+
     public class TokenProvider : ITokenProvider
     {
         private readonly AzureAdConfiguration _azureAdConfiguration;
@@ -19,7 +19,7 @@ namespace UserApi.Security
         {
             _azureAdConfiguration = azureAdConfiguration.Value;
         }
-        
+
         public string GetClientAccessToken(string clientId, string clientSecret, string clientResource)
         {
             var result = GetAuthorisationResult(clientId, clientSecret, clientResource);
@@ -30,7 +30,8 @@ namespace UserApi.Security
         {
             AuthenticationResult result;
             var credential = new ClientCredential(clientId, clientSecret);
-            var authContext = new AuthenticationContext($"{_azureAdConfiguration.Authority}{_azureAdConfiguration.TenantId}");
+            var authContext =
+                new AuthenticationContext($"{_azureAdConfiguration.Authority}{_azureAdConfiguration.TenantId}");
 
             try
             {

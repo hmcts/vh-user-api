@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Graph;
 using UserApi.Services;
 using UserApi.Services.Models;
 
@@ -23,10 +22,7 @@ namespace UserApi.Helper
             var userCaseType = new List<string>();
             var user = await _userAccountService.GetUserByFilter(filter);
 
-            if (user == null)
-            {
-                return null;
-            }
+            if (user == null) return null;
 
             var userGroups = await _userAccountService.GetGroupsForUser(user.Id);
             if (userGroups != null)
@@ -34,9 +30,7 @@ namespace UserApi.Helper
                 var userGroupIds = new List<int>();
 
                 foreach (var usrGrp in userGroups)
-                {
-                    userGroupIds.Add((int)Enum.Parse(typeof(AadGroup), usrGrp.DisplayName));
-                }
+                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), usrGrp.DisplayName));
 
                 var lstVirtualRoomProfessionalPlusExternal = new List<int>
                     {(int) AadGroup.VirtualRoomAdministrator, (int) AadGroup.External};
@@ -44,7 +38,6 @@ namespace UserApi.Helper
                     {(int) AadGroup.MoneyClaims, (int) AadGroup.FinancialRemedy};
 
                 if (userGroupIds.Count == 1)
-                {
                     switch (userGroupIds[0])
                     {
                         case 1:
@@ -65,12 +58,9 @@ namespace UserApi.Helper
                             userCaseType.Add(CaseType.FinancialRemedy.ToString());
                             break;
                     }
-                }
 
                 if (userGroupIds.Any(ug => lstVirtualRoomProfessionalPlusExternal.Contains(ug)))
-                {
                     userRole = UserRole.Representative.ToString();
-                }
 
                 if (userGroupIds.Any(ug => lstMoneyClaimsPlusFinancialRemedy.Contains(ug)))
                 {

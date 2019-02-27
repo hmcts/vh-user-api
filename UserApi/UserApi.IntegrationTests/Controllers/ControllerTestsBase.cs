@@ -1,6 +1,5 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using UserApi.Security;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -9,14 +8,15 @@ using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Testing.Common;
 using UserApi.Common;
+using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers
 {
     [Parallelizable(ParallelScope.All)]
     public abstract class ControllerTestsBase
     {
-        private TestServer _server;
         private string _bearerToken;
+        private TestServer _server;
         protected string GraphApiToken;
 
         [OneTimeSetUp]
@@ -36,7 +36,7 @@ namespace UserApi.IntegrationTests.Controllers
             var configRootBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .AddUserSecrets<Startup>();
-            
+
             var configRoot = configRootBuilder.Build();
 
             var testSettingsOptions = Options.Create(configRoot.GetSection("Testing").Get<TestSettings>());
@@ -52,7 +52,7 @@ namespace UserApi.IntegrationTests.Controllers
                 testSettings.TestClientId, testSettings.TestClientSecret,
                 "https://graph.microsoft.com");
         }
-        
+
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {

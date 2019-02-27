@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using UserApi.Security;
-using UserApi.Services;
-using UserApi.Swagger;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using UserApi.Common;
+using UserApi.Security;
+using UserApi.Services;
+using UserApi.Swagger;
 
 namespace UserApi
 {
@@ -35,12 +34,18 @@ namespace UserApi
 
             serviceCollection.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "User API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info {Title = "User API", Version = "v1"});
                 c.IncludeXmlComments(xmlPath);
                 c.EnableAnnotations();
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme { In = "header", Description = "Please enter JWT with Bearer into field", Name = "Authorization", Type = "apiKey" });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
-                    { "Bearer", Enumerable.Empty<string>() },
+                c.AddSecurityDefinition("Bearer",
+                    new ApiKeyScheme
+                    {
+                        In = "header", Description = "Please enter JWT with Bearer into field", Name = "Authorization",
+                        Type = "apiKey"
+                    });
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                {
+                    {"Bearer", Enumerable.Empty<string>()}
                 });
                 c.OperationFilter<AuthResponsesOperationFilter>();
             });

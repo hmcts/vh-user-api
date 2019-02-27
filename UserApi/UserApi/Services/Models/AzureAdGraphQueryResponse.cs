@@ -5,11 +5,9 @@ namespace UserApi.Services.Models
 {
     public class AzureAdGraphQueryResponse<T>
     {
-        [JsonProperty("@odata.metadata")]
-        public string Context { get; set; }
+        [JsonProperty("@odata.metadata")] public string Context { get; set; }
 
-        [JsonProperty("value")]
-        public IList<T> Value { get; set; }
+        [JsonProperty("value")] public IList<T> Value { get; set; }
     }
 
     public class AzureAdGraphUserResponse

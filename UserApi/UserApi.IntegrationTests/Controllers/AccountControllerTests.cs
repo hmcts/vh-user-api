@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using NUnit.Framework;
 using System.Threading.Tasks;
-using UserApi.Contract.Responses;
 using FluentAssertions;
+using NUnit.Framework;
 using Testing.Common.Helpers;
+using UserApi.Contract.Responses;
 
 namespace UserApi.IntegrationTests.Controllers
 {
-    public class AccountController  : ControllerTestsBase
+    public class AccountController : ControllerTestsBase
     {
         private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
         private string _newUserId;
-        
+
         [Test]
         public async Task should_get_group_by_name_not_found_with_bogus_group_name()
         {
@@ -36,7 +36,7 @@ namespace UserApi.IntegrationTests.Controllers
             groupResponseModel.DisplayName.Should().Be(groupName);
             groupResponseModel.GroupId.Should().NotBeNullOrWhiteSpace();
         }
-        
+
         [Test]
         public async Task should_get_group_by_id()
         {
@@ -48,7 +48,7 @@ namespace UserApi.IntegrationTests.Controllers
                     .ReadAsStringAsync().Result);
             groupResponseModel.GroupId.Should().Be(groupId);
         }
-        
+
         [Test]
         public async Task should_get_group_by_id_not_found_with_bogus_id()
         {

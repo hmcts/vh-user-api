@@ -3,74 +3,73 @@
     public enum TraceCategory
     {
         /// <summary>
-        /// The hearing
+        ///     The hearing
         /// </summary>
         HearingList,
 
         /// <summary>
-        /// The speed test
+        ///     The speed test
         /// </summary>
         SpeedTest,
 
         /// <summary>
-        /// The media test
+        ///     The media test
         /// </summary>
         MediaTest,
 
         /// <summary>
-        /// The waiting area
+        ///     The waiting area
         /// </summary>
         WaitingArea,
 
         /// <summary>
-        /// The lobby
+        ///     The lobby
         /// </summary>
         Lobby,
 
         /// <summary>
-        /// The live hearing
+        ///     The live hearing
         /// </summary>
         LiveHearing,
 
         /// <summary>
-        /// The conversation
+        ///     The conversation
         /// </summary>
         ConversationGroups,
 
         /// <summary>
-        /// The premature leave
+        ///     The premature leave
         /// </summary>
         PrematureLeave,
 
         /// <summary>
-        /// The signal r
+        ///     The signal r
         /// </summary>
         SignalR,
 
         /// <summary>
-        /// The eject participant
+        ///     The eject participant
         /// </summary>
         EjectParticipant,
 
         /// <summary>
-        /// The skype event
+        ///     The skype event
         /// </summary>
         SkypeEvent,
 
         /// <summary>
-        /// The meeting status update
+        ///     The meeting status update
         /// </summary>
         MeetingStatusUpdate,
 
         /// <summary>
-        /// The meeting status update
+        ///     The meeting status update
         /// </summary>
         TokenProvider,
 
         /// <summary>
-        /// API Exception
+        ///     API Exception
         /// </summary>
         APIException
-
     }
 }

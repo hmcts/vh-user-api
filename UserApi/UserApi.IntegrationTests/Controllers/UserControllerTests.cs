@@ -2,20 +2,21 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using NUnit.Framework;
 using System.Threading.Tasks;
+using Faker;
+using FluentAssertions;
+using NUnit.Framework;
+using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
-using FluentAssertions;
-using Testing.Common.Helpers;
 using UserApi.Services.Models;
 
 namespace UserApi.IntegrationTests.Controllers
 {
-    public class UserController  : ControllerTestsBase
+    public class UserController : ControllerTestsBase
     {
-        private readonly UserEndpoints _userEndpoints = new ApiUriFactory().UserEndpoints;
         private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
+        private readonly UserEndpoints _userEndpoints = new ApiUriFactory().UserEndpoints;
         private string _newUserId;
 
         [Test]
@@ -23,9 +24,9 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var createUserRequest = new CreateUserRequest
             {
-                RecoveryEmail = Faker.Internet.Email(),
-                FirstName = Faker.Name.First(),
-                LastName = Faker.Name.Last()
+                RecoveryEmail = Internet.Email(),
+                FirstName = Name.First(),
+                LastName = Name.Last()
             };
             var createUserHttpRequest = new StringContent(
                 ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
@@ -48,7 +49,7 @@ namespace UserApi.IntegrationTests.Controllers
             _newUserId = createUserModel.UserId;
 
             var addSsprGroupRequest = new AddUserToGroupRequest
-            { UserId = createUserModel.UserId, GroupName = "SSPR Enabled" };
+                {UserId = createUserModel.UserId, GroupName = "SSPR Enabled"};
             var addSsprGroupHttpRequest = new StringContent(
                 ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addSsprGroupRequest),
                 Encoding.UTF8, "application/json");
@@ -57,7 +58,7 @@ namespace UserApi.IntegrationTests.Controllers
             addSsprGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
 
             var addExternalGroupRequest = new AddUserToGroupRequest
-            { UserId = createUserModel.UserId, GroupName = "External" };
+                {UserId = createUserModel.UserId, GroupName = "External"};
             var addExternalGroupHttpRequest = new StringContent(
                 ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest),
                 Encoding.UTF8, "application/json");
@@ -65,7 +66,7 @@ namespace UserApi.IntegrationTests.Controllers
                 await SendPatchRequestAsync(_accountEndpoints.AddUserToGroup, addExternalGroupHttpRequest);
             addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
         }
-        
+
         [Test]
         public async Task should_get_user_by_id()
         {
@@ -112,7 +113,7 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        
+
         [Test]
         public async Task should_get_user_profile_by_email()
         {

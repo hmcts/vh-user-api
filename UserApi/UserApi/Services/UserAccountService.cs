@@ -1,7 +1,3 @@
-using Microsoft.Extensions.Options;
-using Microsoft.Graph;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +5,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Security;
@@ -21,11 +21,11 @@ namespace UserApi.Services
         Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
             string password = null);
 
-        Task AddUserToGroup(User user, Group @group);
+        Task AddUserToGroup(User user, Group group);
         Task UpdateAuthenticationInformation(string userId, string recoveryMail);
 
         /// <summary>
-        /// Get a user in AD either via Object ID or UserPrincipalName
+        ///     Get a user in AD either via Object ID or UserPrincipalName
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -41,9 +41,9 @@ namespace UserApi.Services
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
+        private readonly AzureAdConfiguration _azureAdConfiguration;
         private readonly TimeSpan _retryTimeout;
         private readonly ITokenProvider _tokenProvider;
-        private readonly AzureAdConfiguration _azureAdConfiguration;
 
         public UserAccountService(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
         {
@@ -51,7 +51,7 @@ namespace UserApi.Services
             _tokenProvider = tokenProvider;
             _azureAdConfiguration = azureAdConfigOptions.Value;
         }
-        
+
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
             string password = null)
         {
@@ -77,46 +77,7 @@ namespace UserApi.Services
             return await CreateUser(user);
         }
 
-
-        private async Task<NewAdUserAccount> CreateUser(User newUser)
-        {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Post, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users");
-                httpRequestMessage.Content = stringContent;
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var user = await responseMessage.Content.ReadAsAsync<User>();
-                var adUserAccount = new NewAdUserAccount
-                {
-                    Username = user.UserPrincipalName,
-                    OneTimePassword = newUser.PasswordProfile.Password,
-                    UserId = user.Id
-                };
-                return adUserAccount;
-            }
-
-            var message = $"Failed to add create user {newUser.UserPrincipalName}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
-
-        public async Task AddUserToGroup(User user, Group @group)
+        public async Task AddUserToGroup(User user, Group group)
         {
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                 _azureAdConfiguration.ClientSecret,
@@ -158,57 +119,6 @@ namespace UserApi.Services
             await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
         }
 
-        private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
-        {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
-
-            var model = new UpdateAuthenticationInformationRequest
-            {
-                OtherMails = new List<string> {recoveryMail}
-            };
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(model));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Patch,
-                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6")
-                    {
-                        Content = stringContent
-                    };
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
-            if (responseMessage.IsSuccessStatusCode) return;
-
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-
-            // If it's 404 try it again as the user might simply not have become "ready" in AD
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                if (DateTime.Now > timeout)
-                {
-                    throw new UserServiceException("Timed out trying to update alternative address for ${userId}",
-                        reason);
-                }
-
-                ApplicationLogger.Trace("APIFailure", "GraphAPI 404 PATCH /users/{id}",
-                    $"Failed to update authentication information for user {userId}, will retry.");
-                await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
-                return;
-            }
-
-            var message = $"Failed to update alternative email address for {userId}";
-            throw new UserServiceException(message, reason);
-        }
-
         public async Task<User> GetUserById(string userId)
         {
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
@@ -225,15 +135,9 @@ namespace UserApi.Services
                 responseMessage = await client.SendAsync(httpRequestMessage);
             }
 
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                return await responseMessage.Content.ReadAsAsync<User>();
-            }
+            if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<User>();
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
 
             var message = $"Failed to get user by id {userId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
@@ -262,10 +166,7 @@ namespace UserApi.Services
             {
                 var queryResponse = await responseMessage.Content
                     .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
-                if (!queryResponse.Value.Any())
-                {
-                    return null;
-                }
+                if (!queryResponse.Value.Any()) return null;
 
                 var adUser = queryResponse.Value.First();
                 return new User
@@ -279,10 +180,7 @@ namespace UserApi.Services
                 };
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
 
             var message = $"Failed to search user with filter {filter}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
@@ -301,7 +199,6 @@ namespace UserApi.Services
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
                     $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'");
                 responseMessage = await client.SendAsync(httpRequestMessage);
-
             }
 
             if (responseMessage.IsSuccessStatusCode)
@@ -330,15 +227,9 @@ namespace UserApi.Services
                 responseMessage = await client.SendAsync(httpRequestMessage);
             }
 
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                return await responseMessage.Content.ReadAsAsync<Group>();
-            }
+            if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<Group>();
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
 
             var message = $"Failed to get group by id {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
@@ -381,13 +272,98 @@ namespace UserApi.Services
                 return groups;
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
 
             var message = $"Failed to get group for user {userId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
+            throw new UserServiceException(message, reason);
+        }
+
+
+        private async Task<NewAdUserAccount> CreateUser(User newUser)
+        {
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,
+                _azureAdConfiguration.GraphApiBaseUri);
+
+            HttpResponseMessage responseMessage;
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
+                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                var httpRequestMessage =
+                    new HttpRequestMessage(HttpMethod.Post, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users");
+                httpRequestMessage.Content = stringContent;
+                responseMessage = await client.SendAsync(httpRequestMessage);
+            }
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var user = await responseMessage.Content.ReadAsAsync<User>();
+                var adUserAccount = new NewAdUserAccount
+                {
+                    Username = user.UserPrincipalName,
+                    OneTimePassword = newUser.PasswordProfile.Password,
+                    UserId = user.Id
+                };
+                return adUserAccount;
+            }
+
+            var message = $"Failed to add create user {newUser.UserPrincipalName}";
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+            throw new UserServiceException(message, reason);
+        }
+
+        private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
+        {
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
+
+            var model = new UpdateAuthenticationInformationRequest
+            {
+                OtherMails = new List<string> {recoveryMail}
+            };
+
+            HttpResponseMessage responseMessage;
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var stringContent = new StringContent(JsonConvert.SerializeObject(model));
+                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                var httpRequestMessage =
+                    new HttpRequestMessage(HttpMethod.Patch,
+                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6")
+                    {
+                        Content = stringContent
+                    };
+                responseMessage = await client.SendAsync(httpRequestMessage);
+            }
+
+            if (responseMessage.IsSuccessStatusCode) return;
+
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+
+            // If it's 404 try it again as the user might simply not have become "ready" in AD
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                if (DateTime.Now > timeout)
+                    throw new UserServiceException("Timed out trying to update alternative address for ${userId}",
+                        reason);
+
+                ApplicationLogger.Trace("APIFailure", "GraphAPI 404 PATCH /users/{id}",
+                    $"Failed to update authentication information for user {userId}, will retry.");
+                await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
+                return;
+            }
+
+            var message = $"Failed to update alternative email address for {userId}";
             throw new UserServiceException(message, reason);
         }
     }

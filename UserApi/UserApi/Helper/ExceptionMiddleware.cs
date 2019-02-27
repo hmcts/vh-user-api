@@ -3,14 +3,13 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using UserApi.Common;
-using UserApi.Common.Helpers;
 
 namespace UserApi.Helper
 {
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        
+
 
         public ExceptionMiddleware(RequestDelegate next)
         {
@@ -25,13 +24,15 @@ namespace UserApi.Helper
             }
             catch (BadRequestException ex)
             {
-                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "400 Exception", ex, null, null);
-                await HandleExceptionAsync(httpContext, (int)HttpStatusCode.BadRequest, ex);
+                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "400 Exception",
+                    ex, null, null);
+                await HandleExceptionAsync(httpContext, (int) HttpStatusCode.BadRequest, ex);
             }
             catch (Exception ex)
             {
-                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "API Exception", ex, null, null);
-                await HandleExceptionAsync(httpContext, (int)HttpStatusCode.InternalServerError, ex);
+                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "API Exception",
+                    ex, null, null);
+                await HandleExceptionAsync(httpContext, (int) HttpStatusCode.InternalServerError, ex);
             }
         }
 
@@ -39,9 +40,8 @@ namespace UserApi.Helper
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
-                   
+
             return context.Response.WriteAsync(exception.Message);
         }
-
     }
 }
