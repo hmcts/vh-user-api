@@ -8,7 +8,6 @@ using NUnit.Framework;
 using UserApi.Controllers;
 using UserApi.Services;
 using UserApi.Services.Models;
-
 namespace UserApi.UnitTests.Controllers
 {
     public class UserAccountsControllerTests
@@ -20,7 +19,7 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            _controller = new UserController(_userAccountService.Object, new TelemetryClient());
+            _controller = new UserController(_userAccountService.Object, new TelemetryClient(), null);
         }
 
         [Test]

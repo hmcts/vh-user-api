@@ -52,5 +52,10 @@ namespace Testing.Common.Helpers
         {
             return $"{ApiRoot}/email/{email}";
         }
+
+        public string CheckServiceHealth()
+        {
+            return $"{ApiRoot}/health/";
+        }
     }
 }

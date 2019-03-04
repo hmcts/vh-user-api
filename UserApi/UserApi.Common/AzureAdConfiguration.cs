@@ -10,4 +10,9 @@
         public string GraphApiBaseUri { get; set; }
         public string VhBookingsApiResourceId { get; set; }
     }
+
+    public class HealthConfiguration
+    {
+        public string HealthCheckEmail { get; set; }
+    }
 }

@@ -140,6 +140,14 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
 
+        [Test]
+        public async Task should_get_ok_for_user_health_check()
+        {
+            var getResponse = await SendGetRequestAsync(_userEndpoints.CheckServiceHealth());
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+
         [TearDown]
         public void ClearUp()
         {

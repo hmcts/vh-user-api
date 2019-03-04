@@ -1,10 +1,13 @@
+using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Swashbuckle.AspNetCore.Annotations;
+using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -21,11 +24,13 @@ namespace UserApi.Controllers
     {
         private readonly TelemetryClient _telemetryClient;
         private readonly IUserAccountService _userAccountService;
+        private IConfiguration _configuration { get; }
 
-        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient)
+        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, IConfiguration configuration)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -116,6 +121,39 @@ namespace UserApi.Controllers
             if (userProfile == null) return NotFound();
 
             return Ok(userProfile);
+        }
+
+        /// <summary>
+        ///     Run a health check of the service
+        /// </summary>
+        /// <returns>Error if fails, otherwise OK status</returns>
+        [HttpGet("health")]
+        [SwaggerOperation(OperationId = "CheckServiceHealth")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> Health()
+        {
+            try
+            {
+                var email = _configuration.GetSection("Health").GetSection("HealthCheckEmail").Value;
+                //Check if the end point is accessible
+                var filter = $"otherMails/any(c:c eq '{email}')";
+                var profile = new UserProfileHelper(_userAccountService);
+                var userProfile = await profile.GetUserProfile(filter);
+
+                if (userProfile == null) return NotFound();
+            }
+            catch (Exception ex)
+            {
+                var data = new
+                {
+                    ex.Message,
+                    ex.Data
+                };
+                return StatusCode((int)HttpStatusCode.InternalServerError, data);
+            }
+
+            return Ok();
         }
     }
 }
