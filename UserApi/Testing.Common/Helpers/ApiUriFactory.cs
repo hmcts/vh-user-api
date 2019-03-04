@@ -6,10 +6,13 @@ namespace Testing.Common.Helpers
         {
             UserEndpoints = new UserEndpoints();
             AccountEndpoints = new AccountEndpoints();
+            HealthCheckEndpoints = new HealthCheckEndpoints();
         }
 
         public UserEndpoints UserEndpoints { get; set; }
         public AccountEndpoints AccountEndpoints { get; set; }
+        public HealthCheckEndpoints HealthCheckEndpoints { get; set; }
+
     }
 
     public class AccountEndpoints
@@ -52,10 +55,15 @@ namespace Testing.Common.Helpers
         {
             return $"{ApiRoot}/email/{email}";
         }
+    }
 
+    public class HealthCheckEndpoints
+    {
+        private string ApiRoot => "healthcheck";
+        
         public string CheckServiceHealth()
         {
-            return $"{ApiRoot}/health/";
+            return $"{ApiRoot}/health";
         }
     }
 }

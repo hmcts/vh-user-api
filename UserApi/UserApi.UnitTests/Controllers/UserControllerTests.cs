@@ -19,7 +19,7 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            _controller = new UserController(_userAccountService.Object, new TelemetryClient(), null);
+            _controller = new UserController(_userAccountService.Object, new TelemetryClient());
         }
 
         [Test]
