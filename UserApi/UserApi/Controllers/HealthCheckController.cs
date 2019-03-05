@@ -17,7 +17,7 @@ namespace UserApi.Controllers
         private readonly IUserAccountService _userAccountService;
         private IConfiguration _configuration { get; }
 
-        public HealthCheckController(IUserAccountService userAccountService,IConfiguration configuration)
+        public HealthCheckController(IUserAccountService userAccountService, IConfiguration configuration)
         {
             _userAccountService = userAccountService;
             _configuration = configuration;
@@ -42,6 +42,11 @@ namespace UserApi.Controllers
                 var userProfile = await profile.GetUserProfile(filter);
 
                 if (userProfile == null) return NotFound();
+
+                var name = _configuration.GetSection("Health").GetSection("HealthCheckGroupName").Value;
+                var adGroup = await _userAccountService.GetGroupByName(name);
+
+                if (adGroup == null) return NotFound();
             }
             catch (Exception ex)
             {
