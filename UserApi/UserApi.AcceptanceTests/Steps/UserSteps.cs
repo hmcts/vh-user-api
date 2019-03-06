@@ -33,7 +33,7 @@ namespace UserApi.AcceptanceTests.Steps
         {
             foreach (var number in _numbers)
             {
-                _total = _total + number;
+                _total += number;
             }
         }
 
