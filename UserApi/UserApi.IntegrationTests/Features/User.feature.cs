@@ -107,7 +107,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 16
  testRunner.And("the user should not be added", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 17
- testRunner.And("the response message should read \'user already exists\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'user already exists\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -155,7 +155,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 32
  testRunner.And("the user should not be added", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 33
- testRunner.And("the response message should read \'email has incorrect format\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'email has incorrect format\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -197,7 +197,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 45
  testRunner.And("the response should be empty", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 46
- testRunner.And("the response message should read \'user does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'user does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -217,7 +217,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 51
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 52
- testRunner.And("the response message should read \'username cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'username cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -261,7 +261,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 64
  testRunner.And("the response should be empty", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 65
- testRunner.And("the response message should read \'user priniciple name does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'user priniciple name does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -282,7 +282,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 70
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 71
- testRunner.And("the response message should read \'user principal name cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'user principal name cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -324,7 +324,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 83
  testRunner.And("the response should be empty", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line 84
- testRunner.And("the response message should read \'email does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'email does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -344,7 +344,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 89
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 90
- testRunner.And("the response message should read \'email cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'email cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
