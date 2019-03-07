@@ -5,6 +5,7 @@
         Valid,
         Invalid,
         Existing,
-        Nonexistent
+        Nonexistent,
+        IncorrectFormat
     }
 }

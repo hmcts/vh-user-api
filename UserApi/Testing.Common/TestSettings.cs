@@ -1,8 +1,18 @@
-﻿namespace Testing.Common
+﻿using System.Collections.Generic;
+
+namespace Testing.Common
 {
     public class TestSettings
     {
         public string TestClientId { get; set; }
         public string TestClientSecret { get; set; }
+        public string ExistingUserId { get; set; }
+        public string ExistingUserPrincipal { get; set; }
+        public string ExistingEmail { get; set; }
+        public string ExistingFirstname { get; set; }
+        public string ExistingLastname { get; set; }
+        public List<Group> ExistingGroups { get; set; }
+        public List<Group> NewGroups { get; set; }
+        public string ReformEmail { get; set; }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Faker;
 using FluentAssertions;
-using NUnit.Framework;
 using TechTalk.SpecFlow;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
@@ -20,23 +18,19 @@ namespace UserApi.IntegrationTests.Steps
     [Binding]
     public sealed class UserSteps : BaseSteps
     {
-        private readonly ScenarioContext _scenarioContext;
         private readonly ApiTestContext _apiTestContext;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
-        private const string ExistingUser = "60c7fae1-8733-4d82-b912-eece8d55d54c";
-        private const string ExistingUserPrinciple = "VirtualRoomAdministrator@hearings.reform.hmcts.net";
-        private const string ExistingEmail = "VirtualRoomAdministrator@kinley.com";
 
-        public UserSteps(ScenarioContext scenarioContext, ApiTestContext apiTestContext)
+        public UserSteps(ApiTestContext apiTestContext)
         {
-            _scenarioContext = scenarioContext;
             _apiTestContext = apiTestContext;
         }
 
-        [Given(@"I have a new hearings reforms user account request for a (.*) user")]
-        [Given(@"I have a new hearings reforms user account request for an (.*) user")]
+        [Given(@"I have a new hearings reforms user account request with a (.*) email")]
+        [Given(@"I have a new hearings reforms user account request with an (.*) email")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestForTheUser(Scenario scenario)
         {
+            _apiTestContext.Uri = _endpoints.CreateUser;
             _apiTestContext.HttpMethod = HttpMethod.Post;
             var createUserRequest = new CreateUserRequest
             {
@@ -52,41 +46,107 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Existing:
                 {
+                    createUserRequest.RecoveryEmail = _apiTestContext.TestSettings.ExistingEmail;
+                    createUserRequest.FirstName = _apiTestContext.TestSettings.ExistingFirstname;
+                    createUserRequest.LastName = _apiTestContext.TestSettings.ExistingLastname;
                     break;
                 }
-                case Scenario.Nonexistent:
-                    break;
                 case Scenario.Invalid:
+                {
+                    createUserRequest.RecoveryEmail = "";
+                    createUserRequest.FirstName = "";
+                    createUserRequest.LastName = "";
                     break;
+                }
+                case Scenario.IncorrectFormat:
+                {
+                    createUserRequest.RecoveryEmail = "EmailWithoutAnAtSymbol";
+                    break;
+                }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
 
-
-           
             _apiTestContext.StringContent = new StringContent(
                 ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
                 Encoding.UTF8, "application/json");
         }
 
-        [Given(@"I have a get user by AD user Id request for the user '(.*)'")]
-        public void GivenIHaveAGetUserByADUserIdRequestForTheUser(string username)
+        [Given(@"I have a get user by AD user Id request for a (.*) user")]
+        [Given(@"I have a get user by AD user Id request for an (.*) user")]
+        public void GivenIHaveAGetUserByADUserIdRequestForTheUser(Scenario scenario)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
-            _apiTestContext.Uri = _endpoints.GetUserByAdUserId(username);
+            switch (scenario)
+            {
+                case Scenario.Existing:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(_apiTestContext.TestSettings.ExistingUserId);
+                    break;
+                }
+                case Scenario.Nonexistent:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId("Does not exist");
+                    break;
+                }
+                case Scenario.Invalid:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(string.Empty);
+                    break;
+                }
+                default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
+            }
         }
 
-        [Given(@"I have a get user by user principle name request for the user principle name '(.*)'")]
-        public void GivenIHaveAGetUserByUserPrincipleNameRequestForTheUserPrincipleName(string userPrincipleName)
+        [Given(@"I have a get user by user principal name request for a (.*) user principal name")]
+        [Given(@"I have a get user by user principal name request for an (.*) user principal name")]
+        public void GivenIHaveAGetUserByUserPrincipalNameRequestForTheUserPrincipalName(Scenario scenario)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
-            _apiTestContext.Uri = _endpoints.GetUserByAdUserName(userPrincipleName);
+            switch (scenario)
+            {
+                case Scenario.Existing:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserName(_apiTestContext.TestSettings.ExistingUserPrincipal);
+                    break;
+                }
+                case Scenario.Nonexistent:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId("Does not exist");
+                    break;
+                }
+                case Scenario.Invalid:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(string.Empty);
+                    break;
+                }
+                default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
+            }
         }
 
-        [Given(@"I have a get user profile by email request for the email '(.*)'")]
-        public void GivenIHaveAGetUserProfileByEmailRequestForTheEmail(string email)
+        [Given(@"I have a get user profile by email request for a (.*) email")]
+        [Given(@"I have a get user profile by email request for an (.*) email")]
+        public void GivenIHaveAGetUserProfileByEmailRequestForTheEmail(Scenario scenario)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
-            _apiTestContext.Uri = _endpoints.GetUserByEmail(email);
+            switch (scenario)
+            {
+                case Scenario.Existing:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByEmail(_apiTestContext.TestSettings.ExistingEmail);
+                    break;
+                }
+                case Scenario.Nonexistent:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByEmail("Does not exist");
+                    break;
+                }
+                case Scenario.Invalid:
+                {
+                    _apiTestContext.Uri = _endpoints.GetUserByEmail(string.Empty);
+                    break;
+                }
+                default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
+            }
         }
 
         [Then(@"the user should be added")]

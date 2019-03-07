@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using Microsoft.AspNetCore.TestHost;
+using Testing.Common;
 
 namespace UserApi.IntegrationTests.Contexts
 {
@@ -15,5 +16,6 @@ namespace UserApi.IntegrationTests.Contexts
         public HttpResponseMessage ResponseMessage { get; set; }
         public string NewUserId { get; set; }
         public string GraphApiToken { get; set; }
+        public TestSettings TestSettings { get; set; }
     }
 }

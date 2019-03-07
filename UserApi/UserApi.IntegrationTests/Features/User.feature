@@ -4,84 +4,87 @@
 	I want to be able to retrieve or create ad users
 
 Scenario: Create a new hearings reforms user account
-	Given I have a new hearings reforms user account request for a new user
+	Given I have a new hearings reforms user account request with a valid email
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user should be added
 
 Scenario: User account not created for an existing user
-	Given I have a new hearings reforms user account request for an existing user
+	Given I have a new hearings reforms user account request with an existing email
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 	And the user should not be added
-	And the response message should read 'user already exists'
+	And the error response message should contain 'user already exists'
 
 Scenario: User account not created for an invalid user
-	Given I have a new hearings reforms user account request for the user ''
+	Given I have a new hearings reforms user account request with an invalid email
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 	And the user should not be added
-	And the response message should read 'username cannot be empty'
+	And the error response message should contain 'recovery email cannot be empty'
+	And the error response message should also contain 'first name cannot be empty'
+	And the error response message should also contain 'last name cannot be empty'
+
+Scenario: User account not created with an incorrectly formatted email
+	Given I have a new hearings reforms user account request with an IncorrectFormat email
+	When I send the request to the endpoint
+	Then the response should have the status BadRequest and success status False
+	And the user should not be added
+	And the error response message should contain 'email has incorrect format'
 
 Scenario: Get user by AD user Id
-	Given I have a get user by AD user Id request for the user '60c7fae1-8733-4d82-b912-eece8d55d54c'
+	Given I have a get user by AD user Id request for an existing user
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
 
 Scenario: User account not retrieved for a nonexistent user
-	Given I have a get user by AD user Id request for the user 'Does not exist'
+	Given I have a get user by AD user Id request for a nonexistent user
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
 	And the response should be empty
-	And the response message should read 'user does not exist'
+	And the error response message should contain 'user does not exist'
 	
 Scenario: User account not retrieved for an invalid user
-	Given I have a get user by AD user Id request for the user ''
+	Given I have a get user by AD user Id request for an invalid user
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
-	And the response message should read 'username cannot be empty'
+	And the error response message should contain 'username cannot be empty'
 
-Scenario: Get user by user principle name
-	Given I have a get user by user principle name request for the user principle name 'VirtualRoomAdministrator@hearings.reform.hmcts.net'
+Scenario: Get user by user principal name
+	Given I have a get user by user principal name request for an existing user principal name
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
 
-Scenario: User account not retrieved for a nonexistent user principle name
-	Given I have a get user by user principle name request for the user principle name 'Does not exist'
+Scenario: User account not retrieved for a nonexistent user principal name
+	Given I have a get user by user principal name request for a nonexistent user principal name
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
 	And the response should be empty
-	And the response message should read 'user priniciple name does not exist'
+	And the error response message should contain 'user priniciple name does not exist'
 
-Scenario: User account not retrieved for an invalid user principle name
-	Given I have a get user by user principle name request for the user principle name ''
+Scenario: User account not retrieved for an invalid user principal name
+	Given I have a get user by user principal name request for an invalid user principal name
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
-	And the response message should read 'user principle name cannot be empty'
+	And the error response message should contain 'user principal name cannot be empty'
 
 Scenario: Get user profile by email
-	Given I have a get user profile by email request for the email 'VirtualRoomAdministrator@kinley.com'
+	Given I have a get user profile by email request for an existing email
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
 
 Scenario: User account not retrieved with a nonexistent email
-	Given I have a get user profile by email request for the email 'DoesNot@Exist.com'
+	Given I have a get user profile by email request for a nonexistent email
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
 	And the response should be empty
-	And the response message should read 'email does not exist'
-
-Scenario: User account not retrieved with an incorrectly formatted email
-	Given I have a get user profile by email request for the email 'Incorrect format'
-	When I send the request to the endpoint
-	Then the response should have the status BadRequest and success status False
-	And the response message should read 'email has incorrect format'
+	And the error response message should contain 'email does not exist'
 
 Scenario: User account not retrieved with an invalid email
-	Given I have a get user profile by email request for the email ''
+	Given I have a get user profile by email request for an invalid email
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
-	And the response message should read 'email cannot be empty'
+	And the error response message should contain 'email cannot be empty'

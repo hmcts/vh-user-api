@@ -89,7 +89,7 @@ namespace UserApi.Controllers
         }
 
         /// <summary>
-        ///     Get User by User principle name
+        ///     Get User by User principal name
         /// </summary>
         [HttpGet("userName/{userName}", Name = "GetUserByAdUserName")]
         [SwaggerOperation(OperationId = "GetUserByAdUserName")]
