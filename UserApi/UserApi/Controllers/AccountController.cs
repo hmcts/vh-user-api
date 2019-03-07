@@ -36,6 +36,12 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupByName([FromQuery] string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                ModelState.AddModelError(nameof(name), $"Please provide a valid {nameof(name)}");
+                return BadRequest(ModelState);
+            }
+
             var adGroup = await _userAccountService.GetGroupByName(name);
             if (adGroup == null) return NotFound();
 
@@ -57,6 +63,12 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupById(string groupId)
         {
+            if (string.IsNullOrEmpty(groupId))
+            {
+                ModelState.AddModelError(nameof(groupId), $"Please provide a valid {nameof(groupId)}");
+                return BadRequest(ModelState);
+            }
+
             var adGroup = await _userAccountService.GetGroupById(groupId);
             if (adGroup == null) return NotFound();
 
@@ -78,6 +90,12 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupsForUser(string userId)
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                ModelState.AddModelError(nameof(userId), $"Please provide a valid {nameof(userId)}");
+                return BadRequest(ModelState);
+            }
+
             var adGroups = await _userAccountService.GetGroupsForUser(userId);
             if (adGroups == null || !adGroups.Any()) return NotFound();
 

@@ -73,6 +73,12 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByAdUserId(string userId)
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                ModelState.AddModelError(nameof(userId), $"Please provide a valid {nameof(userId)}");
+                return BadRequest(ModelState);
+            }
+
             var filter = $"objectId  eq '{userId}'";
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfile(filter);
@@ -91,6 +97,12 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByUserName(string userName)
         {
+            if (string.IsNullOrEmpty(userName))
+            {
+                ModelState.AddModelError(nameof(userName), $"Please provide a valid {nameof(userName)}");
+                return BadRequest(ModelState);
+            }
+
             var filter = $"userPrincipalName  eq '{userName}'";
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfile(filter);
@@ -109,6 +121,12 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
+            if (string.IsNullOrEmpty(email))
+            {
+                ModelState.AddModelError(nameof(email), $"Please provide a valid {nameof(email)}");
+                return BadRequest(ModelState);
+            }
+
             var filter = $"otherMails/any(c:c eq '{email}')";
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfile(filter);
