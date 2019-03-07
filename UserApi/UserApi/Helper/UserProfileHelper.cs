@@ -30,7 +30,10 @@ namespace UserApi.Helper
                 var userGroupIds = new List<int>();
 
                 foreach (var usrGrp in userGroups)
-                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), usrGrp.DisplayName));
+                {
+                 var enumName = usrGrp.DisplayName.GetValueByName<AadGroup>();
+                 userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), enumName.ToString()));
+                }
 
                 var lstVirtualRoomProfessionalPlusExternal = new List<int>
                     {(int) AadGroup.VirtualRoomAdministrator, (int) AadGroup.External};

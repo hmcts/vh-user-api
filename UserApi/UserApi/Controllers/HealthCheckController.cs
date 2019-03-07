@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using UserApi.Helper;
@@ -35,15 +36,17 @@ namespace UserApi.Controllers
         {
             try
             {
-                var email = _configuration.GetSection("Health").GetSection("HealthCheckEmail").Value;
-                //Check if the end point is accessible
+                var email = _configuration.GetSection("Testing").GetSection("ExistingEmail").Value;
+                //Check if user profile end point is accessible
                 var filter = $"otherMails/any(c:c eq '{email}')";
                 var profile = new UserProfileHelper(_userAccountService);
                 var userProfile = await profile.GetUserProfile(filter);
 
                 if (userProfile == null) return NotFound();
 
-                var name = _configuration.GetSection("Health").GetSection("HealthCheckGroupName").Value;
+                //Check if group by name end point is accessible
+                var valuesSection = _configuration.GetSection("Testing:ExistingGroups");
+                var name = valuesSection.GetChildren().First().GetValue<string>("Displayname");
                 var adGroup = await _userAccountService.GetGroupByName(name);
 
                 if (adGroup == null) return NotFound();
