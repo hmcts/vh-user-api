@@ -6,8 +6,10 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
+using UserApi.Security;
 using UserApi.Services;
 using UserApi.Validations;
 
@@ -32,8 +34,8 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("group", Name = "GetGroupByName")]
         [SwaggerOperation(OperationId = "GetGroupByName")]
-        [ProducesResponseType(typeof(GroupsResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupByName([FromQuery] string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -59,26 +61,32 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("group/{groupId}", Name = "GetGroupById")]
         [SwaggerOperation(OperationId = "GetGroupById")]
-        [ProducesResponseType(typeof(GroupsResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupById(string groupId)
         {
-            if (string.IsNullOrEmpty(groupId))
+            try
             {
-                ModelState.AddModelError(nameof(groupId), $"Please provide a valid {nameof(groupId)}");
-                return BadRequest(ModelState);
+                if (string.IsNullOrEmpty(groupId))
+                {
+                    ModelState.AddModelError(nameof(groupId), $"Please provide a valid {nameof(groupId)}");
+                    return BadRequest(ModelState);
+                }
+
+                var adGroup = await _userAccountService.GetGroupById(groupId);
+                if (adGroup == null) return NotFound();
+
+                var response = new GroupsResponse
+                {
+                    GroupId = adGroup.Id,
+                    DisplayName = adGroup.DisplayName
+                };
+                return Ok(response);
             }
-
-            var adGroup = await _userAccountService.GetGroupById(groupId);
-            if (adGroup == null) return NotFound();
-
-            var response = new GroupsResponse
+            catch (UserServiceException)
             {
-                GroupId = adGroup.Id,
-                DisplayName = adGroup.DisplayName
-            };
-
-            return Ok(response);
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -86,8 +94,8 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("user/{userId}/groups", Name = "GetGroupsForUser")]
         [SwaggerOperation(OperationId = "GetGroupsForUser")]
-        [ProducesResponseType(typeof(List<GroupsResponse>), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(List<GroupsResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupsForUser(string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -112,9 +120,9 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpPatch("user/group", Name = "AddUserToGroup")]
         [SwaggerOperation(OperationId = "AddUserToGroup")]
-        [ProducesResponseType((int) HttpStatusCode.Accepted)]
-        [ProducesResponseType((int) HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> AddUserToGroup(AddUserToGroupRequest request)
         {
             var result = new AddUserToGroupRequestValidation().Validate(request);

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -121,7 +122,7 @@ namespace UserApi.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
-            if (string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(email) || !(new EmailAddressAttribute().IsValid(email)))
             {
                 ModelState.AddModelError(nameof(email), $"Please provide a valid {nameof(email)}");
                 return BadRequest(ModelState);
