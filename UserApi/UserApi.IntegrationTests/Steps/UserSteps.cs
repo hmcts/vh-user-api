@@ -66,7 +66,7 @@ namespace UserApi.IntegrationTests.Steps
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
 
-            _apiTestContext.StringContent = new StringContent(
+            _apiTestContext.HttpContent = new StringContent(
                 ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
                 Encoding.UTF8, "application/json");
         }
@@ -152,17 +152,10 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"the user should be added")]
         public async Task ThenTheUserShouldBeAdded()
         {
-
             var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
             model.Should().NotBeNull();
             _apiTestContext.NewUserId = model.UserId;
-        }
-
-        [Then(@"the user should not be added")]
-        public void ThenTheUserShouldNotBeAdded()
-        {
-            ScenarioContext.Current.Pending();
         }
 
         [Then(@"the user details should be retrieved")]

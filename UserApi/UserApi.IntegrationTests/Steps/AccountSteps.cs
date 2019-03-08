@@ -118,7 +118,7 @@ namespace UserApi.IntegrationTests.Steps
             switch (scenario)
             {
                 case Scenario.Valid:
-                {                  
+                {
                     break;
                 }
                 case Scenario.Nonexistent:

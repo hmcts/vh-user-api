@@ -6,21 +6,19 @@
 Scenario: Create a new hearings reforms user account
 	Given I have a new hearings reforms user account request with a valid email
 	When I send the request to the endpoint
-	Then the response should have the status OK and success status True
+	Then the response should have the status Created and success status True
 	And the user should be added
 
 Scenario: User account not created for an existing user
 	Given I have a new hearings reforms user account request with an existing email
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
-	And the user should not be added
 	And the error response message should contain 'user already exists'
 
 Scenario: User account not created for an invalid user
 	Given I have a new hearings reforms user account request with an invalid email
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
-	And the user should not be added
 	And the error response message should contain 'recovery email cannot be empty'
 	And the error response message should also contain 'first name cannot be empty'
 	And the error response message should also contain 'last name cannot be empty'
@@ -29,7 +27,6 @@ Scenario: User account not created with an incorrectly formatted email
 	Given I have a new hearings reforms user account request with an IncorrectFormat email
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
-	And the user should not be added
 	And the error response message should contain 'email has incorrect format'
 
 Scenario: Get user by AD user Id
