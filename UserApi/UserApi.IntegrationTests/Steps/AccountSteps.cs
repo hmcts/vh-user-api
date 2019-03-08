@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using TechTalk.SpecFlow;
@@ -131,6 +133,8 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
+            var jsonBody = ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            _apiTestContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
         [Given(@"I have an add a user to a group request for an existing user id and (.*) group")]
@@ -190,7 +194,20 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"user should be added to the group")]
         public void ThenUserShouldBeAddedToTheGroup()
         {
-            ScenarioContext.Current.Pending();
+            // Here I need to check the db to see if the group has been added...
+
+            // then assign _apiTestContext.NewGroupId to the added group
+        }
+
+        [AfterScenario]
+        public void ClearUp()
+        {
+            if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
+                // then here it needs to be removed
+            }
         }
     }
 }

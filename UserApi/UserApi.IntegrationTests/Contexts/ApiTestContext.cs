@@ -15,6 +15,7 @@ namespace UserApi.IntegrationTests.Contexts
         public HttpContent HttpContent { get; set; }
         public HttpResponseMessage ResponseMessage { get; set; }
         public string NewUserId { get; set; }
+        public string NewGroupId { get; set; }
         public string GraphApiToken { get; set; }
         public TestSettings TestSettings { get; set; }
     }

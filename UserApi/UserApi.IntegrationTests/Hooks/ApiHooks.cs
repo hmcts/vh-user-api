@@ -55,7 +55,7 @@ namespace UserApi.IntegrationTests.Hooks
             apiTestContext.NewUserId = string.Empty;
         }
 
-        [AfterFeature]
+        [AfterTestRun]
         public static void OneTimeTearDown(ApiTestContext apiTestContext)
         {
             apiTestContext.Server.Dispose();
