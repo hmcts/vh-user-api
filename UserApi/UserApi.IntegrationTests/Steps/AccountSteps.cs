@@ -204,11 +204,15 @@ namespace UserApi.IntegrationTests.Steps
         [AfterScenario]
         public void ClearUp()
         {
-            if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
+            //if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
-                // then here it needs to be removed
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
+                    $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.NewGroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/");                
+                var result = client.SendAsync(httpRequestMessage).Result;
+                result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} should be deleted");
+                _apiTestContext.NewGroupId = null;
             }
         }
     }
