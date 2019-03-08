@@ -52,10 +52,11 @@ Scenario: AD groups not retrieved for an invalid user
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 
+@AddUserToGroup
 Scenario: Add a user to a group
 	Given I have an add a user to a group request for a valid user id and valid group
 	When I send the request to the endpoint
-	Then the response should have the status OK and success status True
+	Then the response should have the status Accepted and success status True
 	And user should be added to the group
 
 Scenario: User not added to a group with a nonexistent user

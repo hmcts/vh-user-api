@@ -12,6 +12,7 @@ using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
+using UserApi.Services.Models;
 
 namespace UserApi.IntegrationTests.Steps
 {
@@ -194,25 +195,41 @@ namespace UserApi.IntegrationTests.Steps
         }
 
         [Then(@"user should be added to the group")]
-        public void ThenUserShouldBeAddedToTheGroup()
+        public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            // need to check the response model here
-        
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                    $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.TestSettings.ExistingUserId}/memberOf");
+                var result = client.SendAsync(httpRequestMessage).Result;
+                var content = await result.Content.ReadAsStringAsync();
+                content.Contains(_apiTestContext.TestSettings.NewGroups.First().GroupId).Should().BeTrue();
+            }
             _apiTestContext.NewGroupId = _apiTestContext.TestSettings.NewGroups.First().GroupId;
         }
 
         [AfterScenario]
-        public void ClearUp()
+        public async Task ClearUp()
         {
-            //if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
             using (var client = new HttpClient())
             {
+                // Check to see the group exists
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                    $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.NewGroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/$ref");                
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                    $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.TestSettings.ExistingUserId}/memberOf");
                 var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} should be deleted");
-                _apiTestContext.NewGroupId = null;
+                var content = await result.Content.ReadAsStringAsync();
+                if (content.Contains(_apiTestContext.TestSettings.NewGroups.First().GroupId))
+                {
+                    // Remove the group
+                    httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
+                        $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.TestSettings.NewGroups.First().GroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/$ref");
+                    result = client.SendAsync(httpRequestMessage).Result;
+                    result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} should be deleted");
+                    _apiTestContext.NewGroupId = null;
+                }                
             }
         }
     }
