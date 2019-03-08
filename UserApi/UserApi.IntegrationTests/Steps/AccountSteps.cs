@@ -12,7 +12,6 @@ using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
-using UserApi.Services.Models;
 
 namespace UserApi.IntegrationTests.Steps
 {
@@ -98,7 +97,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetGroupsForUser(string.Empty);
+                    _apiTestContext.Uri = _endpoints.GetGroupsForUser(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);

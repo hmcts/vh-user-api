@@ -277,8 +277,6 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 65
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 66
- testRunner.And("the response message should read \'group already exists\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }
@@ -288,14 +286,14 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void ADGroupsNotAddedForAnInvalidUser()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("AD groups not added for an invalid user", null, ((string[])(null)));
-#line 68
+#line 67
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 69
+#line 68
  testRunner.Given("I have an add a user to a group request for an invalid user id and valid group", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 70
+#line 69
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 71
+#line 70
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             this.ScenarioCleanup();
@@ -306,17 +304,17 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserNotAddedToAGroupThatTheyAreAlreadyAMemberOf()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User not added to a group that they are already a member of", null, ((string[])(null)));
-#line 73
+#line 72
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 74
+#line 73
  testRunner.Given("I have an add a user to a group request for an existing user id and existing grou" +
                     "p", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 75
+#line 74
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 76
+#line 75
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 77
+#line 76
  testRunner.And("the response message should read \'group already exists\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -327,15 +325,15 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserNotAddedToAGroupWithANonexistentGroup()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User not added to a group with a nonexistent group", null, ((string[])(null)));
-#line 79
+#line 78
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 80
+#line 79
  testRunner.Given("I have an add a user to a group request for an existing user id and nonexistent g" +
                     "roup", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 81
+#line 80
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 82
+#line 81
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             this.ScenarioCleanup();
@@ -346,15 +344,15 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void ADGroupsNotAddedForAnInvalidGroup()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("AD groups not added for an invalid group", null, ((string[])(null)));
-#line 84
+#line 83
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 85
+#line 84
  testRunner.Given("I have an add a user to a group request for an existing user id and invalid group" +
                     "", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 86
+#line 85
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 87
+#line 86
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             this.ScenarioCleanup();

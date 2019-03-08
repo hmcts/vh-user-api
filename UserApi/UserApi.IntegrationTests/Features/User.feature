@@ -39,7 +39,6 @@ Scenario: User account not retrieved for a nonexistent user
 	Given I have a get user by AD user Id request for a nonexistent user
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
-	And the response should be empty
 	And the error response message should contain 'user does not exist'
 	
 Scenario: User account not retrieved for an invalid user
@@ -58,7 +57,6 @@ Scenario: User account not retrieved for a nonexistent user principal name
 	Given I have a get user by user principal name request for a nonexistent user principal name
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
-	And the response should be empty
 	And the error response message should contain 'user priniciple name does not exist'
 
 Scenario: User account not retrieved for an invalid user principal name
@@ -77,7 +75,6 @@ Scenario: User account not retrieved with a nonexistent email
 	Given I have a get user profile by email request for a nonexistent email
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
-	And the response should be empty
 	And the error response message should contain 'email does not exist'
 
 Scenario: User account not retrieved with an invalid email

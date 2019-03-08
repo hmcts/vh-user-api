@@ -63,7 +63,6 @@ Scenario: User not added to a group with a nonexistent user
 	Given I have an add a user to a group request for a nonexistent user id and valid group
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
-	And the response message should read 'group already exists'
 
 Scenario: AD groups not added for an invalid user
 	Given I have an add a user to a group request for an invalid user id and valid group
