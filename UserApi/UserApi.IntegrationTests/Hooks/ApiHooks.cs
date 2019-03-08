@@ -45,7 +45,7 @@ namespace UserApi.IntegrationTests.Hooks
                 azureAdConfiguration.VhUserApiResourceId);
 
             apiTestContext.GraphApiToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
-                apiTestContext.TestSettings.TestClientId, apiTestContext.TestSettings.TestClientSecret,
+                azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
                 "https://graph.microsoft.com");
         }
 

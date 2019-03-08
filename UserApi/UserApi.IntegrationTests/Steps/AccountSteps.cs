@@ -196,9 +196,9 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"user should be added to the group")]
         public void ThenUserShouldBeAddedToTheGroup()
         {
-            // Here I need to check the db to see if the group has been added...
-
-            // then assign _apiTestContext.NewGroupId to the added group
+            // need to check the response model here
+        
+            _apiTestContext.NewGroupId = _apiTestContext.TestSettings.NewGroups.First().GroupId;
         }
 
         [AfterScenario]
@@ -209,7 +209,7 @@ namespace UserApi.IntegrationTests.Steps
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                    $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.NewGroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/");                
+                    $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.NewGroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/$ref");                
                 var result = client.SendAsync(httpRequestMessage).Result;
                 result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} should be deleted");
                 _apiTestContext.NewGroupId = null;
