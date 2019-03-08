@@ -166,6 +166,8 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
+            var jsonBody = ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            _apiTestContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
         [Then(@"the ad groups should be retrieved")]
