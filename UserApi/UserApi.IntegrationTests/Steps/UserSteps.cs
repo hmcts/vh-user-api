@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Faker;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using Testing.Common.Database;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -186,15 +187,9 @@ namespace UserApi.IntegrationTests.Steps
         public void ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_apiTestContext.NewUserId)) return;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                    $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.NewUserId}");
-                var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewUserId} is deleted");
-                _apiTestContext.NewUserId = null;
-            }
+            var userDeleted = AdUser.DeleteTheUserFromAd(_apiTestContext.NewUserId, _apiTestContext.GraphApiToken);
+            userDeleted.Should().BeTrue($"New user with ID {_apiTestContext.NewUserId} is deleted");
+            _apiTestContext.NewUserId = null;
         }
     }
 }

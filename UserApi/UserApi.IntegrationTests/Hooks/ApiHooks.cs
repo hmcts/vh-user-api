@@ -12,7 +12,7 @@ using UserApi.Security;
 namespace UserApi.IntegrationTests.Hooks
 {
     [Binding]
-    public sealed class ApiHooks
+    public static class ApiHooks
     {
         [BeforeTestRun]
         public static void OneTimeSetup(ApiTestContext apiTestContext)
