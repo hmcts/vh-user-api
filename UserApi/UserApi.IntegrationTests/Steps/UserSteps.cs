@@ -47,8 +47,8 @@ namespace UserApi.IntegrationTests.Steps
                 case Scenario.Existing:
                 {
                     createUserRequest.RecoveryEmail = _apiTestContext.TestSettings.ExistingEmail;
-                    createUserRequest.FirstName = _apiTestContext.TestSettings.ExistingFirstname;
-                    createUserRequest.LastName = _apiTestContext.TestSettings.ExistingLastname;
+                    createUserRequest.FirstName = _apiTestContext.TestSettings.ExistingUserFirstname;
+                    createUserRequest.LastName = _apiTestContext.TestSettings.ExistingUserLastname;
                     break;
                 }
                 case Scenario.Invalid:
