@@ -45,7 +45,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetGroupByName(string.Empty);
+                    _apiTestContext.Uri = _endpoints.GetGroupByName(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -71,7 +71,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetGroupById(string.Empty);
+                    _apiTestContext.Uri = _endpoints.GetGroupById(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -128,7 +128,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    addUserRequest.UserId = string.Empty;
+                    addUserRequest.UserId = " ";
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -161,7 +161,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    addUserRequest.GroupName = string.Empty;
+                    addUserRequest.GroupName = " ";
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -204,7 +204,7 @@ namespace UserApi.IntegrationTests.Steps
                     $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.TestSettings.ExistingUserId}/memberOf");
                 var result = client.SendAsync(httpRequestMessage).Result;
                 var content = await result.Content.ReadAsStringAsync();
-                content.Contains(_apiTestContext.TestSettings.NewGroups.First().GroupId).Should().BeTrue();
+                content.Contains(_apiTestContext.TestSettings.NewGroups.First().DisplayName).Should().BeTrue();
             }
             _apiTestContext.NewGroupId = _apiTestContext.TestSettings.NewGroups.First().GroupId;
         }
@@ -226,7 +226,7 @@ namespace UserApi.IntegrationTests.Steps
                     httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                         $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.TestSettings.NewGroups.First().GroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/$ref");
                     result = client.SendAsync(httpRequestMessage).Result;
-                    result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} should be deleted");
+                    result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} is deleted");
                     _apiTestContext.NewGroupId = null;
                 }                
             }

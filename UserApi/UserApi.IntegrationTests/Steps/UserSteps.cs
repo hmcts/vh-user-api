@@ -90,7 +90,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(string.Empty);
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -111,12 +111,12 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Nonexistent:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId("Does not exist");
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserName("Does not exist");
                     break;
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(string.Empty);
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserName(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -142,7 +142,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByEmail(string.Empty);
+                    _apiTestContext.Uri = _endpoints.GetUserByEmail(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -189,10 +189,10 @@ namespace UserApi.IntegrationTests.Steps
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.NewUserId}");
                 var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewUserId} should be deleted");
+                result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewUserId} is deleted");
                 _apiTestContext.NewUserId = null;
             }
         }
