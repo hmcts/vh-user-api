@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using Testing.Common.Database;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -196,41 +196,31 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"user should be added to the group")]
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.TestSettings.ExistingUserId}/memberOf");
-                var result = client.SendAsync(httpRequestMessage).Result;
-                var content = await result.Content.ReadAsStringAsync();
-                content.Contains(_apiTestContext.TestSettings.NewGroups.First().DisplayName).Should().BeTrue();
-            }
+            var userIsInTheGroup = await AdUser.IsUserInAGroup(_apiTestContext.TestSettings.ExistingUserId,
+                _apiTestContext.TestSettings.NewGroups.First().DisplayName, _apiTestContext.GraphApiToken);
+            userIsInTheGroup.Should().BeTrue();
             _apiTestContext.NewGroupId = _apiTestContext.TestSettings.NewGroups.First().GroupId;
         }
 
         [AfterScenario]
-        public async Task ClearUp()
+        public async Task ClearUp(ApiTestContext testContext)
         {
             if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
-            using (var client = new HttpClient())
+            await RemoveGroupFromUserIfExists(testContext);
+            testContext.NewGroupId = null;
+        }
+
+        private static async Task RemoveGroupFromUserIfExists(ApiTestContext testContext)
+        {
+            var userIsInTheGroup = await AdUser.IsUserInAGroup(testContext.TestSettings.ExistingUserId,
+                testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
+            if (userIsInTheGroup)
             {
-                // Check to see the group exists
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $@"https://graph.microsoft.com/v1.0/users/{_apiTestContext.TestSettings.ExistingUserId}/memberOf");
-                var result = client.SendAsync(httpRequestMessage).Result;
-                var content = await result.Content.ReadAsStringAsync();
-                if (content.Contains(_apiTestContext.TestSettings.NewGroups.First().GroupId))
-                {
-                    // Remove the group
-                    httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                        $@"https://graph.microsoft.com/v1.0/groups/{_apiTestContext.TestSettings.NewGroups.First().GroupId}/members/{_apiTestContext.TestSettings.ExistingUserId}/$ref");
-                    result = client.SendAsync(httpRequestMessage).Result;
-                    result.IsSuccessStatusCode.Should().BeTrue($"{_apiTestContext.NewGroupId} is deleted");
-                    _apiTestContext.NewGroupId = null;
-                }                
+                var userRemoved = AdUser.RemoveTheUserFromTheGroup(testContext.TestSettings.ExistingUserId,
+                    testContext.TestSettings.NewGroups.First().GroupId, testContext.GraphApiToken);
+                userRemoved.Should().BeTrue($"{testContext.TestSettings.NewGroups.First().DisplayName} is deleted");
             }
+            testContext.NewGroupId = null;
         }
     }
 }

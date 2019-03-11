@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-using System.Net.Http.Headers;
-using Faker;
+﻿using Faker;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using Testing.Common.Database;
