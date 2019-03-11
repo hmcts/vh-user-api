@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
+using UserApi.Security;
 using UserApi.Services;
 using UserApi.Services.Models;
 using UserApi.Validations;
@@ -53,16 +54,23 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
-            await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
-
-            var response = new NewUserResponse
+            try
             {
-                UserId = adUserAccount.UserId,
-                Username = adUserAccount.Username,
-                OneTimePassword = adUserAccount.OneTimePassword
-            };
-            return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
+                var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
+                await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
+                var response = new NewUserResponse
+                {
+                    UserId = adUserAccount.UserId,
+                    Username = adUserAccount.Username,
+                    OneTimePassword = adUserAccount.OneTimePassword
+                };
+                return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
+            }
+            catch (UserServiceException userServiceException)
+            {
+                ModelState.AddModelError(nameof(request), "user already exists");
+                return BadRequest(ModelState);
+            }
         }
 
         /// <summary>
