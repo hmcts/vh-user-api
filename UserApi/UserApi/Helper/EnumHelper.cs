@@ -16,12 +16,21 @@ namespace UserApi.Helper
                          where attribute != null && attribute.Name == name
                          select (T)f.GetValue(null);
 
-            if (values.Count() > 0)
+            if (values.Any())
             {
                 return (T)(object)values.FirstOrDefault();
             }
 
             return default(T);
+        }
+
+        public static bool TryParse<T>(string value, out T? result) where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum) throw new ArgumentException("Invalid Enum");
+
+            result = Enum.TryParse(value.GetValueByName<AadGroup>().ToString(), out T tempResult) ? tempResult : default(T?);
+
+            return (result != null);
         }
     }
 }
