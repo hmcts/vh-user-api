@@ -212,6 +212,7 @@ namespace UserApi.IntegrationTests.Steps
         [AfterScenario]
         public async Task ClearUp()
         {
+            if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
             using (var client = new HttpClient())
             {
                 // Check to see the group exists
