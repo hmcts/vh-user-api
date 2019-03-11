@@ -61,6 +61,9 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_acTestContext.Json);
             model.Should().NotBeNull();
+            model.OneTimePassword.Should().NotBeNullOrEmpty();
+            model.UserId.Should().NotBeNullOrEmpty();
+            model.Username.Should().NotBeNullOrEmpty();
             _acTestContext.NewUserId = model.UserId;
         }
 
@@ -86,10 +89,10 @@ namespace UserApi.AcceptanceTests.Steps
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _acTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/users/{_acTestContext.NewUserId}");
                 var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_acTestContext.NewUserId} should be deleted");
+                result.IsSuccessStatusCode.Should().BeTrue($"{_acTestContext.NewUserId} is deleted");
                 _acTestContext.NewUserId = null;
             }
         }
