@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using Testing.Common.Database;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
@@ -12,22 +14,18 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class AccountSteps : BaseSteps
     {
-        private readonly ScenarioContext _context;
         private readonly AcTestContext _acTestContext;
         private readonly AccountEndpoints _endpoints = new ApiUriFactory().AccountEndpoints;
 
-        public AccountSteps(ScenarioContext injectedContext, AcTestContext acTestContext)
+        public AccountSteps(AcTestContext acTestContext)
         {
-            _context = injectedContext;
             _acTestContext = acTestContext;
         }
 
-        [BeforeScenario("AddGroup")]
-        public static void RemoveNewGroupIfExists(AcTestContext testContext)
+        [BeforeScenario]
+        public static async Task RemoveNewGroupIfExistsAsync(AcTestContext testContext)
         {
-            // Check the db to see if the user has 
-            // _acTestContext.TestSettings.NewGroups.First().DisplayName
-            // Remove if so
+            await RemoveGroupFromUserIfExists(testContext);
         }
 
         [Given(@"I have a get ad group by name request with a valid group name")]
@@ -85,18 +83,32 @@ namespace UserApi.AcceptanceTests.Steps
         }
 
         [Then(@"user should be added to the group")]
-        public void ThenUserShouldBeAddedToTheGroup()
+        public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            // Check the db to see if the user has 
-            // _acTestContext.TestSettings.NewGroups.First().DisplayName        }
+            var userIsInTheGroup = await AdUser.IsUserInAGroup(_acTestContext.TestSettings.ExistingUserId,
+                _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
+            userIsInTheGroup.Should().BeTrue();
+            _acTestContext.NewGroupId = _acTestContext.TestSettings.NewGroups.First().GroupId;
         }
 
-        [AfterScenario("AddGroup")]
-        public static void RemoveNewGroupAgainIfExists(AcTestContext testContext)
+        [AfterScenario]
+        public static async Task RemoveNewGroupAgainIfExists(AcTestContext testContext)
         {
-            // Check the db to see if the user has 
-            // _acTestContext.TestSettings.NewGroups.First().DisplayName
-            // Remove if so
+            await RemoveGroupFromUserIfExists(testContext);
+            testContext.NewGroupId = null;
+        }
+
+        private static async Task RemoveGroupFromUserIfExists(AcTestContext testContext)
+        {
+            var userIsInTheGroup = await AdUser.IsUserInAGroup(testContext.TestSettings.ExistingUserId,
+                testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
+            if (userIsInTheGroup)
+            {
+                var userRemoved = AdUser.RemoveTheUserFromTheGroup(testContext.TestSettings.ExistingUserId,
+                    testContext.TestSettings.NewGroups.First().GroupId, testContext.GraphApiToken);
+                userRemoved.Should().BeTrue($"{testContext.TestSettings.NewGroups.First().DisplayName} is deleted");
+            }
+            testContext.NewGroupId = null;
         }
     }
 }

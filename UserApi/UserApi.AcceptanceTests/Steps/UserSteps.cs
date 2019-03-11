@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Faker;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using Testing.Common.Database;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
@@ -16,13 +15,11 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class UserSteps : BaseSteps
     {
-        private readonly ScenarioContext _context;
         private readonly AcTestContext _acTestContext;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
 
-        public UserSteps(ScenarioContext injectedContext, AcTestContext acTestContext)
+        public UserSteps(AcTestContext acTestContext)
         {
-            _context = injectedContext;
             _acTestContext = acTestContext;
         }
 
@@ -39,7 +36,7 @@ namespace UserApi.AcceptanceTests.Steps
         }
 
         [Given(@"I have a get user by AD user Id request for an existing user")]
-        public void GivenIHaveAGetUserByADUserIdRequestForAnExistingUser()
+        public void GivenIHaveAGetUserByAdUserIdRequestForAnExistingUser()
         {
             _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByAdUserId(_acTestContext.TestSettings.ExistingUserId));
         }
@@ -83,18 +80,12 @@ namespace UserApi.AcceptanceTests.Steps
         }
 
         [AfterScenario]
-        public void ClearUp()
+        public void NewUserClearUp()
         {
             if (string.IsNullOrWhiteSpace(_acTestContext.NewUserId)) return;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _acTestContext.GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                    $@"https://graph.microsoft.com/v1.0/users/{_acTestContext.NewUserId}");
-                var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_acTestContext.NewUserId} is deleted");
-                _acTestContext.NewUserId = null;
-            }
+            var userDeleted = AdUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
+            userDeleted.Should().BeTrue($"New user with ID {_acTestContext.NewUserId} is deleted");
+            _acTestContext.NewUserId = null;
         }
     }
 }

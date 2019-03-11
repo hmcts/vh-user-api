@@ -13,4 +13,10 @@
       <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="FluentAssertions">
+        <HintPath>..\..\..\..\..\.nuget\packages\fluentassertions\5.6.0\lib\netcoreapp2.0\FluentAssertions.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>
