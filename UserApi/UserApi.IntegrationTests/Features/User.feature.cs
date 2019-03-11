@@ -251,7 +251,7 @@ this.ScenarioInitialize(scenarioInfo);
 #line 59
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line 60
- testRunner.And("the error response message should contain \'user priniciple name does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the error response message should contain \'user principal name does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
         }

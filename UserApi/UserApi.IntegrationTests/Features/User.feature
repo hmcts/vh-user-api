@@ -57,7 +57,7 @@ Scenario: User account not retrieved for a nonexistent user principal name
 	Given I have a get user by user principal name request for a nonexistent user principal name
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
-	And the error response message should contain 'user priniciple name does not exist'
+	And the error response message should contain 'user principal name does not exist'
 
 Scenario: User account not retrieved for an invalid user principal name
 	Given I have a get user by user principal name request for an invalid user principal name
