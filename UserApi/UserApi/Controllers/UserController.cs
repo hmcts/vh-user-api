@@ -76,7 +76,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get User by AD User ID
         /// </summary>
-        [HttpGet("{userId}", Name = "GetUserByAdUserId")]
+        [HttpGet("{userId?}", Name = "GetUserByAdUserId")]
         [SwaggerOperation(OperationId = "GetUserByAdUserId")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -104,7 +104,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get User by User principal name
         /// </summary>
-        [HttpGet("userName/{userName}", Name = "GetUserByAdUserName")]
+        [HttpGet("userName/{userName?}", Name = "GetUserByAdUserName")]
         [SwaggerOperation(OperationId = "GetUserByAdUserName")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -132,7 +132,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get user profile by email
         /// </summary>
-        [HttpGet("email/{email}", Name = "GetUserByEmail")]
+        [HttpGet("email/{email?}", Name = "GetUserByEmail")]
         [SwaggerOperation(OperationId = "GetUserByEmail")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -155,7 +155,6 @@ namespace UserApi.Controllers
             var userProfile = await profile.GetUserProfile(filter);
 
             if (userProfile == null) return NotFound();
-
 
             return Ok(userProfile);
         }
