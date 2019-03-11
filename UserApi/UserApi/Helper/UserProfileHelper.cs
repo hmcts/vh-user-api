@@ -31,17 +31,20 @@ namespace UserApi.Helper
 
                 foreach (var usrGrp in userGroups)
                 {
-                 var enumName = usrGrp.DisplayName.GetValueByName<AadGroup>();
-                 userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), enumName.ToString()));
+                    EnumExtensions.TryParse<AadGroup>(usrGrp.DisplayName, out var rtnEnum);
+
+                    if (rtnEnum != null)
+                        userGroupIds.Add((int)Enum.Parse(typeof(AadGroup), rtnEnum.ToString()));
                 }
 
                 var lstVirtualRoomProfessionalPlusExternal = new List<int>
-                    {(int) AadGroup.VirtualRoomAdministrator, (int) AadGroup.External};
+                    {(int) AadGroup.VirtualRoomProfessional, (int) AadGroup.External};
                 var lstMoneyClaimsPlusFinancialRemedy = new List<int>
                     {(int) AadGroup.MoneyClaims, (int) AadGroup.FinancialRemedy};
 
-                if (userGroupIds.Count == 1)
-                    switch (userGroupIds[0])
+                foreach (var userGroupId in userGroupIds)
+                {
+                    switch (userGroupId)
                     {
                         case 1:
                             userRole = UserRole.VhOfficer.ToString();
@@ -61,11 +64,12 @@ namespace UserApi.Helper
                             userCaseType.Add(CaseType.FinancialRemedy.ToString());
                             break;
                     }
+                }
 
-                if (userGroupIds.Any(ug => lstVirtualRoomProfessionalPlusExternal.Contains(ug)))
+                if (userGroupIds.All(lstVirtualRoomProfessionalPlusExternal.Contains))
                     userRole = UserRole.Representative.ToString();
 
-                if (userGroupIds.Any(ug => lstMoneyClaimsPlusFinancialRemedy.Contains(ug)))
+                if (userGroupIds.All(lstMoneyClaimsPlusFinancialRemedy.Contains))
                 {
                     userRole = UserRole.CaseAdmin.ToString();
                     userCaseType.Add(CaseType.MoneyClaims.ToString());

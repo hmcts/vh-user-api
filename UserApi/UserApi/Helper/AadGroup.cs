@@ -11,8 +11,8 @@ namespace UserApi.Helper
         [Display(Name = "MoneyClaims")] MoneyClaims = 4,
         [Display(Name = "FinancialRemedy")] FinancialRemedy = 5,
         [Display(Name = "SSPR Enabled")] SsprEnabled = 6,
-        [Display(Name = "UserApiTestGroup")] UserApiTestGroup = 7,
-        [Display(Name = "NewUserApiTestGroup")] NewUserApiTestGroup = 8
+        [Display(Name = "VirtualRoomProfessional")]
+        VirtualRoomProfessional = 7
 
     }
 }
