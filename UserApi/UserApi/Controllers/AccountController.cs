@@ -152,10 +152,21 @@ namespace UserApi.Controllers
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"User with ID '{request.UserId}' not found ",
                     SeverityLevel.Error));
-                return NotFound();
+
+                ModelState.AddModelError(nameof(user), "group already exists");
+                return NotFound(ModelState);
             }
 
-            await _userAccountService.AddUserToGroup(user, group);
+            try
+            {
+                await _userAccountService.AddUserToGroup(user, group);
+            }
+            catch (UserServiceException userServiceException)
+            {
+                ModelState.AddModelError(nameof(user), "user already exists");
+                return NotFound(ModelState);
+            }
+
             return Accepted();
         }
     }

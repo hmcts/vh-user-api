@@ -35,8 +35,8 @@ namespace UserApi.Controllers
         /// <param name="request">Details of a new user</param>
         [HttpPost(Name = "CreateUser")]
         [SwaggerOperation(OperationId = "CreateUser")]
-        [ProducesResponseType(typeof(NewUserResponse), (int) HttpStatusCode.Created)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
         {
             var result = new CreateUserRequestValidation().Validate(request);
@@ -62,7 +62,7 @@ namespace UserApi.Controllers
                 Username = adUserAccount.Username,
                 OneTimePassword = adUserAccount.OneTimePassword
             };
-            return CreatedAtRoute("GetUserByAdUserId", new {userId = adUserAccount.UserId}, response);
+            return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
         }
 
         /// <summary>
@@ -70,13 +70,13 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("{userId}", Name = "GetUserByAdUserId")]
         [SwaggerOperation(OperationId = "GetUserByAdUserId")]
-        [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByAdUserId(string userId)
         {
             if (string.IsNullOrEmpty(userId))
             {
-                ModelState.AddModelError(nameof(userId), $"Please provide a valid {nameof(userId)}");
+                ModelState.AddModelError(nameof(userId), "username cannot be empty");
                 return BadRequest(ModelState);
             }
 
@@ -84,7 +84,11 @@ namespace UserApi.Controllers
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfile(filter);
 
-            if (userProfile == null) return NotFound();
+            if (userProfile == null)
+            {
+                ModelState.AddModelError(nameof(userId), "user does not exist");
+                return NotFound(ModelState);
+            }
 
             return Ok(userProfile);
         }
@@ -94,13 +98,13 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("userName/{userName}", Name = "GetUserByAdUserName")]
         [SwaggerOperation(OperationId = "GetUserByAdUserName")]
-        [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByUserName(string userName)
         {
             if (string.IsNullOrEmpty(userName))
             {
-                ModelState.AddModelError(nameof(userName), $"Please provide a valid {nameof(userName)}");
+                ModelState.AddModelError(nameof(userName), "user principal name cannot be empty");
                 return BadRequest(ModelState);
             }
 
@@ -108,7 +112,11 @@ namespace UserApi.Controllers
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfile(filter);
 
-            if (userProfile == null) return NotFound();
+            if (userProfile == null)
+            {
+                ModelState.AddModelError(nameof(userName), "user principal name does not exist");
+                return NotFound(ModelState);
+            }
 
             return Ok(userProfile);
         }
@@ -118,14 +126,20 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("email/{email}", Name = "GetUserByEmail")]
         [SwaggerOperation(OperationId = "GetUserByEmail")]
-        [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
-            if (string.IsNullOrEmpty(email) || !(new EmailAddressAttribute().IsValid(email)))
+            if (string.IsNullOrEmpty(email))
             {
-                ModelState.AddModelError(nameof(email), $"Please provide a valid {nameof(email)}");
+                ModelState.AddModelError(nameof(email), "email cannot be empty");
                 return BadRequest(ModelState);
+            }
+
+            if (!(new EmailAddressAttribute().IsValid(email)))
+            {
+                ModelState.AddModelError(nameof(email), "email does not exist");
+                return NotFound(ModelState);
             }
 
             var filter = $"otherMails/any(c:c eq '{email}')";
@@ -133,6 +147,7 @@ namespace UserApi.Controllers
             var userProfile = await profile.GetUserProfile(filter);
 
             if (userProfile == null) return NotFound();
+
 
             return Ok(userProfile);
         }
