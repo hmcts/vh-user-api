@@ -1,18 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.ApplicationInsights;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
-using UserApi.Contract.Responses;
-using UserApi.Controllers;
-using UserApi.Services;
 using System.Net;
+using System.Threading.Tasks;
+using UserApi.Controllers;
 using UserApi.Security;
+using UserApi.Services;
 
 namespace UserApi.UnitTests.Controllers
 {
@@ -25,7 +20,7 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            _controller = new HealthCheckController(_userAccountService.Object, null);
+            _controller = new HealthCheckController(_userAccountService.Object);
         }
 
         [Test]
@@ -33,18 +28,16 @@ namespace UserApi.UnitTests.Controllers
         {
             var email = "checkuser@test.com";
             var filter = $"otherMails/any(c:c eq '{email}')";
-            var message = "Could not retrieve ref data during service health check";
+            var message = "GetUserByFilter unauthorized access to Microsoft Graph";
             var reason = "service not available";
             _userAccountService
                 .Setup(x => x.GetUserByFilter(filter))
                 .Throws(new UserServiceException(message, reason));
-
             var result = await _controller.Health();
             var objectResult = (ObjectResult)result;
 
             objectResult.Should().NotBeNull();
             objectResult.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
-            objectResult.Value.ToString().Should().Contain("Could not retrieve ref data during service health check");
         }
 
         [Test]

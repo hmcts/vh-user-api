@@ -17,12 +17,10 @@ namespace UserApi.Controllers
     public class HealthCheckController : ControllerBase
     {
         private readonly IUserAccountService _userAccountService;
-        private IConfiguration _configuration { get; }
 
-        public HealthCheckController(IUserAccountService userAccountService, IConfiguration configuration)
+        public HealthCheckController(IUserAccountService userAccountService)
         {
             _userAccountService = userAccountService;
-            _configuration = configuration;
         }
 
         /// <summary>
