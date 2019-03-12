@@ -161,7 +161,7 @@ namespace UserApi.Controllers
             {
                 await _userAccountService.AddUserToGroup(user, group);
             }
-            catch (UserServiceException userServiceException)
+            catch (UserServiceException)
             {
                 ModelState.AddModelError(nameof(user), "user already exists");
                 return NotFound(ModelState);

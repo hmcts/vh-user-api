@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using UserApi.Helper;
+using UserApi.Security;
 using UserApi.Services;
 
 namespace UserApi.Controllers
@@ -36,29 +37,30 @@ namespace UserApi.Controllers
         {
             try
             {
-                var email = _configuration.GetSection("Testing").GetSection("ExistingEmail").Value;
+                var email = "checkuser@test.com";
                 //Check if user profile end point is accessible
                 var filter = $"otherMails/any(c:c eq '{email}')";
-                var profile = new UserProfileHelper(_userAccountService);
-                var userProfile = await profile.GetUserProfile(filter);
-
-                if (userProfile == null) return NotFound();
-
-                //Check if group by name end point is accessible
-                var valuesSection = _configuration.GetSection("Testing:ExistingGroups");
-                var name = valuesSection.GetChildren().First().GetValue<string>("Displayname");
-                var adGroup = await _userAccountService.GetGroupByName(name);
-
-                if (adGroup == null) return NotFound();
+                await _userAccountService.GetUserByFilter(filter);
             }
-            catch (Exception ex)
+            catch (UserServiceException)
             {
-                var data = new
-                {
-                    ex.Message,
-                    ex.Data
-                };
-                return StatusCode((int)HttpStatusCode.InternalServerError, data);
+                ModelState.AddModelError("User", "GetUserByFilter unauthorized access to Microsoft Graph");
+            }
+
+            try
+            {
+                //Check if group by name end point is accessible
+                await _userAccountService.GetGroupByName("TestGroup");
+            }
+            catch (UserServiceException)
+            {
+                ModelState.AddModelError("User", "GetGroupByName unauthorized access to Microsoft Graph");
+            }
+
+            var modelStateErrors = this.ModelState.Values.SelectMany(m => m.Errors);
+            if (modelStateErrors.Any())
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, ModelState);
             }
 
             return Ok();
