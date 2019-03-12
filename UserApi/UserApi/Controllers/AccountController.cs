@@ -59,7 +59,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get AD Group By Id
         /// </summary>
-        [HttpGet("group/{groupId}", Name = "GetGroupById")]
+        [HttpGet("group/{groupId?}", Name = "GetGroupById")]
         [SwaggerOperation(OperationId = "GetGroupById")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -92,7 +92,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get AD Group For a User
         /// </summary>
-        [HttpGet("user/{userId}/groups", Name = "GetGroupsForUser")]
+        [HttpGet("user/{userId?}/groups", Name = "GetGroupsForUser")]
         [SwaggerOperation(OperationId = "GetGroupsForUser")]
         [ProducesResponseType(typeof(List<GroupsResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
