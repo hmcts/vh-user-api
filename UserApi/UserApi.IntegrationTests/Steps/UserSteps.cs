@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Faker;
@@ -156,6 +155,9 @@ namespace UserApi.IntegrationTests.Steps
             var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
             model.Should().NotBeNull();
+            model.OneTimePassword.Should().NotBeNullOrEmpty();
+            model.UserId.Should().NotBeNullOrEmpty();
+            model.Username.Should().NotBeNullOrEmpty();
             _apiTestContext.NewUserId = model.UserId;
         }
 
@@ -165,7 +167,7 @@ namespace UserApi.IntegrationTests.Steps
             var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
             model.Should().NotBeNull();
-            //model.CaseType.Should().NotBeNullOrEmpty();
+            // model.CaseType.Should().NotBeNullOrEmpty();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.Email.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
