@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using TechTalk.SpecFlow;
@@ -85,6 +86,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"user should be added to the group")]
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
+            Thread.Sleep(5000);
             var userIsInTheGroup = await AdUser.IsUserInAGroup(_acTestContext.TestSettings.ExistingUserId,
                 _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
             userIsInTheGroup.Should().BeTrue();
