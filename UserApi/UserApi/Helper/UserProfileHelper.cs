@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Graph;
 using UserApi.Services;
 using UserApi.Services.Models;
 
@@ -29,13 +30,7 @@ namespace UserApi.Helper
             {
                 var userGroupIds = new List<int>();
 
-                foreach (var usrGrp in userGroups)
-                {
-                    EnumExtensions.TryParse<AadGroup>(usrGrp.DisplayName, out var rtnEnum);
-
-                    if (rtnEnum != null)
-                        userGroupIds.Add((int)Enum.Parse(typeof(AadGroup), rtnEnum.ToString()));
-                }
+                GetUserGroupIds(userGroups, userGroupIds);
 
                 var lstVirtualRoomProfessionalPlusExternal = new List<int>
                     {(int) AadGroup.VirtualRoomProfessional, (int) AadGroup.External};
@@ -90,6 +85,17 @@ namespace UserApi.Helper
             };
 
             return response;
+        }
+
+        private static void GetUserGroupIds(List<Group> userGroups, List<int> userGroupIds)
+        {
+            foreach (var usrGrp in userGroups)
+            {
+                EnumExtensions.TryParse<AadGroup>(usrGrp.DisplayName, out var rtnEnum);
+
+                if (rtnEnum != null)
+                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), rtnEnum.ToString()));
+            }
         }
     }
 }

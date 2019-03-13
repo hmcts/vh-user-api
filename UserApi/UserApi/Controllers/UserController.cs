@@ -66,7 +66,7 @@ namespace UserApi.Controllers
                 };
                 return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
             }
-            catch (UserServiceException userServiceException)
+            catch (UserServiceException)
             {
                 ModelState.AddModelError(nameof(request), "user already exists");
                 return BadRequest(ModelState);
