@@ -67,14 +67,12 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(_acTestContext.Json);
             model.Should().NotBeNull();
-            //model.CaseType.Should().NotBeNullOrEmpty();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.Email.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
-            model.UserRole.Should().NotBeNullOrEmpty();
         }
 
         [AfterScenario]
