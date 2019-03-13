@@ -12,7 +12,7 @@ variables:
     "AzureAd/TenantId":"$(tenantid)",
     "AzureAd/VhUserApiResourceId":"$(vh-user-api-identifieruris)",
     "Testing/TestClientId":"$(vh-admin-web-appid)",
-    "Testing/TestClientSecret":"$(vh-admin-web-key)"
+    "Testing/TestClientSecret":"$(vh-admin-web-key)",
     "Testing/ReformEmail": "$(testing-reformemail)",
     "Testing/NewGroups/0/GroupId": "$(testing-newgroup-0-groupid)",
     "Testing/NewGroups/0/Displayname": "$(testing-newgroup-0-displayname)",
