@@ -174,7 +174,6 @@ namespace UserApi.IntegrationTests.Steps
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
-            model.UserRole.Should().NotBeNullOrEmpty();
         }
 
         [Then(@"the response should be empty")]
