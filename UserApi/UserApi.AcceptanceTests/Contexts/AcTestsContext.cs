@@ -1,4 +1,5 @@
 ﻿using RestSharp;
+using Testing.Common;
 using Testing.Common.Helpers;
 
 namespace UserApi.AcceptanceTests.Contexts
@@ -10,6 +11,10 @@ namespace UserApi.AcceptanceTests.Contexts
         public string BearerToken { get; set; }
         public string BaseUrl { get; set; }
         public string Json { get; set; }
+        public string NewUserId { get; set; }
+        public string NewGroupId { get; set; }
+        public string GraphApiToken { get; set; }
+        public TestSettings TestSettings { get; set; }
 
         public RestClient Client()
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Graph;
 using UserApi.Services;
 using UserApi.Services.Models;
 
@@ -29,16 +30,16 @@ namespace UserApi.Helper
             {
                 var userGroupIds = new List<int>();
 
-                foreach (var usrGrp in userGroups)
-                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), usrGrp.DisplayName));
+                GetUserGroupIds(userGroups, userGroupIds);
 
                 var lstVirtualRoomProfessionalPlusExternal = new List<int>
-                    {(int) AadGroup.VirtualRoomAdministrator, (int) AadGroup.External};
+                    {(int) AadGroup.VirtualRoomProfessional, (int) AadGroup.External};
                 var lstMoneyClaimsPlusFinancialRemedy = new List<int>
                     {(int) AadGroup.MoneyClaims, (int) AadGroup.FinancialRemedy};
 
-                if (userGroupIds.Count == 1)
-                    switch (userGroupIds[0])
+                foreach (var userGroupId in userGroupIds)
+                {
+                    switch (userGroupId)
                     {
                         case 1:
                             userRole = UserRole.VhOfficer.ToString();
@@ -58,11 +59,12 @@ namespace UserApi.Helper
                             userCaseType.Add(CaseType.FinancialRemedy.ToString());
                             break;
                     }
+                }
 
-                if (userGroupIds.Any(ug => lstVirtualRoomProfessionalPlusExternal.Contains(ug)))
+                if (userGroupIds.All(lstVirtualRoomProfessionalPlusExternal.Contains))
                     userRole = UserRole.Representative.ToString();
 
-                if (userGroupIds.Any(ug => lstMoneyClaimsPlusFinancialRemedy.Contains(ug)))
+                if (userGroupIds.All(lstMoneyClaimsPlusFinancialRemedy.Contains))
                 {
                     userRole = UserRole.CaseAdmin.ToString();
                     userCaseType.Add(CaseType.MoneyClaims.ToString());
@@ -83,6 +85,17 @@ namespace UserApi.Helper
             };
 
             return response;
+        }
+
+        private static void GetUserGroupIds(List<Group> userGroups, List<int> userGroupIds)
+        {
+            foreach (var usrGrp in userGroups)
+            {
+                EnumExtensions.TryParse<AadGroup>(usrGrp.DisplayName, out var rtnEnum);
+
+                if (rtnEnum != null)
+                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), rtnEnum.ToString()));
+            }
         }
     }
 }

@@ -8,7 +8,6 @@ using NUnit.Framework;
 using UserApi.Controllers;
 using UserApi.Services;
 using UserApi.Services.Models;
-
 namespace UserApi.UnitTests.Controllers
 {
     public class UserAccountsControllerTests

@@ -139,7 +139,6 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-
         [TearDown]
         public void ClearUp()
         {

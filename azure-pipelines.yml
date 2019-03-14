@@ -12,7 +12,22 @@ variables:
     "AzureAd/TenantId":"$(tenantid)",
     "AzureAd/VhUserApiResourceId":"$(vh-user-api-identifieruris)",
     "Testing/TestClientId":"$(vh-admin-web-appid)",
-    "Testing/TestClientSecret":"$(vh-admin-web-key)"
+    "Testing/TestClientSecret":"$(vh-admin-web-key)",
+    "Testing/ReformEmail": "$(testing-reformemail)",
+    "Testing/NewGroups/0/GroupId": "$(testing-newgroup-0-groupid)",
+    "Testing/NewGroups/0/Displayname": "$(testing-newgroup-0-displayname)",
+    "Testing/ExistingUserPrincipal": "$(testing-existinguserprincipal)",
+    "Testing/ExistingUserLastname": "$(testing-existinguserlastname)",
+    "Testing/ExistingUserId": "$(testing-existinguserid)",
+    "Testing/ExistingUserFirstname": "$(testing-existinguserfirstname)",
+    "Testing/ExistingUserDisplayname": "$(testing-existinguserdisplayname)",
+    "Testing/ExistingGroups/2/GroupId": "$(testing-existinggroups-2-groupid)",
+    "Testing/ExistingGroups/2/Displayname": "$(testing-existinggroups-2-displayname)",
+    "Testing/ExistingGroups/1/GroupId": "$(testing-existinggroups-1-groupid)",
+    "Testing/ExistingGroups/1/Displayname": "$(testing-existinggroups-1-displayname)",
+    "Testing/ExistingGroups/0/GroupId": "$(testing-existinggroups-0-groupid)",
+    "Testing/ExistingGroups/0/Displayname": "$(testing-existinggroups-0-displayname)",
+    "Testing/ExistingEmail": "$(testing-existingemail)"
     '
   dalWorkingDirectory: ''
   keyVaultName: vhcoreinfrahtdev # Used to get secrets for integration tests

@@ -12,14 +12,20 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="7.11.0.8083" />
+    <PackageReference Include="SpecFlow" Version="3.0.169-beta" />
+    <PackageReference Include="SpecFlow.NUnit" Version="3.0.169-beta" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.0.169-beta" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Testing.Common\Testing.Common.csproj" />
+    <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
     <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
+    <ProjectReference Include="..\UserApi.Domain\UserApi.Domain.csproj" />
     <ProjectReference Include="..\UserApi\UserApi.csproj" />
   </ItemGroup>
 
