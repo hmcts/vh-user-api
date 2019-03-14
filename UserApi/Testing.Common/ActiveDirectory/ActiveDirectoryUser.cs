@@ -2,11 +2,11 @@
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Testing.Common.Database
+namespace Testing.Common.ActiveDirectory
 {
-    public class AdUser
+    public class ActiveDirectoryUser
     {
-        protected AdUser()
+        protected ActiveDirectoryUser()
         {
         }
 

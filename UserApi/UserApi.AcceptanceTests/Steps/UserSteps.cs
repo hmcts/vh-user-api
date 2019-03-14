@@ -1,7 +1,7 @@
 ﻿using Faker;
 using FluentAssertions;
 using TechTalk.SpecFlow;
-using Testing.Common.Database;
+using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
@@ -79,7 +79,7 @@ namespace UserApi.AcceptanceTests.Steps
         public void NewUserClearUp()
         {
             if (string.IsNullOrWhiteSpace(_acTestContext.NewUserId)) return;
-            var userDeleted = AdUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
+            var userDeleted = ActiveDirectoryUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
             userDeleted.Should().BeTrue($"New user with ID {_acTestContext.NewUserId} is deleted");
             _acTestContext.NewUserId = null;
         }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Faker;
 using FluentAssertions;
 using TechTalk.SpecFlow;
-using Testing.Common.Database;
+using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -188,7 +188,7 @@ namespace UserApi.IntegrationTests.Steps
         public void ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_apiTestContext.NewUserId)) return;
-            var userDeleted = AdUser.DeleteTheUserFromAd(_apiTestContext.NewUserId, _apiTestContext.GraphApiToken);
+            var userDeleted = ActiveDirectoryUser.DeleteTheUserFromAd(_apiTestContext.NewUserId, _apiTestContext.GraphApiToken);
             userDeleted.Should().BeTrue($"New user with ID {_apiTestContext.NewUserId} is deleted");
             _apiTestContext.NewUserId = null;
         }
