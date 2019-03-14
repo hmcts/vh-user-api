@@ -89,8 +89,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"user should be added to the group")]
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(_acTestContext.TestSettings.ExistingUserId,
-                _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
+            var userIsInTheGroup = false;
             var sw = new Stopwatch();
             sw.Start();
             while (!userIsInTheGroup && sw.ElapsedMilliseconds < TimeoutInMilliseconds)
