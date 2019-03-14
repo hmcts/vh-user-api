@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace UserApi.AcceptanceTests.Steps
     {
         private readonly AcTestContext _acTestContext;
         private readonly AccountEndpoints _endpoints = new ApiUriFactory().AccountEndpoints;
+        private const int DelayInMilliseconds = 1000;
+        private const int TimeoutInMilliseconds = 20000;
 
         public AccountSteps(AcTestContext acTestContext)
         {
@@ -86,10 +89,19 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"user should be added to the group")]
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            Thread.Sleep(5000);
             var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(_acTestContext.TestSettings.ExistingUserId,
                 _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
-            userIsInTheGroup.Should().BeTrue();
+            var sw = new Stopwatch();
+            sw.Start();
+            while (!userIsInTheGroup && sw.ElapsedMilliseconds < TimeoutInMilliseconds)
+            {
+                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(_acTestContext.TestSettings.ExistingUserId,
+                    _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
+                await Task.Delay(DelayInMilliseconds);
+            }
+
+            sw.Stop();
+            userIsInTheGroup.Should().BeTrue("User has been added to the group");
             _acTestContext.NewGroupId = _acTestContext.TestSettings.NewGroups.First().GroupId;
         }
 
