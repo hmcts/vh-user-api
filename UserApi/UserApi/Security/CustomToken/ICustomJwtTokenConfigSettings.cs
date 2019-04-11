@@ -5,5 +5,6 @@
         int ExpiresInMinutes { get; }
         string Secret { get; }
         string Audience { get; }
+        string Issuer { get; }
     }
 }

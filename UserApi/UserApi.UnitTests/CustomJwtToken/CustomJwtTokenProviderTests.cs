@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using UserApi.Security.CustomToken;
@@ -11,13 +9,15 @@ namespace UserApi.UnitTests.CustomJwtToken
     {
         private ICustomJwtTokenProvider _customJwtTokenProvider;
         private ICustomJwtTokenHandler _customJwtTokenHandler;
+        private const string Issuer = "hmcts.video.service";
+        private const string Audience = "test.video.supplier.endpoint";
 
         [SetUp]
         public void Setup()
         {
             //Convert.ToBase64String(new HMACSHA256().Key); to generate a new key
             var secretKey = "W2gEmBn2H7b2FCMIQl6l9rggbJU1qR7luIeAf1uuaY+ik6TP5rN0NEsPVg0TGkroiel0SoCQT7w3cbk7hFrBtA==";
-            var customJwtTokenConfigSettings = new CustomJwtTokenConfigSettings(1, secretKey, "test.video.enpoint");
+            var customJwtTokenConfigSettings = new CustomJwtTokenConfigSettings(1, secretKey, Audience, Issuer);
             _customJwtTokenProvider = new CustomJwtTokenProvider(customJwtTokenConfigSettings);
             _customJwtTokenHandler = new CustomJwtTokenHandler(customJwtTokenConfigSettings);
         }
@@ -70,10 +70,10 @@ namespace UserApi.UnitTests.CustomJwtToken
         public void should_be_invalid_token_when_token_generated_with_different_secret()
         {
             var secretKey = "F8pf/zwOgm/kASEFs+BKRDdyq+RhHCQ9i9tPjeaPjUebm6HvzXKIsr/nX28wpwAZoWRG0FQK9LVf6nrkW/vg4w==";
-            var customJwtTokenConfigSettings = new CustomJwtTokenConfigSettings(1, secretKey, "test.video.enpoint");
+            var customJwtTokenConfigSettings = new CustomJwtTokenConfigSettings(1, secretKey, Audience, Issuer);
             _customJwtTokenProvider = new CustomJwtTokenProvider(customJwtTokenConfigSettings);
 
-            var token = "ey1221213121";
+            var token = _customJwtTokenProvider.GenerateToken("Test User", 1);
 
             var claimsPrincipal = _customJwtTokenHandler.IsValidToken(token);
             claimsPrincipal.Should().BeFalse();

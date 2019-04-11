@@ -32,11 +32,24 @@ namespace UserApi.Security.CustomToken
             var parameters = new TokenValidationParameters()
             {
                 RequireExpirationTime = true,
-                ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidIssuers = new[] {_customJwtTokenConfigSettings.Issuer},
+                ValidateIssuer = true,
+                ValidAudiences = new[] { _customJwtTokenConfigSettings.Audience },
+                ValidateAudience = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key)
+
             };
-            var principal = tokenHandler.ValidateToken(token, parameters, out var securityToken);
+
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = tokenHandler.ValidateToken(token, parameters, out var securityToken);
+            }
+            catch (SecurityTokenInvalidSignatureException)
+            {
+                return null;
+            }
+
             return principal;
         }
 
