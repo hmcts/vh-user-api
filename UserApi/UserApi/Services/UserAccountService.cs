@@ -57,7 +57,8 @@ namespace UserApi.Services
         {
             const string createdPassword = "Password123";
             var userDisplayName = displayName ?? $@"{firstName} {lastName}";
-            var userPrincipalName = $@"{firstName}.{lastName}@hearings.reform.hmcts.net".ToLower();
+
+            var userPrincipalName = CheckForNextAvailableUsername(firstName, lastName);
 
             var user = new User
             {
@@ -279,6 +280,55 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
+        /// <summary>
+        /// Query Graph for users with the same first and last names.
+        /// </summary>
+        /// <param name="filter">The filter</param>
+        /// <returns>List of users</returns>
+        public IList<User> QueryUsers(string filter)
+        {
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                 _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
+            var queryUrl = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6";
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                var httpRequestMessage =
+                    new HttpRequestMessage(HttpMethod.Get, queryUrl);
+                var result = client.SendAsync(httpRequestMessage).Result;
+                return result.IsSuccessStatusCode
+                    ? result.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>().Result.Value
+                    : new List<User>();
+            }
+        }
+
+        /// <summary>
+        /// Determine the next available username for a participant based on username format [firstname].[lastname]
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <returns>next available user principal name</returns>
+        public virtual string CheckForNextAvailableUsername(string firstName, string lastName)
+        {
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var userFilter = $@"startswith(userPrincipalName,'{baseUsername}')";
+            var users = QueryUsers(userFilter).ToList();
+            var domain = "@hearings.reform.hmcts.net";
+            if (!users.Any())
+            {
+                var userPrincipalName = $"{baseUsername}{domain}";
+                return userPrincipalName;
+            }
+            users = users.OrderBy(x => x.UserPrincipalName).ToList();
+            var lastUserPrincipalName = users.Last().UserPrincipalName;
+
+            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
+            lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
+            var lastNumber = int.Parse(lastUserPrincipalName);
+            lastNumber += 1;
+            return $"{baseUsername}{lastNumber}{domain}";
+        }
 
         private async Task<NewAdUserAccount> CreateUser(User newUser)
         {
@@ -325,7 +375,7 @@ namespace UserApi.Services
 
             var model = new UpdateAuthenticationInformationRequest
             {
-                OtherMails = new List<string> {recoveryMail}
+                OtherMails = new List<string> { recoveryMail }
             };
 
             HttpResponseMessage responseMessage;
@@ -365,6 +415,13 @@ namespace UserApi.Services
 
             var message = $"Failed to update alternative email address for {userId}";
             throw new UserServiceException(message, reason);
+        }
+
+       
+        private string GetStringWithoutWord(string currentWord, string wordToRemove)
+        {
+            return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
+                wordToRemove.Length);
         }
     }
 }
