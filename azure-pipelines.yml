@@ -42,11 +42,6 @@ resources:
     ref: refs/heads/master # ref name to use, defaults to 'refs/heads/master'
     endpoint: 'GitHubDevOps'
 
-trigger:
-- master
-pr:
-- master
-
 jobs:
   
 - template: jobs/angularDotNetCore.yml@azureDevOpsTemplates # Template reference
