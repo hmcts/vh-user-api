@@ -1,16 +1,16 @@
+using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Microsoft.Graph;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UserApi.Common;
 using UserApi.Contract.Requests;
+using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
 
@@ -44,12 +44,15 @@ namespace UserApi.Services
         private readonly AzureAdConfiguration _azureAdConfiguration;
         private readonly TimeSpan _retryTimeout;
         private readonly ITokenProvider _tokenProvider;
+        private readonly IHttpClientHelper _httpClientHelper;
 
-        public UserAccountService(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
+        public UserAccountService(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions,
+            IHttpClientHelper httpClientHelper)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _tokenProvider = tokenProvider;
             _azureAdConfiguration = azureAdConfigOptions.Value;
+            _httpClientHelper = httpClientHelper;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
@@ -89,24 +92,9 @@ namespace UserApi.Services
                 ObjectDataId = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
             };
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Post,
-                        $@"{_azureAdConfiguration.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref")
-                    {
-                        Content = stringContent
-                    };
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
+            var stringContent = new StringContent(JsonConvert.SerializeObject(body));
+            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
+            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(accessToken, stringContent, accessUri, HttpMethod.Post);
             if (responseMessage.IsSuccessStatusCode) return;
 
             var message = $"Failed to add user {user.Id} to group {group.Id}";
@@ -126,15 +114,9 @@ namespace UserApi.Services
                 _azureAdConfiguration.ClientSecret,
                 _azureAdConfiguration.GraphApiBaseUri);
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get,
-                        $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
+            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            
 
             if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<User>();
 
@@ -150,19 +132,9 @@ namespace UserApi.Services
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                 _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get,
-                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
+            var accessUri = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content
@@ -193,15 +165,9 @@ namespace UserApi.Services
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                 _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
+            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
@@ -218,15 +184,8 @@ namespace UserApi.Services
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                 _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get,
-                        $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups/{groupId}");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
+            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups/{groupId}";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<Group>();
 
@@ -242,15 +201,10 @@ namespace UserApi.Services
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                 _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}/memberOf");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
+            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+          
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
@@ -262,7 +216,7 @@ namespace UserApi.Services
                     var itemProperties = item.Children<JProperty>();
                     var type = itemProperties.FirstOrDefault(x => x.Name == OdataType);
 
-                    //If #microsoft.graph.directoryRole ignore the group mappings
+                    // If #microsoft.graph.directoryRole ignore the group mappings
                     if (type.Value.ToString() == GraphGroupType)
                     {
                         var group = JsonConvert.DeserializeObject<Group>(item.ToString());
@@ -289,17 +243,13 @@ namespace UserApi.Services
         {
             var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                  _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
+
             var queryUrl = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6";
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get, queryUrl);
-                var result = client.SendAsync(httpRequestMessage).Result;
-                return result.IsSuccessStatusCode
-                    ? result.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>().Result.Value
-                    : new List<User>();
-            }
+
+            var response = _httpClientHelper.CreateHttpClientGet(accessToken, queryUrl);
+            return response.IsSuccessStatusCode
+                    ? response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>().Result.Value
+                   : new List<User>();
         }
 
         /// <summary>
@@ -336,20 +286,9 @@ namespace UserApi.Services
                 _azureAdConfiguration.ClientSecret,
                 _azureAdConfiguration.GraphApiBaseUri);
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Post, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users");
-                httpRequestMessage.Content = stringContent;
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
+            var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
+            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users";
+            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(accessToken, stringContent, accessUri, HttpMethod.Post);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -377,25 +316,11 @@ namespace UserApi.Services
             {
                 OtherMails = new List<string> { recoveryMail }
             };
+            var stringContent = new StringContent(JsonConvert.SerializeObject(model));
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(model));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Patch,
-                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6")
-                    {
-                        Content = stringContent
-                    };
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
+            var accessUri = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6";
+            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(accessToken, stringContent, accessUri, HttpMethod.Patch);
+            
             if (responseMessage.IsSuccessStatusCode) return;
 
             var reason = await responseMessage.Content.ReadAsStringAsync();
@@ -417,7 +342,6 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
-       
         private string GetStringWithoutWord(string currentWord, string wordToRemove)
         {
             return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
