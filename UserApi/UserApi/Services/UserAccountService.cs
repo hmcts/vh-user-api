@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -28,7 +27,7 @@ namespace UserApi.Services
         ///     Get a user in AD either via Object ID or UserPrincipalName
         /// </summary>
         /// <param name="userId"></param>
-        /// <returns></returns>
+        /// <returns>The User.</returns>
         Task<User> GetUserById(string userId);
 
         Task<Group> GetGroupByName(string groupName);
@@ -41,18 +40,15 @@ namespace UserApi.Services
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
-        private readonly AzureAdConfiguration _azureAdConfiguration;
         private readonly TimeSpan _retryTimeout;
-        private readonly ITokenProvider _tokenProvider;
         private readonly IHttpClientHelper _httpClientHelper;
+        private readonly IGraphApiSettingsHelper _graphApiSettingsHelper;
 
-        public UserAccountService(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions,
-            IHttpClientHelper httpClientHelper)
+        public UserAccountService(IHttpClientHelper httpClientHelper, IGraphApiSettingsHelper graphApiSettingsHelper)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
-            _tokenProvider = tokenProvider;
-            _azureAdConfiguration = azureAdConfigOptions.Value;
             _httpClientHelper = httpClientHelper;
+            _graphApiSettingsHelper = graphApiSettingsHelper;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
@@ -83,18 +79,14 @@ namespace UserApi.Services
 
         public async Task AddUserToGroup(User user, Group group)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
-            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(accessToken, stringContent, accessUri, HttpMethod.Post);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
+            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(_graphApiSettingsHelper.AccessToken, stringContent, accessUri, HttpMethod.Post);
             if (responseMessage.IsSuccessStatusCode) return;
 
             var message = $"Failed to add user {user.Id} to group {group.Id}";
@@ -110,13 +102,8 @@ namespace UserApi.Services
 
         public async Task<User> GetUserById(string userId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
-            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
-            
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/users/{userId}";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<User>();
 
@@ -129,11 +116,8 @@ namespace UserApi.Services
 
         public async Task<User> GetUserByFilter(string filter)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
-
-            var accessUri = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUriWindows}{_graphApiSettingsHelper.TenantId}/users?$filter={filter}&api-version=1.6";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessTokenWindows, accessUri);
             
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -162,11 +146,8 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupByName(string groupName)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
-
-            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
             
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -181,11 +162,8 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupById(string groupId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
-
-            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups/{groupId}";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/groups/{groupId}";
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<Group>();
 
@@ -198,12 +176,9 @@ namespace UserApi.Services
 
         public async Task<List<Group>> GetGroupsForUser(string userId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
-            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
-
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(accessToken, accessUri);
+            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
           
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -241,12 +216,9 @@ namespace UserApi.Services
         /// <returns>List of users</returns>
         public IList<User> QueryUsers(string filter)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                 _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
+            var queryUrl = $"{_graphApiSettingsHelper.GraphApiBaseUriWindows}{_graphApiSettingsHelper.TenantId}/users?$filter={filter}&api-version=1.6";
 
-            var queryUrl = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6";
-
-            var response = _httpClientHelper.CreateHttpClientGet(accessToken, queryUrl);
+            var response = _httpClientHelper.CreateHttpClientGet(_graphApiSettingsHelper.AccessTokenWindows, queryUrl);
             return response.IsSuccessStatusCode
                     ? response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>().Result.Value
                    : new List<User>();
@@ -282,13 +254,9 @@ namespace UserApi.Services
 
         private async Task<NewAdUserAccount> CreateUser(User newUser)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
             var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-            var accessUri = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users";
-            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(accessToken, stringContent, accessUri, HttpMethod.Post);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/users";
+            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(_graphApiSettingsHelper.AccessToken, stringContent, accessUri, HttpMethod.Post);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -309,17 +277,14 @@ namespace UserApi.Services
 
         private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
-
             var model = new UpdateAuthenticationInformationRequest
             {
                 OtherMails = new List<string> { recoveryMail }
             };
             var stringContent = new StringContent(JsonConvert.SerializeObject(model));
 
-            var accessUri = $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6";
-            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(accessToken, stringContent, accessUri, HttpMethod.Patch);
+            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUriWindows}{_graphApiSettingsHelper.TenantId}/users/{userId}?api-version=1.6";
+            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(_graphApiSettingsHelper.AccessTokenWindows, stringContent, accessUri, HttpMethod.Patch);
             
             if (responseMessage.IsSuccessStatusCode) return;
 
