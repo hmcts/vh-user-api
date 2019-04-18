@@ -281,7 +281,7 @@ namespace UserApi.Services
         }
 
         /// <summary>
-        /// Query Graph for users with the same first and last names.
+        /// Query Graph for users with the same first and last names as existing user.
         /// </summary>
         /// <param name="filter">The filter</param>
         /// <returns>List of users</returns>
