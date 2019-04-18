@@ -56,7 +56,7 @@ namespace UserApi.Services
             string password = null)
         {
             const string createdPassword = "***REMOVED***";
-            var userDisplayName = displayName ?? $@"{firstName} {lastName}";
+            var userDisplayName = displayName ?? $"{firstName} {lastName}";
 
             var userPrincipalName = CheckForNextAvailableUsername(firstName, lastName);
 
@@ -64,7 +64,7 @@ namespace UserApi.Services
             {
                 AccountEnabled = true,
                 DisplayName = userDisplayName,
-                MailNickname = $@"{firstName}.{lastName}",
+                MailNickname = $"{firstName}.{lastName}",
                 PasswordProfile = new PasswordProfile
                 {
                     ForceChangePasswordNextSignIn = true,
@@ -311,14 +311,14 @@ namespace UserApi.Services
         public virtual string CheckForNextAvailableUsername(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLower();
-            var userFilter = $@"startswith(userPrincipalName,'{baseUsername}')";
+            var userFilter = $"startswith(userPrincipalName,'{baseUsername}')";
             var users = QueryUsers(userFilter).ToList();
             var domain = "@***REMOVED***";
             if (!users.Any())
             {
-                var userPrincipalName = $"{baseUsername}{domain}";
-                return userPrincipalName;
+                return $"{baseUsername}{domain}";
             }
+
             users = users.OrderBy(x => x.UserPrincipalName).ToList();
             var lastUserPrincipalName = users.Last().UserPrincipalName;
 
