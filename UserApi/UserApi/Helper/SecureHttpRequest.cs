@@ -6,28 +6,16 @@ namespace UserApi.Helper
 {
     public interface ISecureHttpRequest
     {
-        HttpResponseMessage CreateHttpClientGet(string accessToken, string accessUri);
+        Task<HttpResponseMessage> GetAsync(string accessToken, string accessUri);
 
-        Task<HttpResponseMessage> CreateHttpClientGetAsync(string accessToken, string accessUri);
-
-        Task<HttpResponseMessage> CreateHttpClientPatchOrPostAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod);
+        Task<HttpResponseMessage> PatchAsync(string accessToken, StringContent stringContent, string accessUri);
+        
+        Task<HttpResponseMessage> PostAsync(string accessToken, StringContent stringContent, string accessUri);
     }
 
     public class SecureHttpRequest : ISecureHttpRequest
     {
-        public HttpResponseMessage CreateHttpClientGet(string accessToken, string accessUri)
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get, accessUri);
-                var responseMessage = client.SendAsync(httpRequestMessage).Result;
-                return responseMessage;
-            }
-        }
-
-        public async Task<HttpResponseMessage> CreateHttpClientGetAsync(string accessToken, string accessUri)
+        public async Task<HttpResponseMessage> GetAsync(string accessToken, string accessUri)
         {
             using (var client = new HttpClient())
             {
@@ -38,7 +26,17 @@ namespace UserApi.Helper
             }
         }
 
-        public async Task<HttpResponseMessage> CreateHttpClientPatchOrPostAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod)
+        public Task<HttpResponseMessage> PatchAsync(string accessToken, StringContent stringContent, string accessUri)
+        {
+            return SendAsync(accessToken, stringContent, accessUri, HttpMethod.Patch);
+        }
+
+        public Task<HttpResponseMessage> PostAsync(string accessToken, StringContent stringContent, string accessUri)
+        {
+            return SendAsync(accessToken, stringContent, accessUri, HttpMethod.Post);
+        }
+
+        private async Task<HttpResponseMessage> SendAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod)
         {
             using (var client = new HttpClient())
             {
