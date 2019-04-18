@@ -21,6 +21,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserApi.Domain", "UserApi.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing.Common", "Testing.Common\Testing.Common.csproj", "{5FAF75E0-D32B-4C7C-83D3-B74CBE5CCD44}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{F2504C4C-2DEE-44CB-87BE-5BB08B6EA870}"
+ProjectSection(SolutionItems) = preProject
+	..\azure-pipelines.yml = ..\azure-pipelines.yml
+	..\CODEOWNERS = ..\CODEOWNERS
+	..\LICENSE = ..\LICENSE
+	..\README.md = ..\README.md
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
