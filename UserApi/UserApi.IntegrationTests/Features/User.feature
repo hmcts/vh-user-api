@@ -9,11 +9,11 @@ Scenario: Create a new hearings reforms user account
 	Then the response should have the status Created and success status True
 	And the user should be added
 
-Scenario: User account not created for an existing user
+Scenario: User account created for an user with the same name as existing user
 	Given I have a new hearings reforms user account request with an existing email
 	When I send the request to the endpoint
-	Then the response should have the status BadRequest and success status False
-	And the error response message should contain 'user already exists'
+	Then the response should have the status Created and success status True
+	And the user should be added
 
 Scenario: User account not created for an invalid user
 	Given I have a new hearings reforms user account request with an invalid email
