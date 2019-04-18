@@ -41,14 +41,14 @@ namespace UserApi.Services
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
         private readonly TimeSpan _retryTimeout;
-        private readonly IHttpClientHelper _httpClientHelper;
-        private readonly IGraphApiSettingsHelper _graphApiSettingsHelper;
+        private readonly ISecureHttpRequest _secureHttpRequest;
+        private readonly IGraphApiSettings _graphApiSettings;
 
-        public UserAccountService(IHttpClientHelper httpClientHelper, IGraphApiSettingsHelper graphApiSettingsHelper)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
-            _httpClientHelper = httpClientHelper;
-            _graphApiSettingsHelper = graphApiSettingsHelper;
+            _secureHttpRequest = secureHttpRequest;
+            _graphApiSettings = graphApiSettings;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
@@ -81,12 +81,12 @@ namespace UserApi.Services
         {
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
-            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(_graphApiSettingsHelper.AccessToken, stringContent, accessUri, HttpMethod.Post);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientPatchOrPostAsync(_graphApiSettings.AccessToken, stringContent, accessUri, HttpMethod.Post);
             if (responseMessage.IsSuccessStatusCode) return;
 
             var message = $"Failed to add user {user.Id} to group {group.Id}";
@@ -102,8 +102,8 @@ namespace UserApi.Services
 
         public async Task<User> GetUserById(string userId)
         {
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/users/{userId}";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientGetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<User>();
 
@@ -116,8 +116,8 @@ namespace UserApi.Services
 
         public async Task<User> GetUserByFilter(string filter)
         {
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUriWindows}{_graphApiSettingsHelper.TenantId}/users?$filter={filter}&api-version=1.6";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessTokenWindows, accessUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientGetAsync(_graphApiSettings.AccessTokenWindows, accessUri);
             
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -146,8 +146,8 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupByName(string groupName)
         {
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientGetAsync(_graphApiSettings.AccessToken, accessUri);
             
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -162,8 +162,8 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupById(string groupId)
         {
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/groups/{groupId}";
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientGetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<Group>();
 
@@ -176,9 +176,9 @@ namespace UserApi.Services
 
         public async Task<List<Group>> GetGroupsForUser(string userId)
         {
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
-            var responseMessage = await _httpClientHelper.CreateHttpClientGetAsync(_graphApiSettingsHelper.AccessToken, accessUri);
+            var responseMessage = await _secureHttpRequest.CreateHttpClientGetAsync(_graphApiSettings.AccessToken, accessUri);
           
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -216,9 +216,9 @@ namespace UserApi.Services
         /// <returns>List of users</returns>
         public IList<User> QueryUsers(string filter)
         {
-            var queryUrl = $"{_graphApiSettingsHelper.GraphApiBaseUriWindows}{_graphApiSettingsHelper.TenantId}/users?$filter={filter}&api-version=1.6";
+            var queryUrl = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
 
-            var response = _httpClientHelper.CreateHttpClientGet(_graphApiSettingsHelper.AccessTokenWindows, queryUrl);
+            var response = _secureHttpRequest.CreateHttpClientGet(_graphApiSettings.AccessTokenWindows, queryUrl);
             return response.IsSuccessStatusCode
                     ? response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>().Result.Value
                    : new List<User>();
@@ -255,8 +255,8 @@ namespace UserApi.Services
         private async Task<NewAdUserAccount> CreateUser(User newUser)
         {
             var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUri}v1.0/users";
-            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(_graphApiSettingsHelper.AccessToken, stringContent, accessUri, HttpMethod.Post);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientPatchOrPostAsync(_graphApiSettings.AccessToken, stringContent, accessUri, HttpMethod.Post);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -283,8 +283,8 @@ namespace UserApi.Services
             };
             var stringContent = new StringContent(JsonConvert.SerializeObject(model));
 
-            var accessUri = $"{_graphApiSettingsHelper.GraphApiBaseUriWindows}{_graphApiSettingsHelper.TenantId}/users/{userId}?api-version=1.6";
-            var responseMessage = await _httpClientHelper.CreateHttpClientPatchOrPostAsync(_graphApiSettingsHelper.AccessTokenWindows, stringContent, accessUri, HttpMethod.Patch);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users/{userId}?api-version=1.6";
+            var responseMessage = await _secureHttpRequest.CreateHttpClientPatchOrPostAsync(_graphApiSettings.AccessTokenWindows, stringContent, accessUri, HttpMethod.Patch);
             
             if (responseMessage.IsSuccessStatusCode) return;
 

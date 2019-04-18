@@ -4,7 +4,7 @@ using UserApi.Security;
 
 namespace UserApi.Helper
 {
-    public interface IGraphApiSettingsHelper
+    public interface IGraphApiSettings
     {
         string GraphApiBaseUriWindows { get; }
         string GraphApiBaseUri { get; }
@@ -13,12 +13,12 @@ namespace UserApi.Helper
         string TenantId { get; }
     }
 
-    public class GraphApiSettingsHelper: IGraphApiSettingsHelper
+    public class GraphApiSettings: IGraphApiSettings
     {
         private readonly ITokenProvider _tokenProvider;
         private readonly AzureAdConfiguration _azureAdConfiguration;
 
-        public GraphApiSettingsHelper(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
+        public GraphApiSettings(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
         {
             _tokenProvider = tokenProvider;
             _azureAdConfiguration = azureAdConfigOptions.Value;

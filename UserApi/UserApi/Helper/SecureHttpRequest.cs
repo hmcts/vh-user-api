@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace UserApi.Helper
 {
-    public interface IHttpClientHelper
+    public interface ISecureHttpRequest
     {
         HttpResponseMessage CreateHttpClientGet(string accessToken, string accessUri);
 
@@ -13,7 +13,7 @@ namespace UserApi.Helper
         Task<HttpResponseMessage> CreateHttpClientPatchOrPostAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod);
     }
 
-    public class HttpClientHelper : IHttpClientHelper
+    public class SecureHttpRequest : ISecureHttpRequest
     {
         public HttpResponseMessage CreateHttpClientGet(string accessToken, string accessUri)
         {
