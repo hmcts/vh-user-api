@@ -6,6 +6,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using UserApi.Common;
+using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
 using UserApi.Swagger;
@@ -20,6 +21,8 @@ namespace UserApi
 
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
+            serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
+            serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
             serviceCollection.AddScoped<AzureAdConfiguration>();
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
