@@ -83,5 +83,17 @@ namespace UserApi.AcceptanceTests.Steps
             userDeleted.Should().BeTrue($"New user with ID {_acTestContext.NewUserId} is deleted");
             _acTestContext.NewUserId = null;
         }
+
+        [Given(@"I have a new hearings reforms user account request with an existing name")]
+        public void GivenIHaveANewHearingsReformsUserAccountRequestWithAnExistingFullName()
+        {
+            var createUserRequest = new CreateUserRequest
+            {
+                RecoveryEmail = Internet.Email(),
+                FirstName = _acTestContext.TestSettings.ExistingUserFirstname,
+                LastName = _acTestContext.TestSettings.ExistingUserLastname
+            };
+            _acTestContext.Request = _acTestContext.Post(_endpoints.CreateUser, createUserRequest);
+        }
     }
 }
