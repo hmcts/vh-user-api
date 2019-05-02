@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata.Ecma335;
 
 namespace UserApi.Helper
 {
@@ -11,8 +12,9 @@ namespace UserApi.Helper
         [Display(Name = "MoneyClaims")] MoneyClaims = 4,
         [Display(Name = "FinancialRemedy")] FinancialRemedy = 5,
         [Display(Name = "SSPR Enabled")] SsprEnabled = 6,
-        [Display(Name = "VirtualRoomProfessional")]
-        VirtualRoomProfessional = 7
-
+        [Display(Name = "VirtualRoomProfessionalUser")]
+        VirtualRoomProfessionalUser = 7,
+        [Display(Name = "VirtualRoomJudge")]
+        VirtualRoomJudge = 8
     }
 }
