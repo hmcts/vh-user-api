@@ -66,6 +66,16 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
+        public async Task should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
+        {
+            GivenFilterReturnsUserWithGroups("Internal", "VirtualRoomAdministrator", "FinancialRemedy");
+            
+            var userProfile = await _helper.GetUserProfile(Filter);
+
+            userProfile.UserRole.Should().Be("VhOfficer");
+        }
+        
+        [Test]
         public async Task should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
             GivenFilterReturnsUserWithGroups("External", "VirtualRoomProfessionalUser");
@@ -83,6 +93,26 @@ namespace UserApi.UnitTests.Helpers
             var userProfile = await _helper.GetUserProfile(Filter);
 
             userProfile.UserRole.Should().Be("Individual");
+        }
+        
+        [Test]
+        public async Task should_return_empty_profile_for_user_without_groups()
+        {
+            GivenFilterReturnsUserWithGroups();
+            
+            var userProfile = await _helper.GetUserProfile(Filter);
+
+            userProfile.UserRole.Should().BeEmpty();
+        }
+        
+        [Test]
+        public async Task should_return_null_for_no_user_found()
+        {
+            _accountService.Setup(x => x.GetUserByFilter(Filter)).ReturnsAsync((User) null);
+            
+            var userProfile = await _helper.GetUserProfile(Filter);
+
+            userProfile.Should().BeNull();
         }
 
         private void GivenFilterReturnsUserWithGroups(params string[] groupDisplayNames)

@@ -19,58 +19,12 @@ namespace UserApi.Helper
 
         public async Task<UserProfile> GetUserProfile(string filter)
         {
-            var userRole = string.Empty;
             var userCaseType = new List<string>();
             var user = await _userAccountService.GetUserByFilter(filter);
 
             if (user == null) return null;
 
-            var userGroups = await _userAccountService.GetGroupsForUser(user.Id);
-            if (userGroups != null)
-            {
-                var userGroupIds = new List<int>();
-
-                GetUserGroupIds(userGroups, userGroupIds);
-
-                var lstVirtualRoomProfessionalPlusExternal = new List<int>
-                    {(int) AadGroup.VirtualRoomProfessional, (int) AadGroup.External};
-                var lstMoneyClaimsPlusFinancialRemedy = new List<int>
-                    {(int) AadGroup.MoneyClaims, (int) AadGroup.FinancialRemedy};
-
-                foreach (var userGroupId in userGroupIds)
-                {
-                    switch (userGroupId)
-                    {
-                        case 1:
-                            userRole = UserRole.VhOfficer.ToString();
-                            break;
-                        case 2:
-                            userRole = UserRole.Individual.ToString();
-                            break;
-                        case 3:
-                            userRole = UserRole.Judge.ToString();
-                            break;
-                        case 4:
-                            userRole = UserRole.CaseAdmin.ToString();
-                            userCaseType.Add(CaseType.MoneyClaims.ToString());
-                            break;
-                        case 5:
-                            userRole = UserRole.CaseAdmin.ToString();
-                            userCaseType.Add(CaseType.FinancialRemedy.ToString());
-                            break;
-                    }
-                }
-
-                if (userGroupIds.All(lstVirtualRoomProfessionalPlusExternal.Contains))
-                    userRole = UserRole.Representative.ToString();
-
-                if (userGroupIds.All(lstMoneyClaimsPlusFinancialRemedy.Contains))
-                {
-                    userRole = UserRole.CaseAdmin.ToString();
-                    userCaseType.Add(CaseType.MoneyClaims.ToString());
-                    userCaseType.Add(CaseType.FinancialRemedy.ToString());
-                }
-            }
+            var userRole = await GetUserRole(user.Id);
 
             var response = new UserProfile
             {
@@ -87,14 +41,42 @@ namespace UserApi.Helper
             return response;
         }
 
-        private static void GetUserGroupIds(List<Group> userGroups, List<int> userGroupIds)
+        private async Task<string> GetUserRole(string userId)
         {
-            foreach (var usrGrp in userGroups)
-            {
-                EnumExtensions.TryParse<AadGroup>(usrGrp.DisplayName, out var rtnEnum);
+            var userGroupDetails = await _userAccountService.GetGroupsForUser(userId);
+            var userGroups = GetUserGroups(userGroupDetails).ToList();
 
-                if (rtnEnum != null)
-                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), rtnEnum.ToString()));
+            if (userGroups.Contains(AadGroup.VirtualRoomAdministrator) && userGroups.Contains(AadGroup.Internal))
+            {
+                return UserRole.VhOfficer.ToString();
+            }
+
+            if (userGroups.Contains(AadGroup.MoneyClaims) || userGroups.Contains(AadGroup.FinancialRemedy))
+            {
+                return UserRole.CaseAdmin.ToString();
+            }
+
+            if (userGroups.Contains(AadGroup.Internal) && userGroups.Contains(AadGroup.VirtualRoomJudge))
+            {
+                return UserRole.Judge.ToString();
+            }
+
+            if (userGroups.Contains(AadGroup.External) && userGroups.Contains(AadGroup.VirtualRoomProfessionalUser))
+            {
+                return UserRole.Representative.ToString();
+            }
+
+            return userGroups.Contains(AadGroup.External) ? UserRole.Individual.ToString() : string.Empty;
+        }
+
+        private static IEnumerable<AadGroup> GetUserGroups(IEnumerable<Group> userGroups)
+        {
+            foreach (var displayName in userGroups.Select(g => g.DisplayName))
+            {
+                if (Enum.TryParse(displayName, out AadGroup @group))
+                {
+                    yield return group;
+                }
             }
         }
     }
