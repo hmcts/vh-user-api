@@ -48,7 +48,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
-            GivenFilterReturnsUserWithGroups("Internal", "VirtualRoomJudge");
+            GivenFilterReturnsUserWithGroups("VirtualRoomJudge");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -58,7 +58,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
         {
-            GivenFilterReturnsUserWithGroups("Internal", "VirtualRoomAdministrator");
+            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -68,7 +68,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
         {
-            GivenFilterReturnsUserWithGroups("Internal", "VirtualRoomAdministrator", "FinancialRemedy");
+            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator", "FinancialRemedy");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -78,7 +78,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
-            GivenFilterReturnsUserWithGroups("External", "VirtualRoomProfessionalUser");
+            GivenFilterReturnsUserWithGroups("VirtualRoomProfessionalUser");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -96,13 +96,12 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_empty_profile_for_user_without_groups()
+        public void should_raise_exception_if_user_lacks_video_hearing_groups()
         {
             GivenFilterReturnsUserWithGroups();
-            
-            var userProfile = await _helper.GetUserProfile(Filter);
 
-            userProfile.UserRole.Should().BeEmpty();
+            Assert.ThrowsAsync<UnauthorizedAccessException>(() => _helper.GetUserProfile(Filter),
+                "Matching user is not registered with valid groups");
         }
         
         [Test]

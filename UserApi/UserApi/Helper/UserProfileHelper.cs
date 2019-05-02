@@ -34,39 +34,44 @@ namespace UserApi.Helper
                 DisplayName = user.DisplayName,
                 FirstName = user.GivenName,
                 LastName = user.Surname,
-                UserRole = userRole,
+                UserRole = userRole.ToString(),
                 CaseType = userCaseType
             };
 
             return response;
         }
 
-        private async Task<string> GetUserRole(string userId)
+        private async Task<UserRole> GetUserRole(string userId)
         {
             var userGroupDetails = await _userAccountService.GetGroupsForUser(userId);
             var userGroups = GetUserGroups(userGroupDetails).ToList();
 
-            if (userGroups.Contains(AadGroup.VirtualRoomAdministrator) && userGroups.Contains(AadGroup.Internal))
+            if (userGroups.Contains(AadGroup.VirtualRoomAdministrator))
             {
-                return UserRole.VhOfficer.ToString();
+                return UserRole.VhOfficer;
             }
 
             if (userGroups.Contains(AadGroup.MoneyClaims) || userGroups.Contains(AadGroup.FinancialRemedy))
             {
-                return UserRole.CaseAdmin.ToString();
+                return UserRole.CaseAdmin;
             }
 
-            if (userGroups.Contains(AadGroup.Internal) && userGroups.Contains(AadGroup.VirtualRoomJudge))
+            if (userGroups.Contains(AadGroup.VirtualRoomJudge))
             {
-                return UserRole.Judge.ToString();
+                return UserRole.Judge;
             }
 
-            if (userGroups.Contains(AadGroup.External) && userGroups.Contains(AadGroup.VirtualRoomProfessionalUser))
+            if (userGroups.Contains(AadGroup.VirtualRoomProfessionalUser))
             {
-                return UserRole.Representative.ToString();
+                return UserRole.Representative;
             }
 
-            return userGroups.Contains(AadGroup.External) ? UserRole.Individual.ToString() : string.Empty;
+            if (userGroups.Contains(AadGroup.External))
+            {
+                return UserRole.Individual;
+            }
+
+            throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
         }
 
         private static IEnumerable<AadGroup> GetUserGroups(IEnumerable<Group> userGroups)
