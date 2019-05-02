@@ -19,12 +19,16 @@ namespace UserApi.Helper
 
         public async Task<UserProfile> GetUserProfile(string filter)
         {
-            var userCaseType = new List<string>();
             var user = await _userAccountService.GetUserByFilter(filter);
 
-            if (user == null) return null;
+            if (user == null)
+                return null;
 
-            var userRole = await GetUserRole(user.Id);
+            var userGroupDetails = await _userAccountService.GetGroupsForUser(user.Id);
+            var userGroups = GetUserGroups(userGroupDetails).ToList();
+            
+            var userRole = GetUserRole(userGroups);
+            var caseTypes = GetUserCaseTypes(userGroups);
 
             var response = new UserProfile
             {
@@ -35,23 +39,30 @@ namespace UserApi.Helper
                 FirstName = user.GivenName,
                 LastName = user.Surname,
                 UserRole = userRole.ToString(),
-                CaseType = userCaseType
+                CaseType = caseTypes
             };
 
             return response;
         }
 
-        private async Task<UserRole> GetUserRole(string userId)
+        private List<string> GetUserCaseTypes(List<AadGroup> userGroups)
         {
-            var userGroupDetails = await _userAccountService.GetGroupsForUser(userId);
-            var userGroups = GetUserGroups(userGroupDetails).ToList();
+            return userGroups.Where(IsCaseType).Select(g => g.ToString()).ToList();
+        }
 
+        private bool IsCaseType(AadGroup group)
+        {
+            return group == AadGroup.FinancialRemedy || group == AadGroup.MoneyClaims;
+        }
+
+        private UserRole GetUserRole(List<AadGroup> userGroups)
+        {
             if (userGroups.Contains(AadGroup.VirtualRoomAdministrator))
             {
                 return UserRole.VhOfficer;
             }
 
-            if (userGroups.Contains(AadGroup.MoneyClaims) || userGroups.Contains(AadGroup.FinancialRemedy))
+            if (userGroups.Any(IsCaseType))
             {
                 return UserRole.CaseAdmin;
             }
