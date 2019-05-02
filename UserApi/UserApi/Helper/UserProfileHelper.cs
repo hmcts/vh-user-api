@@ -76,7 +76,7 @@ namespace UserApi.Helper
 
         private static IEnumerable<AadGroup> GetUserGroups(IEnumerable<Group> userGroups)
         {
-            foreach (var displayName in userGroups.Select(g => g.DisplayName))
+            foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
             {
                 if (Enum.TryParse(displayName, out AadGroup @group))
                 {
