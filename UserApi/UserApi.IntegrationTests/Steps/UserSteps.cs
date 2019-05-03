@@ -20,6 +20,7 @@ namespace UserApi.IntegrationTests.Steps
     {
         private readonly ApiTestContext _apiTestContext;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
+        private UserRole? _userRole;
 
         public UserSteps(ApiTestContext apiTestContext)
         {
@@ -71,16 +72,17 @@ namespace UserApi.IntegrationTests.Steps
                 Encoding.UTF8, "application/json");
         }
 
-        [Given(@"I have a get user by AD user Id request for a (.*) user")]
-        [Given(@"I have a get user by AD user Id request for an (.*) user")]
-        public void GivenIHaveAGetUserByADUserIdRequestForTheUser(Scenario scenario)
+        [Given(@"I have a get user by AD user Id request for a (.*) user with role (.*)")]
+        [Given(@"I have a get user by AD user Id request for an (.*) user with role (.*)")]
+        public void GivenIHaveAGetUserByADUserIdRequestForTheUser(Scenario scenario, UserRole userRole)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
             switch (scenario)
             {
                 case Scenario.Existing:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(_apiTestContext.TestSettings.ExistingUserId);
+                    _userRole = userRole;
+                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(GetExistingUserIdForRole(userRole));
                     break;
                 }
                 case Scenario.Nonexistent:
@@ -94,6 +96,26 @@ namespace UserApi.IntegrationTests.Steps
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
+            }
+        }
+        private string GetExistingUserIdForRole(UserRole userRole)
+        {
+            switch (userRole)
+            {
+                case UserRole.Individual:
+                    return _apiTestContext.TestSettings.Individual;
+                case UserRole.Representative:
+                    return _apiTestContext.TestSettings.Representative;
+                case UserRole.VhOfficer:
+                    return _apiTestContext.TestSettings.VhOfficer;
+                case UserRole.CaseAdmin:
+                    return _apiTestContext.TestSettings.CaseAdmin;
+                case UserRole.Judge:
+                    return _apiTestContext.TestSettings.Judge;
+                case UserRole.VhOfficerCaseAdmin:
+                    return _apiTestContext.TestSettings.VhOfficerCaseAdmin;
+                default:
+                    throw new ArgumentException($"Cannot determine type of user role {nameof(userRole)}");
             }
         }
 
@@ -174,6 +196,10 @@ namespace UserApi.IntegrationTests.Steps
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
+            if(_userRole != null)
+            {
+                model.UserRole.Should().Be(_userRole.ToString());
+            }
         }
 
         [Then(@"the response should be empty")]
