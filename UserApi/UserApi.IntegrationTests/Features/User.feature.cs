@@ -156,14 +156,20 @@ this.ScenarioInitialize(scenarioInfo);
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Get user by AD user Id")]
-        public virtual void GetUserByADUserId()
+        [NUnit.Framework.TestCaseAttribute("Individual", null)]
+        [NUnit.Framework.TestCaseAttribute("Representative", null)]
+        [NUnit.Framework.TestCaseAttribute("VhOfficer", null)]
+        [NUnit.Framework.TestCaseAttribute("CaseAdmin", null)]
+        [NUnit.Framework.TestCaseAttribute("Judge", null)]
+        [NUnit.Framework.TestCaseAttribute("VhOfficerCaseAdmin", null)]
+        public virtual void GetUserByADUserId(string role, string[] exampleTags)
         {
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get user by AD user Id", null, ((string[])(null)));
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get user by AD user Id", null, exampleTags);
 #line 32
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
 #line 33
- testRunner.Given("I have a get user by AD user Id request for an existing user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+ testRunner.Given(string.Format("I have a get user by AD user Id request for an existing user with {0}", role), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line 34
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 35
@@ -179,16 +185,16 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserAccountNotRetrievedForANonexistentUser()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User account not retrieved for a nonexistent user", null, ((string[])(null)));
-#line 38
+#line 46
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 39
- testRunner.Given("I have a get user by AD user Id request for a nonexistent user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 40
+#line 47
+ testRunner.Given("I have a get user by AD user Id request for a nonexistent user with Individual", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 48
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 41
+#line 49
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 42
+#line 50
  testRunner.And("the error response message should contain \'user does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -199,16 +205,16 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserAccountNotRetrievedForAnInvalidUser()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User account not retrieved for an invalid user", null, ((string[])(null)));
-#line 44
+#line 52
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 45
- testRunner.Given("I have a get user by AD user Id request for an invalid user", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 46
+#line 53
+ testRunner.Given("I have a get user by AD user Id request for an invalid user with Individual", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 54
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 47
+#line 55
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 48
+#line 56
  testRunner.And("the error response message should contain \'username cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -219,17 +225,17 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void GetUserByUserPrincipalName()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get user by user principal name", null, ((string[])(null)));
-#line 50
+#line 58
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 51
+#line 59
  testRunner.Given("I have a get user by user principal name request for an existing user principal n" +
                     "ame", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 52
+#line 60
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 53
+#line 61
  testRunner.Then("the response should have the status OK and success status True", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 54
+#line 62
  testRunner.And("the user details should be retrieved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -240,17 +246,17 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserAccountNotRetrievedForANonexistentUserPrincipalName()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User account not retrieved for a nonexistent user principal name", null, ((string[])(null)));
-#line 56
+#line 64
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 57
+#line 65
  testRunner.Given("I have a get user by user principal name request for a nonexistent user principal" +
                     " name", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 58
+#line 66
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 59
+#line 67
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 60
+#line 68
  testRunner.And("the error response message should contain \'user principal name does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -261,17 +267,17 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserAccountNotRetrievedForAnInvalidUserPrincipalName()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User account not retrieved for an invalid user principal name", null, ((string[])(null)));
-#line 62
+#line 70
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 63
+#line 71
  testRunner.Given("I have a get user by user principal name request for an invalid user principal na" +
                     "me", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 64
+#line 72
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 65
+#line 73
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 66
+#line 74
  testRunner.And("the error response message should contain \'user principal name cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -282,16 +288,16 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void GetUserProfileByEmail()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get user profile by email", null, ((string[])(null)));
-#line 68
+#line 76
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 69
+#line 77
  testRunner.Given("I have a get user profile by email request for an existing email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 70
+#line 78
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 71
+#line 79
  testRunner.Then("the response should have the status OK and success status True", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 72
+#line 80
  testRunner.And("the user details should be retrieved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -302,16 +308,16 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserAccountNotRetrievedWithANonexistentEmail()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User account not retrieved with a nonexistent email", null, ((string[])(null)));
-#line 74
+#line 82
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 75
+#line 83
  testRunner.Given("I have a get user profile by email request for a nonexistent email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 76
+#line 84
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 77
+#line 85
  testRunner.Then("the response should have the status NotFound and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 78
+#line 86
  testRunner.And("the error response message should contain \'email does not exist\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
@@ -322,16 +328,16 @@ this.ScenarioInitialize(scenarioInfo);
         public virtual void UserAccountNotRetrievedWithAnInvalidEmail()
         {
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("User account not retrieved with an invalid email", null, ((string[])(null)));
-#line 80
+#line 88
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
-#line 81
+#line 89
  testRunner.Given("I have a get user profile by email request for an invalid email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line 82
+#line 90
  testRunner.When("I send the request to the endpoint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 83
+#line 91
  testRunner.Then("the response should have the status BadRequest and success status False", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line 84
+#line 92
  testRunner.And("the error response message should contain \'email cannot be empty\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             this.ScenarioCleanup();
