@@ -72,8 +72,9 @@ namespace UserApi.IntegrationTests.Steps
                 Encoding.UTF8, "application/json");
         }
 
-        [Given(@"I have a get user by AD user Id request for a (.*) user with role (.*)")]
-        [Given(@"I have a get user by AD user Id request for an (.*) user with role (.*)")]
+
+        [Given(@"I have a get user by AD user Id request for a (.*) user with (.*)")]
+        [Given(@"I have a get user by AD user Id request for an (.*) user with (.*)")]
         public void GivenIHaveAGetUserByADUserIdRequestForTheUser(Scenario scenario, UserRole userRole)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
@@ -191,14 +192,25 @@ namespace UserApi.IntegrationTests.Steps
             model.Should().NotBeNull();
             // model.CaseType.Should().NotBeNullOrEmpty();
             model.DisplayName.Should().NotBeNullOrEmpty();
-            model.Email.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
             if(_userRole != null)
             {
-                model.UserRole.Should().Be(_userRole.ToString());
+                if(_userRole == UserRole.Individual || _userRole == UserRole.Representative)
+                {
+                    model.Email.Should().NotBeNullOrEmpty();
+                }
+                if(_userRole == UserRole.VhOfficerCaseAdmin)
+                {
+                    model.UserRole.Should().Be(UserRole.VhOfficer.ToString());
+                }
+                else
+                {
+                    model.UserRole.Should().Be(_userRole.ToString());
+                }
+                
             }
         }
 
