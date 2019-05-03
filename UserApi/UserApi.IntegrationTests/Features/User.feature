@@ -29,20 +29,26 @@ Scenario: User account not created with an incorrectly formatted email
 	Then the response should have the status BadRequest and success status False
 	And the error response message should contain 'email has incorrect format'
 
-Scenario: Get user by AD user Id
-	Given I have a get user by AD user Id request for an existing user
+Scenario: Get user by AD user Id of role Individual
+	Given I have a get user by AD user Id request for an existing user with role Individual
+	When I send the request to the endpoint
+	Then the response should have the status OK and success status True
+	And the user details should be retrieved
+
+Scenario: Get user by AD user Id  of role Representative
+	Given I have a get user by AD user Id request for an existing user with role Representative
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
 
 Scenario: User account not retrieved for a nonexistent user
-	Given I have a get user by AD user Id request for a nonexistent user
+	Given I have a get user by AD user Id request for a nonexistent user user with role Individual
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
 	And the error response message should contain 'user does not exist'
 	
 Scenario: User account not retrieved for an invalid user
-	Given I have a get user by AD user Id request for an invalid user
+	Given I have a get user by AD user Id request for an invalid user user with role Individual
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 	And the error response message should contain 'username cannot be empty'
