@@ -21,7 +21,7 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            var representativeGroups = new List<Group> {new Group { DisplayName = AadGroup.VirtualRoomProfessionalUser.ToString()}};
+            var representativeGroups = new List<Group> {new Group { DisplayName = AdGroup.VirtualRoomProfessionalUser.ToString()}};
             _userAccountService.Setup(x => x.GetGroupsForUser(It.IsAny<string>())).ReturnsAsync(representativeGroups);
             _controller = new UserController(_userAccountService.Object, new TelemetryClient());
         }

@@ -12,6 +12,19 @@ namespace UserApi.Helper
     {
         private readonly IUserAccountService _userAccountService;
 
+        /// <summary>
+        /// Mappings for AD groups since the display names can contain spaces
+        /// </summary>
+        private static readonly Dictionary<string, AdGroup> GroupMappings = new Dictionary<string, AdGroup>
+        {
+            {"External", AdGroup.External},
+            {"VirtualRoomAdministrator", AdGroup.VirtualRoomAdministrator},
+            {"VirtualRoomJudge", AdGroup.VirtualRoomJudge},
+            {"VirtualRoomProfessionalUser", AdGroup.VirtualRoomProfessionalUser},
+            {"Financial Remedy", AdGroup.FinancialRemedy},
+            {"Civil Money Claims", AdGroup.MoneyClaims}
+        };
+
         public UserProfileHelper(IUserAccountService userAccountService)
         {
             _userAccountService = userAccountService;
@@ -45,19 +58,19 @@ namespace UserApi.Helper
             return response;
         }
 
-        private List<string> GetUserCaseTypes(List<AadGroup> userGroups)
+        private List<string> GetUserCaseTypes(List<AdGroup> userGroups)
         {
             return userGroups.Where(IsCaseType).Select(g => g.ToString()).ToList();
         }
 
-        private bool IsCaseType(AadGroup group)
+        private bool IsCaseType(AdGroup group)
         {
-            return group == AadGroup.FinancialRemedy || group == AadGroup.MoneyClaims;
+            return group == AdGroup.FinancialRemedy || group == AdGroup.MoneyClaims;
         }
 
-        private UserRole GetUserRole(List<AadGroup> userGroups)
+        private UserRole GetUserRole(List<AdGroup> userGroups)
         {
-            if (userGroups.Contains(AadGroup.VirtualRoomAdministrator))
+            if (userGroups.Contains(AdGroup.VirtualRoomAdministrator))
             {
                 return UserRole.VhOfficer;
             }
@@ -67,17 +80,17 @@ namespace UserApi.Helper
                 return UserRole.CaseAdmin;
             }
 
-            if (userGroups.Contains(AadGroup.VirtualRoomJudge))
+            if (userGroups.Contains(AdGroup.VirtualRoomJudge))
             {
                 return UserRole.Judge;
             }
 
-            if (userGroups.Contains(AadGroup.VirtualRoomProfessionalUser))
+            if (userGroups.Contains(AdGroup.VirtualRoomProfessionalUser))
             {
                 return UserRole.Representative;
             }
 
-            if (userGroups.Contains(AadGroup.External))
+            if (userGroups.Contains(AdGroup.External))
             {
                 return UserRole.Individual;
             }
@@ -85,14 +98,12 @@ namespace UserApi.Helper
             throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
         }
 
-        private static IEnumerable<AadGroup> GetUserGroups(IEnumerable<Group> userGroups)
+        private static IEnumerable<AdGroup> GetUserGroups(IEnumerable<Group> userGroups)
         {
             foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
             {
-                if (Enum.TryParse(displayName, out AadGroup @group))
-                {
-                    yield return group;
-                }
+                if (GroupMappings.TryGetValue(displayName, out var adGroup))
+                    yield return adGroup;
             }
         }
     }

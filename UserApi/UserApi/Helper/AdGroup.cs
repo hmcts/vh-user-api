@@ -1,6 +1,6 @@
 ﻿namespace UserApi.Helper
 {
-    public enum AadGroup
+    public enum AdGroup
     {
         VirtualRoomAdministrator,
         External,
