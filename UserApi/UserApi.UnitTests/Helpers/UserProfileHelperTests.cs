@@ -28,7 +28,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_admin_for_user_with_money_claims_group()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.MoneyClaims);
+            GivenFilterReturnsUserWithGroups("Civil Money Claims");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -38,7 +38,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_admin_for_user_with_financial_remedy_group()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.FinancialRemedy);
+            GivenFilterReturnsUserWithGroups("Financial Remedy");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -48,7 +48,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.VirtualRoomJudge);
+            GivenFilterReturnsUserWithGroups("VirtualRoomJudge");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -58,7 +58,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.VirtualRoomAdministrator);
+            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -68,7 +68,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.VirtualRoomAdministrator, AdGroup.FinancialRemedy);
+            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator", "Financial Remedy");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -78,7 +78,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.VirtualRoomProfessionalUser);
+            GivenFilterReturnsUserWithGroups("VirtualRoomProfessionalUser");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -88,7 +88,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_individual_for_user_with_external_group()
         {
-            GivenFilterReturnsUserWithGroups(AdGroup.External);
+            GivenFilterReturnsUserWithGroups("External");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -117,8 +117,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_types_for_case_admin()
         {
-            var caseTypes = new[] { AdGroup.MoneyClaims, AdGroup.FinancialRemedy };
-            GivenFilterReturnsUserWithGroups(caseTypes);
+            GivenFilterReturnsUserWithGroups("Civil Money Claims", "Financial Remedy");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -139,7 +138,7 @@ namespace UserApi.UnitTests.Helpers
                 Surname = "McGregor",
                 UserPrincipalName = "bob.mcgregor@hearings.reform.hmcts.net"
             };
-            GivenFilterReturnsUserWithGroups(user, AdGroup.External);
+            GivenFilterReturnsUserWithGroups(user, "External");
             
             var userProfile = await _helper.GetUserProfile(Filter);
 
@@ -151,17 +150,17 @@ namespace UserApi.UnitTests.Helpers
             userProfile.UserName.Should().Be(user.UserPrincipalName);
         }
 
-        private void GivenFilterReturnsUserWithGroups(User user, params AdGroup[] groupDisplayNames)
+        private void GivenFilterReturnsUserWithGroups(User user, params string[] groupDisplayNames)
         {
             _accountService.Setup(x => x.GetUserByFilter(Filter))
                 .ReturnsAsync(user);
 
-            var groups = groupDisplayNames.Select(aadGroup => new Group { DisplayName = aadGroup.ToString() }).ToArray();
+            var groups = groupDisplayNames.Select(aadGroup => new Group { DisplayName = aadGroup }).ToArray();
             _accountService.Setup(x => x.GetGroupsForUser(user.Id))
                 .ReturnsAsync(new List<Group>(groups));
         }
 
-        private void GivenFilterReturnsUserWithGroups(params AdGroup[] groupDisplayNames)
+        private void GivenFilterReturnsUserWithGroups(params string[] groupDisplayNames)
         {
             var user = new User {Id = Guid.NewGuid().ToString()};
             GivenFilterReturnsUserWithGroups(user, groupDisplayNames);
