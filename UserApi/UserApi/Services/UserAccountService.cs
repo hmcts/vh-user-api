@@ -202,7 +202,7 @@ namespace UserApi.Services
                 return groups;
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return new List<Group>();
 
             var message = $"Failed to get group for user {userId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
