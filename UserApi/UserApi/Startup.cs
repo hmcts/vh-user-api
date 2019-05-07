@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -26,6 +27,8 @@ namespace UserApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ITelemetryInitializer>(new CloudRoleNameInitializer());
+            
             services.AddCors();
 
             ConfigureJsonSerialization(services);
