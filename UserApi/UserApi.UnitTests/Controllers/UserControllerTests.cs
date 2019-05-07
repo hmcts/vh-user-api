@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using UserApi.Controllers;
+using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
 namespace UserApi.UnitTests.Controllers
@@ -19,6 +21,8 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
+            var representativeGroups = new List<Group> {new Group { DisplayName = AdGroup.VirtualRoomProfessionalUser.ToString()}};
+            _userAccountService.Setup(x => x.GetGroupsForUser(It.IsAny<string>())).ReturnsAsync(representativeGroups);
             _controller = new UserController(_userAccountService.Object, new TelemetryClient());
         }
 
