@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AdminWebsite.Contracts.Responses;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Newtonsoft.Json;
@@ -35,6 +36,7 @@ namespace UserApi.Services
         Task<Group> GetGroupById(string groupId);
         Task<List<Group>> GetGroupsForUser(string userId);
         Task<User> GetUserByFilter(string filter);
+        Task<List<UserResponse>> GetJudges(string groupId);
     }
 
     public class UserAccountService : IUserAccountService
@@ -364,6 +366,39 @@ namespace UserApi.Services
             }
 
             var message = $"Failed to update alternative email address for {userId}";
+            throw new UserServiceException(message, reason);
+        }
+
+        public async Task<List<UserResponse>> GetJudges(string groupId)
+        {
+            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
+
+            HttpResponseMessage responseMessage;
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups/{groupId}/members");
+                responseMessage = await client.SendAsync(httpRequestMessage);
+            }
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
+                var response = JsonConvert.DeserializeObject<List<User>>(queryResponse.AdditionalData["value"].ToString());
+                return response.Select(x => new UserResponse
+                {
+                    FirstName = x.GivenName,
+                    LastName = x.Surname,
+                    DisplayName = x.DisplayName,
+                    Email = x.UserPrincipalName
+                }).ToList();
+            }
+
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+
+            var message = $"Failed to get users for group {groupId}";
+            var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
     }
