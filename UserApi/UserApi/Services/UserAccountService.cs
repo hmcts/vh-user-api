@@ -34,6 +34,7 @@ namespace UserApi.Services
         Task<Group> GetGroupById(string groupId);
         Task<List<Group>> GetGroupsForUser(string userId);
         Task<User> GetUserByFilter(string filter);
+        Task<List<UserResponse>> GetJudges(string groupId);
     }
 
     public class UserAccountService : IUserAccountService
@@ -311,6 +312,32 @@ namespace UserApi.Services
         {
             return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
                 wordToRemove.Length);
+        }
+
+        public async Task<List<UserResponse>> GetJudges(string groupId)
+        {
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members";
+
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
+                var response = JsonConvert.DeserializeObject<List<User>>(queryResponse.AdditionalData["value"].ToString());
+                return response.Select(x => new UserResponse
+                {
+                    FirstName = x.GivenName,
+                    LastName = x.Surname,
+                    DisplayName = x.DisplayName,
+                    Email = x.UserPrincipalName
+                }).ToList();
+            }
+
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+
+            var message = $"Failed to get users for group {groupId}";
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+            throw new UserServiceException(message, reason);
         }
     }
 }
