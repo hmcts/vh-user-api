@@ -112,7 +112,6 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_users_for_group_by_group_id_from_api()
         {
-            var groupId = "431f50b2-fb30-4937-9e91-9b9eeb54097f";
             var response = new List<UserResponse>();
             var user = new UserResponse() { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.reform.hmcts.net" };
             response.Add(user);
