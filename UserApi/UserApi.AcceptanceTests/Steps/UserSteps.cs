@@ -53,16 +53,16 @@ namespace UserApi.AcceptanceTests.Steps
             _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByEmail(_acTestContext.TestSettings.ExistingEmail));
         }
 
-        [Given(@"I have a valid group id request a list of judges")]
-        public void GivenIHaveAValidGroupIdRequestAListOfJudges()
-        {
-            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges(_acTestContext.TestSettings.ExistingGroups.FirstOrDefault(x=>x.DisplayName == "VirtualRoomJudge").GroupId));
-        }
+        //[Given(@"I have a valid group id request a list of judges")]
+        //public void GivenIHaveAValidGroupIdRequestAListOfJudges()
+        //{
+        //    _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges());
+        //}
 
         [Given(@"I have a valid AD groupid and request for a list of judges")]
         public void GivenIHaveAValidADGroupidAndRequestForAListOfJudges()
         {
-            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges(_acTestContext.TestSettings.ExistingGroups.FirstOrDefault(x=>x.DisplayName == "VirtualRoomJudge").GroupId));
+            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges());
         }
 
         [Then(@"the user should be added")]

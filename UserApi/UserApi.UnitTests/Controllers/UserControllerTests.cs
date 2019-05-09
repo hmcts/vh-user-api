@@ -124,8 +124,8 @@ namespace UserApi.UnitTests.Controllers
                 new UserResponse() { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@***REMOVED***" }
             };
 
-            _userAccountService.Setup(x => x.GetJudges(groupId)).Returns(Task.FromResult(response));
-            var actionResult = (OkObjectResult)await _controller.GetJudges(groupId);
+            _userAccountService.Setup(x => x.GetJudges()).Returns(Task.FromResult(response));
+            var actionResult = (OkObjectResult)await _controller.GetJudges();
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().BeGreaterThan(0);
             actualResponse.FirstOrDefault().DisplayName.Should()

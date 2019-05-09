@@ -55,7 +55,8 @@ namespace UserApi
                 NamingStrategy = new SnakeCaseNamingStrategy()
             };
 
-            services.AddMvc().AddJsonOptions(options =>
+            services.AddMvc()
+                .AddJsonOptions(options =>
                     options.SerializerSettings.ContractResolver = contractResolver)
                 .AddJsonOptions(options =>
                     options.SerializerSettings.Converters.Add(new StringEnumConverter()));
@@ -64,6 +65,7 @@ namespace UserApi
         private void RegisterSettings(IServiceCollection services)
         {
             services.Configure<AzureAdConfiguration>(options => Configuration.Bind("AzureAd", options));
+            services.Configure<AppConfigSettings>(options => Configuration.Bind(options));
         }
 
         private void RegisterAuth(IServiceCollection services)

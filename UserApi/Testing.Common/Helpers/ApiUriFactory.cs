@@ -56,9 +56,9 @@ namespace Testing.Common.Helpers
             return $"{ApiRoot}/email/{email}";
         }
 
-        public string GetJudges(string groupId)
+        public string GetJudges()
         {
-            return $"{ApiRoot}/user/{groupId}";
+            return $"{ApiRoot}/judges";
         }
     }
 
