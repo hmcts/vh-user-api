@@ -158,19 +158,10 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_get_users_for_group()
         {
-            const string groupId = "431f50b2-fb30-4937-9e91-9b9eeb54097f";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges(groupId));
+            var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
-        }
-
-        [Test]
-        public async Task should_get_users_for_group_not_found_with_invalid_user_id()
-        {
-            var groupId = System.Guid.Empty.ToString();
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges(groupId));
-            getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [TearDown]

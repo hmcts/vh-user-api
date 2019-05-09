@@ -163,13 +163,13 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get Judges from AD
         /// </summary>
-        [HttpGet("user/{groupId?}", Name = "GetJudges")]
+        [HttpGet("judges", Name = "GetJudges")]
         [SwaggerOperation(OperationId = "GetJudges")]
         [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetJudges(string groupId)
+        public async Task<IActionResult> GetJudges()
         {
-            var adJudges = await _userAccountService.GetJudges(groupId);
+            var adJudges = await _userAccountService.GetJudges();
             if (adJudges == null || !adJudges.Any()) return NotFound();
 
             return Ok(adJudges);
