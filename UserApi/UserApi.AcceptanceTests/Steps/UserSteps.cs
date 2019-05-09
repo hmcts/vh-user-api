@@ -1,5 +1,7 @@
 ﻿using Faker;
 using FluentAssertions;
+using System.Collections.Generic;
+using System.Linq;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
@@ -51,6 +53,18 @@ namespace UserApi.AcceptanceTests.Steps
             _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByEmail(_acTestContext.TestSettings.ExistingEmail));
         }
 
+        [Given(@"I have a valid group id request a list of judges")]
+        public void GivenIHaveAValidGroupIdRequestAListOfJudges()
+        {
+            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges(_acTestContext.TestSettings.ExistingGroups.FirstOrDefault(x=>x.DisplayName == "VirtualRoomJudge").GroupId));
+        }
+
+        [Given(@"I have a valid AD groupid and request for a list of judges")]
+        public void GivenIHaveAValidADGroupidAndRequestForAListOfJudges()
+        {
+            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges(_acTestContext.TestSettings.ExistingGroups.FirstOrDefault(x=>x.DisplayName == "VirtualRoomJudge").GroupId));
+        }
+
         [Then(@"the user should be added")]
         public void ThenTheUserShouldBeAdded()
         {
@@ -74,6 +88,20 @@ namespace UserApi.AcceptanceTests.Steps
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
         }
+
+        [Then(@"a list of ad judges should be retrieved")]
+        public void ThenAListOfAdJudgesShouldBeRetrieved()
+        {
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_acTestContext.Json);
+            model.Should().NotBeNull();
+            foreach (var user in model)
+            {
+                user.Email.Should().NotBeNullOrEmpty();
+                user.DisplayName.Should().NotBeNullOrEmpty();
+            }
+        }
+
+
 
         [AfterScenario]
         public void NewUserClearUp()
