@@ -6,15 +6,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Graph;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
-using DirectoryObject = Microsoft.Graph.DirectoryObject;
-using Group = Microsoft.Graph.Group;
-using PasswordProfile = Microsoft.Graph.PasswordProfile;
-using User = Microsoft.Graph.User;
 
 namespace UserApi.Services
 {
