@@ -27,17 +27,8 @@ namespace UserApi.Services
             var queryUrl = $"{_baseUrl}/users?$filter={filter}&api-version=1.6";
 
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, queryUrl);
-            AssertResponseIsSuccessful(response);
-
             var result = await response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>();
             return result.Value.Select(user => user.UserPrincipalName);
-        }
-
-        private static void AssertResponseIsSuccessful(HttpResponseMessage response)
-        {
-            // TODO: Move this code into the http request class and have that throw an exception if response type isn't valid
-            if (!response.IsSuccessStatusCode)
-                throw new IdentityServiceApiException("Failed to read users from API: " + response.StatusCode);
         }
     }
 }
