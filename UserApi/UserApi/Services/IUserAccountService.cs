@@ -7,10 +7,9 @@ namespace UserApi.Services
 {
     public interface IUserAccountService
     {
-        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null);
+        Task<string> CreateUser(string firstName, string lastName, string recoveryEmail);
 
         Task AddUserToGroup(User user, Group group);
-        Task UpdateAuthenticationInformation(string userId, string recoveryMail);
 
         /// <summary>
         ///     Get a user in AD either via Object ID or UserPrincipalName
