@@ -34,7 +34,7 @@ namespace UserApi.Services
             var queryUrl = $"{_baseUrl}/users?$filter={filter}&api-version=1.6";
 
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, queryUrl);
-            AssertResponseIsSuccessful(response);
+            await AssertResponseIsSuccessful(response);
 
             var result = await response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>();
             return result.Value.Select(user => user.UserPrincipalName);
@@ -42,6 +42,9 @@ namespace UserApi.Services
 
         public async Task CreateUser(string username, string firstName, string lastName, string displayName, string recoveryEmail)
         {
+            // The new MS Graph API endpoint to create users do not yet allow setting the otherMails property
+            // which we require to set the alternative email for self service password reset so we have to use
+            // the old Azure AD api to do this until this has been implemented in Graph API
             // https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-or-azure-ad-graph/
             var user = new
             {
