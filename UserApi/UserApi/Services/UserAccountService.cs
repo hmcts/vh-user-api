@@ -7,8 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using UserApi.Common;
-using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -19,14 +17,12 @@ namespace UserApi.Services
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
-        private readonly TimeSpan _retryTimeout;
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client)
         {
-            _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
@@ -63,12 +59,6 @@ namespace UserApi.Services
             var message = $"Failed to add user {user.Id} to group {group.Id}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
-        }
-
-        public async Task UpdateAuthenticationInformation(string userId, string recoveryMail)
-        {
-            var timeout = DateTime.Now.Add(_retryTimeout);
-            await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
         }
 
         public async Task<User> GetUserById(string userId)
@@ -210,38 +200,6 @@ namespace UserApi.Services
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await _client.GetUsernamesStartingWith(baseUsername);
             return users.OrderBy(username => username);
-        }
-
-        private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
-        {
-            var model = new UpdateAuthenticationInformationRequest
-            {
-                OtherMails = new List<string> { recoveryMail }
-            };
-            var stringContent = new StringContent(JsonConvert.SerializeObject(model));
-
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users/{userId}?api-version=1.6";
-            var responseMessage = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessTokenWindows, stringContent, accessUri);
-            
-            if (responseMessage.IsSuccessStatusCode) return;
-
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-
-            // If it's 404 try it again as the user might simply not have become "ready" in AD
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                if (DateTime.Now > timeout)
-                    throw new UserServiceException("Timed out trying to update alternative address for ${userId}",
-                        reason);
-
-                ApplicationLogger.Trace("APIFailure", "GraphAPI 404 PATCH /users/{id}",
-                    $"Failed to update authentication information for user {userId}, will retry.");
-                await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
-                return;
-            }
-
-            var message = $"Failed to update alternative email address for {userId}";
-            throw new UserServiceException(message, reason);
         }
 
         private string GetStringWithoutWord(string currentWord, string wordToRemove)
