@@ -56,8 +56,7 @@ namespace UserApi.Controllers
 
             try
             {
-                var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
-                await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
+                var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName, request.RecoveryEmail);
                 var response = new NewUserResponse
                 {
                     UserId = adUserAccount.UserId,
