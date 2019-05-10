@@ -28,20 +28,12 @@ namespace UserApi.Services
             _client = client;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail)
+        public async Task<string> CreateUser(string firstName, string lastName, string recoveryEmail)
         {
             var username = await CheckForNextAvailableUsername(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
             await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
-            var user = await GetUserById(username);
-            
-            // Temporarily, until users have stopped requesting it, return the user id for AD as well as username
-            return new NewAdUserAccount
-            {
-                Username = username,
-                UserId = user.Id,
-                OneTimePassword = "***REMOVED***"
-            };
+            return username;
         }
 
         public async Task AddUserToGroup(User user, Group group)

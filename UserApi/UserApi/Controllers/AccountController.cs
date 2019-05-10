@@ -147,13 +147,14 @@ namespace UserApi.Controllers
                 return NotFound();
             }
 
-            var user = await _userAccountService.GetUserById(request.UserId);
+            var filter = $"objectId  eq '{request.UserId}'";
+            var user = await _userAccountService.GetUserByFilter(filter);
             if (user == null)
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"User with ID '{request.UserId}' not found ",
                     SeverityLevel.Error));
 
-                ModelState.AddModelError(nameof(user), "group already exists");
+                ModelState.AddModelError(nameof(user), "User not found");
                 return NotFound(ModelState);
             }
 

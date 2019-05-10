@@ -7,7 +7,7 @@ namespace UserApi.Services
 {
     public interface IUserAccountService
     {
-        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail);
+        Task<string> CreateUser(string firstName, string lastName, string recoveryEmail);
 
         Task AddUserToGroup(User user, Group group);
 

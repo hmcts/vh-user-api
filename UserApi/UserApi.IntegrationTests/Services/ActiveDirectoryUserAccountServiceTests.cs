@@ -52,8 +52,7 @@ namespace UserApi.IntegrationTests.Services
             const string lastName = "Created";
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
             var recoveryEmail = $"{firstName}.{lastName}.{unique}@***REMOVED***";
-            var user = await _service.CreateUser(firstName, lastName, recoveryEmail);
-            var username = user.Username;
+            var username = await _service.CreateUser(firstName, lastName, recoveryEmail);
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());
             Console.WriteLine("Created user with username " + username);
