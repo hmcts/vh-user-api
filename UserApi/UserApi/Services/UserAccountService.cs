@@ -229,15 +229,10 @@ namespace UserApi.Services
 
         private async Task<IEnumerable<User>> GetUsersMatchingName(string firstName, string lastName)
         {
-            string baseUsername = $"{firstName}.{lastName}".ToLower();
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
             var userFilter = $"startswith(userPrincipalName,'{baseUsername}')";
-            var users = (await QueryUsers(userFilter)).ToList();
-            if (!users.Any())
-            {
-                return users;
-            }
-
-            return users.OrderBy(x => x.UserPrincipalName);
+            var users = await QueryUsers(userFilter);
+            return users.OrderBy(x => x.UserPrincipalName); 
         }
 
         private async Task<NewAdUserAccount> CreateUser(User newUser)
