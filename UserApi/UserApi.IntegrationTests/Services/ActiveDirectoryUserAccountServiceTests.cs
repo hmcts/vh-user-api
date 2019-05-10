@@ -12,7 +12,7 @@ namespace UserApi.IntegrationTests.Services
 {
     public class ActiveDirectoryUserAccountServiceTests
     {
-        private ActiveDirectoryUserAccountService _service;
+        private UserAccountService _service;
 
         [SetUp]
         public void Setup()
@@ -29,7 +29,7 @@ namespace UserApi.IntegrationTests.Services
             var configuration = new OptionsWrapper<AzureAdConfiguration>(azureAdConfig);
             var tokenProvider = new TokenProvider(configuration);
             var graphApiSettings = new GraphApiSettings(tokenProvider, configuration);
-            _service = new ActiveDirectoryUserAccountService(secureHttpRequest, graphApiSettings);
+            _service = new UserAccountService(secureHttpRequest, graphApiSettings);
         }
 
         [Test]
