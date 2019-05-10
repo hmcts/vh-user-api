@@ -208,14 +208,18 @@ namespace UserApi.Services
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <returns>next available user principal name</returns>
-        protected async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
+        public async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
         {
             var domain = "@***REMOVED***";
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await GetUsersMatchingName(firstName, lastName);
-            var lastUserPrincipalName = users.Last().UserPrincipalName;
+            var lastUserPrincipalName = users.LastOrDefault()?.UserPrincipalName;
+            if (lastUserPrincipalName == null)
+            {
+                return baseUsername + domain;
+            }
 
-            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+        lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
             var lastNumber = int.Parse(lastUserPrincipalName);
