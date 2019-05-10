@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace UserApi.Helper
 {
@@ -46,6 +47,16 @@ namespace UserApi.Helper
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 var httpRequestMessage = new HttpRequestMessage(httpMethod, accessUri);
                 httpRequestMessage.Content = stringContent;
+                return await client.SendAsync(httpRequestMessage);
+            }
+        }
+
+        public async Task<HttpResponseMessage> DeleteAsync(string accessToken, string url)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
                 return await client.SendAsync(httpRequestMessage);
             }
         }
