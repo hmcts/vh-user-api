@@ -1,4 +1,3 @@
-using Microsoft.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -7,12 +6,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Internal;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
+using DirectoryObject = Microsoft.Graph.DirectoryObject;
+using Group = Microsoft.Graph.Group;
+using PasswordProfile = Microsoft.Graph.PasswordProfile;
+using User = Microsoft.Graph.User;
 
 namespace UserApi.Services
 {
@@ -33,29 +35,12 @@ namespace UserApi.Services
             _client = client;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
+        public async Task<string> CreateUser(string firstName, string lastName, string recoveryEmail)
         {
-            const string createdPassword = "***REMOVED***";
-            var userDisplayName = displayName ?? $"{firstName} {lastName}";
-
-            var userPrincipalName = await CheckForNextAvailableUsername(firstName, lastName);
-
-            var user = new User
-            {
-                AccountEnabled = true,
-                DisplayName = userDisplayName,
-                MailNickname = $"{firstName}.{lastName}",
-                PasswordProfile = new PasswordProfile
-                {
-                    ForceChangePasswordNextSignIn = true,
-                    Password = createdPassword
-                },
-                GivenName = firstName,
-                Surname = lastName,
-                UserPrincipalName = userPrincipalName
-            };
-
-            return await CreateUser(user);
+            var username = await CheckForNextAvailableUsername(firstName, lastName);
+            var displayName = $"{firstName} {lastName}";
+            await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
+            return username;
         }
 
         public async Task AddUserToGroup(User user, Group group)
@@ -207,7 +192,7 @@ namespace UserApi.Services
                 return baseUsername + domain;
             }
 
-        lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
             var lastNumber = int.Parse(lastUserPrincipalName);
@@ -220,29 +205,6 @@ namespace UserApi.Services
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await _client.GetUsernamesStartingWith(baseUsername);
             return users.OrderBy(username => username);
-        }
-
-        private async Task<NewAdUserAccount> CreateUser(User newUser)
-        {
-            var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users";
-            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var user = await responseMessage.Content.ReadAsAsync<User>();
-                var adUserAccount = new NewAdUserAccount
-                {
-                    Username = user.UserPrincipalName,
-                    OneTimePassword = newUser.PasswordProfile.Password,
-                    UserId = user.Id
-                };
-                return adUserAccount;
-            }
-
-            var message = $"Failed to add create user {newUser.UserPrincipalName}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
         }
 
         private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)

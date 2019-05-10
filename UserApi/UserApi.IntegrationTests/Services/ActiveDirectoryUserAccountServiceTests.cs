@@ -1,6 +1,6 @@
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using UserApi.Common;
@@ -42,6 +42,20 @@ namespace UserApi.IntegrationTests.Services
         {
             var nextUsername = await _service.CheckForNextAvailableUsername("Existing", "Individual");
             nextUsername.Should().Be("existing.individual1@***REMOVED***");
+        }
+        
+        [Test]
+        public async Task should_create_user()
+        {
+            // unfortunately we cannot delete users after they're created, the api won't allow it
+            const string firstName = "Automatically";
+            const string lastName = "Created";
+            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}@***REMOVED***";
+            var username = await _service.CreateUser(firstName, lastName, recoveryEmail);
+            username.ToLower().Should().Contain(firstName.ToLower());
+            username.ToLower().Should().Contain(lastName.ToLower());
+            Console.WriteLine("Created user with username " + username);
         }
     }
 }

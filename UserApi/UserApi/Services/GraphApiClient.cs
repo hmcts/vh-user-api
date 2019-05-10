@@ -1,11 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Graph;
+using Microsoft.Azure.ActiveDirectory.GraphClient;
+using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Services.Models;
+using User = Microsoft.Graph.User;
 
 namespace UserApi.Services
 {
@@ -21,6 +22,12 @@ namespace UserApi.Services
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}";
         }
 
+        private Task<string> GetActiveDirectoryToken()
+        {
+            // TODO: This needs to be made async
+            return Task.FromResult(_graphApiSettings.AccessTokenWindows);
+        }
+
         public async Task<IEnumerable<string>> GetUsernamesStartingWith(string text)
         {
             var filter = $"startswith(userPrincipalName,'{text}')";
@@ -33,11 +40,40 @@ namespace UserApi.Services
             return result.Value.Select(user => user.UserPrincipalName);
         }
 
-        private static void AssertResponseIsSuccessful(HttpResponseMessage response)
+        public async Task CreateUser(string username, string firstName, string lastName, string displayName, string recoveryEmail)
+        {
+            // https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-or-azure-ad-graph/
+            var user = new
+            {
+                displayName,
+                givenName = firstName,
+                surname = lastName,
+                mailNickname = $"{firstName}.{lastName}".ToLower(),
+                otherMails = new List<string> { recoveryEmail },
+                accountEnabled = true,
+                userPrincipalName = username,
+                passwordProfile = new
+                {
+                    forceChangePasswordNextLogin = true,
+                    password = "***REMOVED***"
+                }
+            };
+
+            var json = JsonConvert.SerializeObject(user);
+            var stringContent = new StringContent(json);
+            var accessUri = $"{_baseUrl}/users?api-version=1.6";
+            var response = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessTokenWindows, stringContent, accessUri);
+            await AssertResponseIsSuccessful(response);     
+        }
+
+        private static async Task AssertResponseIsSuccessful(HttpResponseMessage response)
         {
             // TODO: Move this code into the http request class and have that throw an exception if response type isn't valid
             if (!response.IsSuccessStatusCode)
-                throw new IdentityServiceApiException("Failed to read users from API: " + response.StatusCode);
+            {
+                var message = await response.Content.ReadAsStringAsync();
+                throw new IdentityServiceApiException("Failed to call API: " + response.StatusCode + "\r\n" + message);
+            }
         }
     }
 }
