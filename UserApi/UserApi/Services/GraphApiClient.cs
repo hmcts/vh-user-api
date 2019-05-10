@@ -21,12 +21,6 @@ namespace UserApi.Services
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}";
         }
 
-        private Task<string> GetActiveDirectoryToken()
-        {
-            // TODO: This needs to be made async
-            return Task.FromResult(_graphApiSettings.AccessTokenWindows);
-        }
-
         public async Task<IEnumerable<string>> GetUsernamesStartingWith(string text)
         {
             var filter = $"startswith(userPrincipalName,'{text}')";
