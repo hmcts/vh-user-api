@@ -20,7 +20,7 @@ namespace UserApi
             serviceCollection.AddMemoryCache();
 
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
-            serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
+            serviceCollection.AddScoped<IUserAccountService, ActiveDirectoryUserAccountService>();
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
             serviceCollection.AddScoped<AzureAdConfiguration>();
