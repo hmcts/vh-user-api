@@ -56,14 +56,14 @@ namespace UserApi.Controllers
 
             try
             {
-                var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName, request.RecoveryEmail);
+                var username = await _userAccountService.CreateUser(request.FirstName, request.LastName, request.RecoveryEmail);
                 var response = new NewUserResponse
                 {
-                    UserId = adUserAccount.UserId,
-                    Username = adUserAccount.Username,
-                    OneTimePassword = adUserAccount.OneTimePassword
+                    UserId = username,
+                    Username = username,
+                    OneTimePassword = null
                 };
-                return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
+                return CreatedAtRoute("GetUserByAdUserId", new { userId = username }, response);
             }
             catch (UserServiceException)
             {
