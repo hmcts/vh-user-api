@@ -16,28 +16,7 @@ using UserApi.Services.Models;
 
 namespace UserApi.Services
 {
-    public interface IUserAccountService
-    {
-        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
-            string password = null);
-
-        Task AddUserToGroup(User user, Group group);
-        Task UpdateAuthenticationInformation(string userId, string recoveryMail);
-
-        /// <summary>
-        ///     Get a user in AD either via Object ID or UserPrincipalName
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns>The User.</returns>
-        Task<User> GetUserById(string userId);
-
-        Task<Group> GetGroupByName(string groupName);
-        Task<Group> GetGroupById(string groupId);
-        Task<List<Group>> GetGroupsForUser(string userId);
-        Task<User> GetUserByFilter(string filter);
         Task<List<UserResponse>> GetJudges();
-    }
-
     public class UserAccountService : IUserAccountService
     {
         private const string OdataType = "@odata.type";
@@ -61,8 +40,7 @@ namespace UserApi.Services
             _isLive = appSettings.Value.IsLive;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
-            string password = null)
+        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
         {
             const string createdPassword = "Password123";
             var userDisplayName = displayName ?? $"{firstName} {lastName}";
@@ -240,26 +218,31 @@ namespace UserApi.Services
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <returns>next available user principal name</returns>
-        protected virtual async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
+        public async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
         {
-            var baseUsername = $"{firstName}.{lastName}".ToLower();
-            var userFilter = $"startswith(userPrincipalName,'{baseUsername}')";
-            var users = (await QueryUsers(userFilter)).ToList();
             var domain = "@hearings.reform.hmcts.net";
-            if (!users.Any())
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var users = await GetUsersMatchingName(firstName, lastName);
+            var lastUserPrincipalName = users.LastOrDefault()?.UserPrincipalName;
+            if (lastUserPrincipalName == null)
             {
-                return $"{baseUsername}{domain}";
+                return baseUsername + domain;
             }
 
-            users = users.OrderBy(x => x.UserPrincipalName).ToList();
-            var lastUserPrincipalName = users.Last().UserPrincipalName;
-
-            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+        lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
             var lastNumber = int.Parse(lastUserPrincipalName);
             lastNumber += 1;
             return $"{baseUsername}{lastNumber}{domain}";
+        }
+
+        private async Task<IEnumerable<User>> GetUsersMatchingName(string firstName, string lastName)
+        {
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var userFilter = $"startswith(userPrincipalName,'{baseUsername}')";
+            var users = await QueryUsers(userFilter);
+            return users.OrderBy(x => x.UserPrincipalName); 
         }
 
         private async Task<NewAdUserAccount> CreateUser(User newUser)
