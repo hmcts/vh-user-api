@@ -28,7 +28,7 @@ namespace UserApi.IntegrationTests.Hooks
 
         private static void GetClientAccessTokenForUserApi(ApiTestContext apiTestContext)
         {
-            apiTestContext.TestSettings = TestConfig.Instance.TestSettings
+            apiTestContext.TestSettings = TestConfig.Instance.TestSettings;
 
             var azureAdConfigOptions = Options.Create(TestConfig.Instance.AzureAd);
             var azureAdConfiguration = azureAdConfigOptions.Value;
