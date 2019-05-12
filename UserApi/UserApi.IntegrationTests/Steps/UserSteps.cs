@@ -178,6 +178,7 @@ namespace UserApi.IntegrationTests.Steps
             var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
             model.Should().NotBeNull();
+            model.OneTimePassword.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.Username.Should().NotBeNullOrEmpty();
             _apiTestContext.NewUserId = model.UserId;
