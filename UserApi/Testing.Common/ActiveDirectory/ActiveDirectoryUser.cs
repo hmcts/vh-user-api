@@ -47,9 +47,7 @@ namespace Testing.Common.ActiveDirectory
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/users/{user}");
                 var result = client.SendAsync(httpRequestMessage).Result;
-                Assert.IsTrue(result.IsSuccessStatusCode, $"Failed to delete user '{user}' with status code: {result.StatusCode}");
-                Console.WriteLine($"Deleted user {user}");
-                return true;
+                return result.IsSuccessStatusCode;
             }
         }
     }
