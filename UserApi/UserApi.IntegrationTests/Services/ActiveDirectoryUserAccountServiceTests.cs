@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
+using Testing.Common.ActiveDirectory;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
@@ -47,15 +48,17 @@ namespace UserApi.IntegrationTests.Services
         [Test]
         public async Task should_create_user()
         {
-            // unfortunately we cannot delete users after they're created, the api won't allow it
             const string firstName = "Automatically";
             const string lastName = "Created";
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
             var recoveryEmail = $"{firstName}.{lastName}.{unique}@hearings.hmcts.net";
-            var username = await _service.CreateUser(firstName, lastName, recoveryEmail);
+            var createdAccount = await _service.CreateUser(firstName, lastName, recoveryEmail);
+            var username = createdAccount.Username;
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());
             Console.WriteLine("Created user with username " + username);
+
+            ActiveDirectoryUser.DeleteTheUserFromAd(username, _graphApiSettings.AccessToken);
         }
     }
 }

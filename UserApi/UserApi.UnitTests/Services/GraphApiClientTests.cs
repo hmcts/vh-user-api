@@ -29,7 +29,10 @@ namespace UserApi.UnitTests.Services
         [Test]
         public void should_raise_exception_on_unsuccessful_response()
         {
-            var invalidResponse = new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            var invalidResponse = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent("test")
+            };
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(invalidResponse);
 

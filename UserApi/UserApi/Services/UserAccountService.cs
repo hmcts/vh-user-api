@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Graph;
+using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -28,28 +29,37 @@ namespace UserApi.Services
             _client = client;
         }
 
-        public async Task<string> CreateUser(string firstName, string lastName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail)
         {
+            var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
+            var user = await GetUserByFilter(filter);
+            if (user != null)
+            {
+                // Avoid including the exact email to not leak it to logs
+                throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
+            }
+            
             var username = await CheckForNextAvailableUsername(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
-            return username;
+            return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
         }
 
         public async Task AddUserToGroup(User user, Group group)
         {
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode) return;
 
             var message = $"Failed to add user {user.Id} to group {group.Id}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
+            if (reason.Contains("already exist")) return;
+
             throw new UserServiceException(message, reason);
         }
 
@@ -173,12 +183,17 @@ namespace UserApi.Services
             var domain = "@hearings.reform.hmcts.net";
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await GetUsersMatchingName(firstName, lastName);
+            foreach (var user in users)
+            {
+                Console.WriteLine("Found user " + user);
+            }
             var lastUserPrincipalName = users.LastOrDefault();
             if (lastUserPrincipalName == null)
             {
                 return baseUsername + domain;
             }
 
+            // this doesn't work with over ten users
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;

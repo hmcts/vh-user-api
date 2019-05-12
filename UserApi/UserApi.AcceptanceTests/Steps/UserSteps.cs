@@ -36,7 +36,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a get user by AD user Id request for an existing user")]
         public void GivenIHaveAGetUserByAdUserIdRequestForAnExistingUser()
         {
-            _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByAdUserId(_acTestContext.TestSettings.ExistingUserId));
+            _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByAdUserId(_acTestContext.TestSettings.ExistingEmail));
         }
 
         [Given(@"I have a get user by user principal name request for an existing user principal name")]
