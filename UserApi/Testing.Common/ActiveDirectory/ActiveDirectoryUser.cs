@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using FluentAssertions.Execution;
+using NUnit.Framework;
 
 namespace Testing.Common.ActiveDirectory
 {
@@ -46,9 +48,7 @@ namespace Testing.Common.ActiveDirectory
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/fb6e0e22-0da3-4c35-972a-9d61eb256508/users/{user}");
                 var result = client.SendAsync(httpRequestMessage).Result;
-                if (!result.IsSuccessStatusCode)
-                    throw new Exception($"Failed to delete user '{user}' with status code: {result.StatusCode}");
-
+                Assert.IsTrue(result.IsSuccessStatusCode, $"Failed to delete user '{user}' with status code: {result.StatusCode}");
                 Console.WriteLine($"Deleted user {user}");
                 return true;
             }

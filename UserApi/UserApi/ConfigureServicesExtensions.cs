@@ -16,7 +16,7 @@ namespace UserApi
     public static class ConfigureServicesExtensions
     {
         public static IServiceCollection AddCustomTypes(this IServiceCollection serviceCollection)
-        {
+        {            
             serviceCollection.AddMemoryCache();
 
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
