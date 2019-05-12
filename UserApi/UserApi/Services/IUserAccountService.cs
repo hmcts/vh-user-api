@@ -7,7 +7,11 @@ namespace UserApi.Services
 {
     public interface IUserAccountService
     {
-        Task<string> CreateUser(string firstName, string lastName, string recoveryEmail);
+        /// <summary>
+        /// Creates a new user with a username based on first and last name
+        /// </summary>
+        /// <exception cref="UserExistsException">Thrown if a user with the recovery email already exists</exception>
+        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail);
 
         Task AddUserToGroup(User user, Group group);
 

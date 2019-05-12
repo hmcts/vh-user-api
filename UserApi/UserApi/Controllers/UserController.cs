@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
@@ -56,19 +57,25 @@ namespace UserApi.Controllers
 
             try
             {
-                var username = await _userAccountService.CreateUser(request.FirstName, request.LastName, request.RecoveryEmail);
+                var adUserAccount =
+                    await _userAccountService.CreateUser(request.FirstName, request.LastName,
+                        request.RecoveryEmail);
                 var response = new NewUserResponse
                 {
-                    UserId = username,
-                    Username = username,
-                    OneTimePassword = null
+                    UserId = adUserAccount.UserId,
+                    Username = adUserAccount.Username,
+                    OneTimePassword = adUserAccount.OneTimePassword
                 };
-                return CreatedAtRoute("GetUserByAdUserId", new { userId = username }, response);
+                return CreatedAtRoute("GetUserByAdUserId", new {userId = adUserAccount.UserId}, response);
             }
-            catch (UserServiceException)
+            catch (UserExistsException e)
             {
-                ModelState.AddModelError(nameof(request), "user already exists");
-                return BadRequest(ModelState);
+                return new ConflictObjectResult(new
+                {
+                    Message = "User already exists",
+                    Code = "UserExists",
+                    e.Username
+                });
             }
         }
 
