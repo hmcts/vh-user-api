@@ -16,11 +16,10 @@ namespace UserApi
     public static class ConfigureServicesExtensions
     {
         public static IServiceCollection AddCustomTypes(this IServiceCollection serviceCollection)
-        {            
+        {
             serviceCollection.AddMemoryCache();
 
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
-            serviceCollection.AddScoped<IIdentityServiceApiClient, GraphApiClient>();
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();

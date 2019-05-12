@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity.UI.V3.Pages.Internal.Account;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using UserApi.Helper;
@@ -11,10 +10,21 @@ using User = Microsoft.Graph.User;
 
 namespace UserApi.Services
 {
+    /// <summary>
+    /// Implementation of an identity service
+    /// </summary>
+    /// <remarks>
+    /// There are two versions of the graph api, one newer called MS Graph and the older, Azure AD Graph.
+    /// Previously we were (and still are in places) using the Azure AD Graph because of the lack of certain features.
+    /// It seems that since the start of 2019 these features are now in place, though not always in the nuget package,
+    /// in the new MS Graph API so we need to begin moving over to using that. For this reason this class is implemented
+    /// using only the new MS Graph API.
+    /// https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-or-azure-ad-graph/
+    /// </remarks>
     public class GraphApiClient : IIdentityServiceApiClient {
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
-        private readonly string _baseGraphUrl;
+        private readonly string _baseUrl;
         private readonly string _defaultPassword;
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IOptions<Settings> settings)
@@ -22,13 +32,13 @@ namespace UserApi.Services
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _defaultPassword = settings.Value.DefaultPassword;
-            _baseGraphUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
+            _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
         public async Task<IEnumerable<string>> GetUsernamesStartingWith(string text)
         {
             var filter = $"startswith(userPrincipalName,'{text}')";
-            var queryUrl = $"{_baseGraphUrl}/users?$filter={filter}";
+            var queryUrl = $"{_baseUrl}/users?$filter={filter}";
 
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
@@ -38,12 +48,7 @@ namespace UserApi.Services
         }
 
         public async Task<NewAdUserAccount> CreateUser(string username, string firstName, string lastName, string displayName, string recoveryEmail)
-        {
-            // The new MS Graph API endpoint to create users do not yet allow setting the otherMails property
-            // which we require to set the alternative email for self service password reset so we have to use
-            // the old Azure AD api to do this until this has been implemented in Graph API
-            // https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-or-azure-ad-graph/
-            
+        {            
             // the user object provided by the graph api nuget package is missing the otherMails property
             // but it's there in the API so using a dynamic request model instead
             var user = new
@@ -64,7 +69,7 @@ namespace UserApi.Services
 
             var json = JsonConvert.SerializeObject(user);
             var stringContent = new StringContent(json);
-            var accessUri = $"{_baseGraphUrl}/users";
+            var accessUri = $"{_baseUrl}/users";
             var response = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             await AssertResponseIsSuccessful(response);
             var responseJson = await response.Content.ReadAsStringAsync();
