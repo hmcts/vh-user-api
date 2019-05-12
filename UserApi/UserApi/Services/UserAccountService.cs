@@ -183,17 +183,13 @@ namespace UserApi.Services
             var domain = "@***REMOVED***";
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await GetUsersMatchingName(firstName, lastName);
-            foreach (var user in users)
-            {
-                Console.WriteLine("Found user " + user);
-            }
             var lastUserPrincipalName = users.LastOrDefault();
             if (lastUserPrincipalName == null)
             {
                 return baseUsername + domain;
             }
 
-            // this doesn't work with over ten users
+            // TODO: this doesn't work with over ten users because the ordering ends up wrong
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
