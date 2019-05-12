@@ -45,7 +45,7 @@ namespace Testing.Common.ActiveDirectory
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                    $@"https://graph.microsoft.com/v1.0/fb6e0e22-0da3-4c35-972a-9d61eb256508/users/{user}");
+                    $@"https://graph.microsoft.com/v1.0/users/{user}");
                 var result = client.SendAsync(httpRequestMessage).Result;
                 Assert.IsTrue(result.IsSuccessStatusCode, $"Failed to delete user '{user}' with status code: {result.StatusCode}");
                 Console.WriteLine($"Deleted user {user}");
