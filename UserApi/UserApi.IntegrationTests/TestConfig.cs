@@ -19,12 +19,17 @@ namespace UserApi.IntegrationTests
 
             TestSettings = new TestSettings();
             config.GetSection("Testing").Bind(TestSettings);
+            
+            Settings = new Settings();
+            config.Bind(Settings);
         }
         
         public AzureAdConfiguration AzureAd { get; }
         
         public TestSettings TestSettings { get; }
-        
+
+        public Settings Settings { get; set; }
+
 
         public static readonly TestConfig Instance = new TestConfig();
     }

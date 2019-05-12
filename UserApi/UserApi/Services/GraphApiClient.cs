@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity.UI.V3.Pages.Internal.Account;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Services.Models;
@@ -13,13 +15,13 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly string _baseGraphUrl;
-        
-        private const string DefaultPassword = "***REMOVED***";
+        private readonly string _defaultPassword;
 
-        public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings)
+        public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IOptions<Settings> settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
+            _defaultPassword = settings.Value.DefaultPassword;
             _baseGraphUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
@@ -56,7 +58,7 @@ namespace UserApi.Services
                 passwordProfile = new
                 {
                     forceChangePasswordNextSignIn = true,
-                    password = DefaultPassword
+                    password = _defaultPassword
                 }
             };
 
@@ -69,7 +71,7 @@ namespace UserApi.Services
             var adAccount = JsonConvert.DeserializeObject<User>(responseJson);
             return new NewAdUserAccount
             {
-                OneTimePassword = DefaultPassword,
+                OneTimePassword = _defaultPassword,
                 UserId = adAccount.Id,
                 Username = adAccount.UserPrincipalName
             };
