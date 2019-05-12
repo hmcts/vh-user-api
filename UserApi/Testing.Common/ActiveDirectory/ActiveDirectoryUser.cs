@@ -41,9 +41,10 @@ namespace Testing.Common.ActiveDirectory
         {
             using (var client = new HttpClient())
             {
+                var tenantId = TestConfig.Instance.AzureAd.TenantId;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                    $@"https://graph.microsoft.com/v1.0/users/{user}");
+                    $@"https://graph.microsoft.com/v1.0/{tenantId}users/{user}");
                 var result = client.SendAsync(httpRequestMessage).Result;
                 return result.IsSuccessStatusCode;
             }

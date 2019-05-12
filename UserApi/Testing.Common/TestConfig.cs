@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
-using Testing.Common;
+using UserApi;
 using UserApi.Common;
 
-namespace UserApi.IntegrationTests
+namespace Testing.Common
 {
     public class TestConfig
     {

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
+using Testing.Common;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
