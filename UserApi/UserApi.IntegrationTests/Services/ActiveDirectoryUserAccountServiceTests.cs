@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
+using Testing.Common;
 using Testing.Common.ActiveDirectory;
 using UserApi.Common;
 using UserApi.Helper;
