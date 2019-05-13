@@ -56,9 +56,7 @@ namespace Testing.Common.ActiveDirectory
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/{tenantId}/users/{user}");
-                    var r = client.SendAsync(httpRequestMessage).Result;
-                    Console.WriteLine($"Got server response: {r.StatusCode}");
-                    return r;
+                    return client.SendAsync(httpRequestMessage).Result;
                 }
             });
             
