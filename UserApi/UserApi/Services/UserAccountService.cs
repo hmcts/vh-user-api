@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Options;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
@@ -26,6 +27,7 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
+        private readonly string _defaultPassword;
         private readonly bool _isLive;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
@@ -40,12 +42,12 @@ namespace UserApi.Services
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
+            _defaultPassword = settings.Value.DefaultPassword;
             _isLive = appSettings.Value.IsLive;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
         {
-            const string createdPassword = "Password123";
             var userDisplayName = displayName ?? $"{firstName} {lastName}";
 
             var userPrincipalName = await CheckForNextAvailableUsername(firstName, lastName);
@@ -58,7 +60,7 @@ namespace UserApi.Services
                 PasswordProfile = new PasswordProfile
                 {
                     ForceChangePasswordNextSignIn = true,
-                    Password = createdPassword
+                    Password = _defaultPassword
                 },
                 GivenName = firstName,
                 Surname = lastName,
