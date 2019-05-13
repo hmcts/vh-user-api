@@ -24,10 +24,11 @@ namespace UserApi.IntegrationTests.Services
             _secureHttpRequest = new SecureHttpRequest();
             
             _configuration = new OptionsWrapper<AzureAdConfiguration>(TestConfig.Instance.AzureAd);
+            var settings = new OptionsWrapper<Settings>(TestConfig.Instance.Settings);
             var tokenProvider = new TokenProvider(_configuration);
             _graphApiSettings = new GraphApiSettings(tokenProvider, _configuration);
             _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings);
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient);
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings);
         }
 
         [Test]
