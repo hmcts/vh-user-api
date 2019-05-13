@@ -27,13 +27,13 @@ namespace UserApi.Services
         private readonly IIdentityServiceApiClient _client;
         private readonly string _defaultPassword;
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, IOptions<Settings> settings)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
-            _defaultPassword = settings.Value.DefaultPassword;
+            _defaultPassword = settings.DefaultPassword;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
