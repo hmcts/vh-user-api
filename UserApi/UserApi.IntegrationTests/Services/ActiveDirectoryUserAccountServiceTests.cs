@@ -13,23 +13,21 @@ namespace UserApi.IntegrationTests.Services
     public class ActiveDirectoryUserAccountServiceTests
     {
         private UserAccountService _service;
+        private OptionsWrapper<AzureAdConfiguration> _configuration;
+        private GraphApiSettings _graphApiSettings;
+        private SecureHttpRequest _secureHttpRequest;
+        private GraphApiClient _identityServiceApiClient;
 
         [SetUp]
         public void Setup()
         {
-            var secureHttpRequest = new SecureHttpRequest();
+            _secureHttpRequest = new SecureHttpRequest();
             
-            var configRootBuilder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddUserSecrets<Startup>();
-            
-            var azureAdConfig = new AzureAdConfiguration();
-            configRootBuilder.Build().GetSection("AzureAd").Bind(azureAdConfig);
-            
-            var configuration = new OptionsWrapper<AzureAdConfiguration>(azureAdConfig);
-            var tokenProvider = new TokenProvider(configuration);
-            var graphApiSettings = new GraphApiSettings(tokenProvider, configuration);
-            _service = new UserAccountService(secureHttpRequest, graphApiSettings);
+            _configuration = new OptionsWrapper<AzureAdConfiguration>(TestConfig.Instance.AzureAd);
+            var tokenProvider = new TokenProvider(_configuration);
+            _graphApiSettings = new GraphApiSettings(tokenProvider, _configuration);
+            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings);
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient);
         }
 
         [Test]

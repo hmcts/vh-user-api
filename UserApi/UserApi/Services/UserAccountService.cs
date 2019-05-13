@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Internal;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
@@ -22,12 +23,14 @@ namespace UserApi.Services
         private readonly TimeSpan _retryTimeout;
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
+        private readonly IIdentityServiceApiClient _client;
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
+            _client = client;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
@@ -157,7 +160,7 @@ namespace UserApi.Services
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
-          
+
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
@@ -188,21 +191,6 @@ namespace UserApi.Services
         }
 
         /// <summary>
-        /// Query Graph for users with the same first and last names as existing user.
-        /// </summary>
-        /// <param name="filter">The filter</param>
-        /// <returns>List of users</returns>
-        public async Task<IList<User>> QueryUsers(string filter)
-        {
-            var queryUrl = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
-
-            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, queryUrl);
-            if (!response.IsSuccessStatusCode) return new List<User>();
-            var result = await response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>();
-            return result.Value;
-        }
-
-        /// <summary>
         /// Determine the next available username for a participant based on username format [firstname].[lastname]
         /// </summary>
         /// <param name="firstName"></param>
@@ -213,7 +201,7 @@ namespace UserApi.Services
             var domain = "@hearings.reform.hmcts.net";
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await GetUsersMatchingName(firstName, lastName);
-            var lastUserPrincipalName = users.LastOrDefault()?.UserPrincipalName;
+            var lastUserPrincipalName = users.LastOrDefault();
             if (lastUserPrincipalName == null)
             {
                 return baseUsername + domain;
@@ -227,12 +215,11 @@ namespace UserApi.Services
             return $"{baseUsername}{lastNumber}{domain}";
         }
 
-        private async Task<IEnumerable<User>> GetUsersMatchingName(string firstName, string lastName)
+        private async Task<IEnumerable<string>> GetUsersMatchingName(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLower();
-            var userFilter = $"startswith(userPrincipalName,'{baseUsername}')";
-            var users = await QueryUsers(userFilter);
-            return users.OrderBy(x => x.UserPrincipalName); 
+            var users = await _client.GetUsernamesStartingWith(baseUsername);
+            return users.OrderBy(username => username);
         }
 
         private async Task<NewAdUserAccount> CreateUser(User newUser)
