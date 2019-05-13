@@ -12,7 +12,7 @@ using UserApi.Services;
 
 namespace UserApi.IntegrationTests.Services
 {
-    public class ActiveDirectoryUserAccountServiceTests
+    public class UserAccountServiceTests
     {
         private UserAccountService _service;
         private OptionsWrapper<AzureAdConfiguration> _configuration;
