@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Options;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
@@ -24,18 +25,19 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
+        private readonly string _defaultPassword;
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, IOptions<Settings> settings)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
+            _defaultPassword = settings.Value.DefaultPassword;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
         {
-            const string createdPassword = "***REMOVED***";
             var userDisplayName = displayName ?? $"{firstName} {lastName}";
 
             var userPrincipalName = await CheckForNextAvailableUsername(firstName, lastName);
@@ -48,7 +50,7 @@ namespace UserApi.Services
                 PasswordProfile = new PasswordProfile
                 {
                     ForceChangePasswordNextSignIn = true,
-                    Password = createdPassword
+                    Password = _defaultPassword
                 },
                 GivenName = firstName,
                 Surname = lastName,
