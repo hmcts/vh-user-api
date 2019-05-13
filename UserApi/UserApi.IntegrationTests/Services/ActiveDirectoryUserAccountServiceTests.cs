@@ -61,7 +61,7 @@ namespace UserApi.IntegrationTests.Services
             username.ToLower().Should().Contain(lastName.ToLower());
             Console.WriteLine("Created user with username " + username);
 
-            ActiveDirectoryUser.DeleteTheUserFromAd(username, _graphApiSettings.AccessToken);
+            await ActiveDirectoryUser.DeleteTheUserFromAd(username, _graphApiSettings.AccessToken);
         }
     }
 }

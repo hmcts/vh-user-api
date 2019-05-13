@@ -7,11 +7,8 @@ using Polly;
 
 namespace Testing.Common.ActiveDirectory
 {
-    public class ActiveDirectoryUser
+    public static class ActiveDirectoryUser
     {
-        protected ActiveDirectoryUser()
-        {
-        }
 
         public static async Task<bool> IsUserInAGroup(string user, string groupName, string token)
         {
@@ -40,23 +37,23 @@ namespace Testing.Common.ActiveDirectory
             }
         }
 
-        public static bool DeleteTheUserFromAd(string user, string token)
+        public static async Task<bool> DeleteTheUserFromAd(string user, string token)
         {
             
             var tenantId = TestConfig.Instance.AzureAd.TenantId;
             var policy = Policy.HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
-                .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
            
             
             // sometimes the api can be slow to actually allow us to access the created instance, so retry if it fails the first time
-            var result = policy.Execute(() =>
+            var result = await policy.ExecuteAsync(async () =>
             {
                 using (var client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/{tenantId}/users/{user}");
-                    return client.SendAsync(httpRequestMessage).Result;
+                    return await client.SendAsync(httpRequestMessage);
                 }
             });
             

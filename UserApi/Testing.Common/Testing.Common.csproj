@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
       <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
       <ProjectReference Include="..\UserApi\UserApi.csproj" />
     </ItemGroup>
