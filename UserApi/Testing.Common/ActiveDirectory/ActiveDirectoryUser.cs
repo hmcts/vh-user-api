@@ -46,14 +46,14 @@ namespace Testing.Common.ActiveDirectory
            
             
             // sometimes the api can be slow to actually allow us to access the created instance, so retry if it fails the first time
-            var result = await policy.ExecuteAsync(() =>
+            var result = await policy.ExecuteAsync(async () =>
             {
                 using (var client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                     $@"https://graph.microsoft.com/v1.0/{tenantId}/users/{user}");
-                    return client.SendAsync(httpRequestMessage);
+                    return await client.SendAsync(httpRequestMessage);
                 }
             });
             
