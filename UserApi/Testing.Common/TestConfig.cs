@@ -27,9 +27,9 @@ namespace Testing.Common
         public AzureAdConfiguration AzureAd { get; }
         
         public TestSettings TestSettings { get; }
-
+        
         public Settings Settings { get; set; }
-
+        
 
         public static readonly TestConfig Instance = new TestConfig();
     }
