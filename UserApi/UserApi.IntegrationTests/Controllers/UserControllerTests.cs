@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -152,6 +154,18 @@ namespace UserApi.IntegrationTests.Controllers
             const string email = "i.do.not.exist@nowhere.ever.com";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Test]
+        public async Task should_get_users_for_group()
+        {
+            var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges());
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
+            usersForGroupModel.Should().NotBeEmpty();
+
+            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == "Judge.Bever@***REMOVED***");
+            expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
         }
 
         [TearDown]
