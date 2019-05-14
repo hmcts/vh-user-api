@@ -94,6 +94,8 @@ namespace UserApi.AcceptanceTests.Steps
                 user.Email.Should().NotBeNullOrEmpty();
                 user.DisplayName.Should().NotBeNullOrEmpty();
             }
+            var expectedUser = model.FirstOrDefault(u => u.Email == "Automation01Judge01@***REMOVED***");
+            expectedUser.DisplayName.Should().Be("Automation01 Judge01");
         }
 
 
