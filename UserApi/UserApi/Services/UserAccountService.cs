@@ -18,7 +18,6 @@ using UserApi.Services.Models;
 
 namespace UserApi.Services
 {
-        Task<List<UserResponse>> GetJudges();
     public class UserAccountService : IUserAccountService
     {
         private const string OdataType = "@odata.type";
@@ -36,14 +35,14 @@ namespace UserApi.Services
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings,
-            IOptions<AppConfigSettings> appSettings)
+            IIdentityServiceApiClient client, IOptions<Settings> settings)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
             _defaultPassword = settings.Value.DefaultPassword;
-            _isLive = appSettings.Value.IsLive;
+            _isLive = settings.Value.IsLive;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
