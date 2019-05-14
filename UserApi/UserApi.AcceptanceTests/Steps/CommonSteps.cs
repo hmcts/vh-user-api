@@ -28,7 +28,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the response should have the status (.*) and success status (.*)")]
         public void ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode httpStatusCode, bool isSuccess)
         {
-            _acTestContext.Response.StatusCode.Should().Be(httpStatusCode);
+            _acTestContext.Response.StatusCode.Should().Be(httpStatusCode, $"When {_acTestContext.Request.Method}ing to {_acTestContext.Request.Resource}");
             _acTestContext.Response.IsSuccessful.Should().Be(isSuccess);
         }
     }

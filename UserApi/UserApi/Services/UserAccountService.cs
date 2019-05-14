@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -26,14 +27,22 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
         private readonly string _defaultPassword;
+        private readonly bool _isLive;
+        private const string JudgesGroup = "VirtualRoomJudge";
+        private const string JudgesTestGroup = "TestAccount";
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, IOptions<Settings> settings)
+        private static readonly Compare<UserResponse> CompareJudgeById =
+            Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
+
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings,
+            IIdentityServiceApiClient client, IOptions<Settings> settings)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
             _defaultPassword = settings.Value.DefaultPassword;
+            _isLive = settings.Value.IsLive;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
@@ -283,6 +292,59 @@ namespace UserApi.Services
         {
             return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
                 wordToRemove.Length);
+        }
+
+        public async Task<List<UserResponse>> GetJudges()
+        {
+            var judges = await GetJudgesByGroupName(JudgesGroup);
+            if (_isLive)
+                judges = await ExcludeTestJudges(judges);
+
+            return judges.OrderBy(x=>x.DisplayName).ToList();
+        }
+        private async Task<List<UserResponse>> GetJudgesByGroupName(string groupName)
+        {
+            var groupData = await GetGroupByName(groupName);
+            if (groupData == null) return new List<UserResponse>();
+
+            var response = await GetJudges(groupData.Id);
+            return response.Select(x => new UserResponse
+            {
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+                DisplayName = x.DisplayName
+            }).ToList();
+        }
+        private async Task<List<UserResponse>> ExcludeTestJudges(List<UserResponse> judgesList)
+        {
+            var testJudges = await GetJudgesByGroupName(JudgesTestGroup);
+            return judgesList.Except(testJudges, CompareJudgeById).ToList();
+        }
+        private async Task<List<UserResponse>> GetJudges(string groupId)
+        {
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members";
+
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
+                var response = JsonConvert.DeserializeObject<List<User>>(queryResponse.AdditionalData["value"].ToString());
+                return response.Select(x => new UserResponse
+                {
+                    FirstName = x.GivenName,
+                    LastName = x.Surname,
+                    DisplayName = x.DisplayName,
+                    Email = x.UserPrincipalName
+                }).ToList();
+            }
+
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+
+            var message = $"Failed to get users for group {groupId}";
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+            throw new UserServiceException(message, reason);
         }
     }
 }
