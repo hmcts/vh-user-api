@@ -39,6 +39,7 @@ namespace UserApi.Controllers
         [SwaggerOperation(OperationId = "CreateUser")]
         [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
         {
             var result = new CreateUserRequestValidation().Validate(request);
@@ -57,6 +58,7 @@ namespace UserApi.Controllers
 
             try
             {
+                // throw new UserExistsException("The user exists in the AD.","test.user@hearings.reform.hmcts.net");
                 var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
                 await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
                 var response = new NewUserResponse
@@ -67,10 +69,15 @@ namespace UserApi.Controllers
                 };
                 return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
             }
-            catch (UserServiceException)
+            catch (UserExistsException e)
             {
-                ModelState.AddModelError(nameof(request), "user already exists");
-                return BadRequest(ModelState);
+                return Conflict(new UserCreationConflictResponse()
+                {
+                    Message = e.Message,
+                    Code = e.Message,
+                    Username = e.Username
+                });
+
             }
         }
 
