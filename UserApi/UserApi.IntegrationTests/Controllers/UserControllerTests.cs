@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -162,6 +163,9 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
+
+            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == "Judge.Bever@hearings.reform.hmcts.net");
+            expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
         }
 
         [TearDown]

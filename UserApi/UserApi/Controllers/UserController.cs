@@ -170,7 +170,7 @@ namespace UserApi.Controllers
         public async Task<IActionResult> GetJudges()
         {
             var adJudges = await _userAccountService.GetJudges();
-            if (adJudges == null || !adJudges.Any()) return NotFound();
+            if (adJudges == null || !adJudges.Any()) return Ok(new List<UserResponse>());
 
             return Ok(adJudges);
         }
