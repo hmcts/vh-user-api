@@ -33,3 +33,9 @@ Scenario: User account created for a user with the same name as existing user
 	When I send the request to the endpoint
 	Then the response should have the status Created and success status True
 	And the user should be added
+
+Scenario: Get a list of judges from the AD
+	Given I have a valid AD groupid and request for a list of judges
+	When I send the request to the endpoint
+	Then the response should have the status OK and success status True
+	And a list of ad judges should be retrieved
