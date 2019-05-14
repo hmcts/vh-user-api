@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph;
 using NUnit.Framework;
 using Testing.Common;
 using Testing.Common.ActiveDirectory;
@@ -9,6 +10,7 @@ using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
+using Group = Microsoft.Graph.Group;
 
 namespace UserApi.IntegrationTests.Services
 {
@@ -47,7 +49,14 @@ namespace UserApi.IntegrationTests.Services
             var nextUsername = await _service.CheckForNextAvailableUsername("Existing", "Individual");
             nextUsername.Should().Be("existing.individual1@***REMOVED***");
         }
-        
+
+        [Test]
+        public async Task should_throw_exception_trying_to_add_user_to_invalid_group()
+        {
+            var user = await _service.GetUserById("Automation01Professional01@***REMOVED***");
+            Assert.ThrowsAsync<UserServiceException>(() => _service.AddUserToGroup(user, new Group {Id = "invalid"}));
+        }
+
         [Test]
         public async Task should_create_user()
         {

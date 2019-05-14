@@ -56,10 +56,12 @@ namespace UserApi.Services
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode) return;
 
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
+            
+            // if we failed because the user is already in the group, consider it done anyway 
             if (reason.Contains("already exist")) return;
 
+            var message = $"Failed to add user {user.Id} to group {group.Id}";
             throw new UserServiceException(message, reason);
         }
 
