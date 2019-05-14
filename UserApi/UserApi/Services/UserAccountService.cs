@@ -8,6 +8,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Options;
 using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
@@ -16,28 +18,6 @@ using UserApi.Services.Models;
 
 namespace UserApi.Services
 {
-    public interface IUserAccountService
-    {
-        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
-            string password = null);
-
-        Task AddUserToGroup(User user, Group group);
-        Task UpdateAuthenticationInformation(string userId, string recoveryMail);
-
-        /// <summary>
-        ///     Get a user in AD either via Object ID or UserPrincipalName
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns>The User.</returns>
-        Task<User> GetUserById(string userId);
-
-        Task<Group> GetGroupByName(string groupName);
-        Task<Group> GetGroupById(string groupId);
-        Task<List<Group>> GetGroupsForUser(string userId);
-        Task<User> GetUserByFilter(string filter);
-        Task<List<UserResponse>> GetJudges();
-    }
-
     public class UserAccountService : IUserAccountService
     {
         private const string OdataType = "@odata.type";
@@ -45,6 +25,8 @@ namespace UserApi.Services
         private readonly TimeSpan _retryTimeout;
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
+        private readonly IIdentityServiceApiClient _client;
+        private readonly string _defaultPassword;
         private readonly bool _isLive;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
@@ -53,18 +35,18 @@ namespace UserApi.Services
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings,
-            IOptions<AppConfigSettings> appSettings)
+            IIdentityServiceApiClient client, IOptions<Settings> settings)
         {
             _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
-            _isLive = appSettings.Value.IsLive;
+            _client = client;
+            _defaultPassword = settings.Value.DefaultPassword;
+            _isLive = settings.Value.IsLive;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
-            string password = null)
+        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
         {
-            const string createdPassword = "Password123";
             var userDisplayName = displayName ?? $"{firstName} {lastName}";
 
             var userPrincipalName = await CheckForNextAvailableUsername(firstName, lastName);
@@ -77,7 +59,7 @@ namespace UserApi.Services
                 PasswordProfile = new PasswordProfile
                 {
                     ForceChangePasswordNextSignIn = true,
-                    Password = createdPassword
+                    Password = _defaultPassword
                 },
                 GivenName = firstName,
                 Surname = lastName,
@@ -189,7 +171,7 @@ namespace UserApi.Services
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
-          
+
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
@@ -220,46 +202,35 @@ namespace UserApi.Services
         }
 
         /// <summary>
-        /// Query Graph for users with the same first and last names as existing user.
-        /// </summary>
-        /// <param name="filter">The filter</param>
-        /// <returns>List of users</returns>
-        public async Task<IList<User>> QueryUsers(string filter)
-        {
-            var queryUrl = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
-
-            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, queryUrl);
-            if (!response.IsSuccessStatusCode) return new List<User>();
-            var result = await response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>();
-            return result.Value;
-        }
-
-        /// <summary>
         /// Determine the next available username for a participant based on username format [firstname].[lastname]
         /// </summary>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <returns>next available user principal name</returns>
-        protected virtual async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
+        public async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
         {
-            var baseUsername = $"{firstName}.{lastName}".ToLower();
-            var userFilter = $"startswith(userPrincipalName,'{baseUsername}')";
-            var users = (await QueryUsers(userFilter)).ToList();
             var domain = "@hearings.reform.hmcts.net";
-            if (!users.Any())
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var users = await GetUsersMatchingName(firstName, lastName);
+            var lastUserPrincipalName = users.LastOrDefault();
+            if (lastUserPrincipalName == null)
             {
-                return $"{baseUsername}{domain}";
+                return baseUsername + domain;
             }
 
-            users = users.OrderBy(x => x.UserPrincipalName).ToList();
-            var lastUserPrincipalName = users.Last().UserPrincipalName;
-
-            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+        lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
             var lastNumber = int.Parse(lastUserPrincipalName);
             lastNumber += 1;
             return $"{baseUsername}{lastNumber}{domain}";
+        }
+
+        private async Task<IEnumerable<string>> GetUsersMatchingName(string firstName, string lastName)
+        {
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var users = await _client.GetUsernamesStartingWith(baseUsername);
+            return users.OrderBy(username => username);
         }
 
         private async Task<NewAdUserAccount> CreateUser(User newUser)

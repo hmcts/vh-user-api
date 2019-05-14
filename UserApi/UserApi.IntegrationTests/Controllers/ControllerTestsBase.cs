@@ -33,16 +33,9 @@ namespace UserApi.IntegrationTests.Controllers
 
         private void GetClientAccessTokenForBookHearingApi()
         {
-            var configRootBuilder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddUserSecrets<Startup>();
+            var testSettings = TestConfig.Instance.TestSettings;
 
-            var configRoot = configRootBuilder.Build();
-
-            var testSettingsOptions = Options.Create(configRoot.GetSection("Testing").Get<TestSettings>());
-            var testSettings = testSettingsOptions.Value;
-
-            var azureAdConfigOptions = Options.Create(configRoot.GetSection("AzureAd").Get<AzureAdConfiguration>());
+            var azureAdConfigOptions = Options.Create(TestConfig.Instance.AzureAd);
             var azureAdConfiguration = azureAdConfigOptions.Value;
             _bearerToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
                 testSettings.TestClientId, testSettings.TestClientSecret,

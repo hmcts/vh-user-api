@@ -65,7 +65,7 @@ namespace UserApi
         private void RegisterSettings(IServiceCollection services)
         {
             services.Configure<AzureAdConfiguration>(options => Configuration.Bind("AzureAd", options));
-            services.Configure<AppConfigSettings>(options => Configuration.Bind(options));
+            services.Configure<Settings>(options => Configuration.Bind(options));
         }
 
         private void RegisterAuth(IServiceCollection services)
