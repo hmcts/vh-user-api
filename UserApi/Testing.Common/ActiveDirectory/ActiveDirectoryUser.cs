@@ -35,7 +35,8 @@ namespace Testing.Common.ActiveDirectory
         private static async Task<string> SendGraphApiRequest(string url, HttpMethod method, string token)
         {
             var policy = Policy.HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
-                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (msg, time) => { Console.WriteLine($"Received {msg.Result.StatusCode} for {method} {url}"); });
            
             // sometimes the api can be slow to actually allow us to access the created instance, so retry if it fails the first time
             var result = await policy.ExecuteAsync(async () =>
