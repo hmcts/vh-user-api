@@ -11,6 +11,7 @@ variables:
     "AzureAd/ClientSecret":"$(vh-user-api-key)",
     "AzureAd/TenantId":"$(tenantid)",
     "AzureAd/VhUserApiResourceId":"$(vh-user-api-identifieruris)",
+    "DefaultPassword":"$(default-password)",
     "Testing/TestClientId":"$(vh-admin-web-appid)",
     "Testing/TestClientSecret":"$(vh-admin-web-key)",
     "Testing/ReformEmail": "$(testing-reformemail)",
