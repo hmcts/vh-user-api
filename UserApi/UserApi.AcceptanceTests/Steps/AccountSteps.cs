@@ -117,9 +117,8 @@ namespace UserApi.AcceptanceTests.Steps
                 testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
             if (userIsInTheGroup)
             {
-                var userRemoved = ActiveDirectoryUser.RemoveTheUserFromTheGroup(testContext.TestSettings.ExistingUserId,
+                await ActiveDirectoryUser.RemoveTheUserFromTheGroup(testContext.TestSettings.ExistingUserId,
                     testContext.TestSettings.NewGroups.First().GroupId, testContext.GraphApiToken);
-                userRemoved.Should().BeTrue($"{testContext.TestSettings.NewGroups.First().DisplayName} is deleted");
             }
             testContext.NewGroupId = null;
         }
