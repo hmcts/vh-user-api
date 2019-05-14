@@ -55,7 +55,8 @@ namespace UserApi
                 NamingStrategy = new SnakeCaseNamingStrategy()
             };
 
-            services.AddMvc().AddJsonOptions(options =>
+            services.AddMvc()
+                .AddJsonOptions(options =>
                     options.SerializerSettings.ContractResolver = contractResolver)
                 .AddJsonOptions(options =>
                     options.SerializerSettings.Converters.Add(new StringEnumConverter()));
