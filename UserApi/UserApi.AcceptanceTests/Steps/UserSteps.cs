@@ -1,4 +1,5 @@
-﻿using Faker;
+﻿using System.Threading.Tasks;
+using Faker;
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,10 +99,10 @@ namespace UserApi.AcceptanceTests.Steps
 
 
         [AfterScenario]
-        public void NewUserClearUp()
+        public async Task NewUserClearUp()
         {
             if (string.IsNullOrWhiteSpace(_acTestContext.NewUserId)) return;
-            var userDeleted = ActiveDirectoryUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
+            var userDeleted = await ActiveDirectoryUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
             userDeleted.Should().BeTrue($"New user with ID {_acTestContext.NewUserId} is deleted");
             _acTestContext.NewUserId = null;
         }
