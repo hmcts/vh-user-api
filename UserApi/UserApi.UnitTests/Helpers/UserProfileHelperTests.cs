@@ -122,8 +122,8 @@ namespace UserApi.UnitTests.Helpers
             var userProfile = await _helper.GetUserProfile(Filter);
 
             userProfile.CaseType.Count.Should().Be(2);
-            userProfile.CaseType.Should().Contain(AdGroup.MoneyClaims.ToString());
-            userProfile.CaseType.Should().Contain(AdGroup.FinancialRemedy.ToString());
+            userProfile.CaseType.Should().Contain("Civil Money Claims");
+            userProfile.CaseType.Should().Contain("Financial Remedy");
         }
         
         [Test]
