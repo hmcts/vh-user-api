@@ -91,7 +91,7 @@ namespace UserApi.Controllers
 
             var filter = $"objectId  eq '{userId}'";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
             {
@@ -119,7 +119,7 @@ namespace UserApi.Controllers
 
             var filter = $"userPrincipalName  eq '{userName}'";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
             {
@@ -153,7 +153,7 @@ namespace UserApi.Controllers
 
             var filter = $"otherMails/any(c:c eq '{email}')";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null) return NotFound();
 

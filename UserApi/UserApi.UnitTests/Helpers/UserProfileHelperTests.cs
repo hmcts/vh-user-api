@@ -30,7 +30,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("Civil Money Claims");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("CaseAdmin");
         }
@@ -40,7 +40,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("Financial Remedy");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("CaseAdmin");
         }
@@ -50,7 +50,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomJudge");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("Judge");
         }
@@ -60,7 +60,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("VhOfficer");
         }
@@ -70,7 +70,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator", "Financial Remedy");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("VhOfficer");
         }
@@ -80,7 +80,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomProfessionalUser");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("Representative");
         }
@@ -90,7 +90,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("External");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("Individual");
         }
@@ -100,7 +100,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups();
 
-            Assert.ThrowsAsync<UnauthorizedAccessException>(() => _helper.GetUserProfile(Filter),
+            Assert.ThrowsAsync<UnauthorizedAccessException>(() => _helper.GetUserProfileAsync(Filter),
                 "Matching user is not registered with valid groups");
         }
         
@@ -109,7 +109,7 @@ namespace UserApi.UnitTests.Helpers
         {
             _accountService.Setup(x => x.GetUserByFilter(Filter)).ReturnsAsync((User) null);
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.Should().BeNull();
         }
@@ -119,7 +119,7 @@ namespace UserApi.UnitTests.Helpers
         {
             GivenFilterReturnsUserWithGroups("Civil Money Claims", "Financial Remedy");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.CaseType.Count.Should().Be(2);
             userProfile.CaseType.Should().Contain("Civil Money Claims");
@@ -140,7 +140,7 @@ namespace UserApi.UnitTests.Helpers
             };
             GivenFilterReturnsUserWithGroups(user, "External");
             
-            var userProfile = await _helper.GetUserProfile(Filter);
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.DisplayName.Should().Be(user.DisplayName);
             userProfile.FirstName.Should().Be(user.GivenName);
