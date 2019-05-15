@@ -48,8 +48,8 @@ namespace UserApi.Helper
             var userGroupDetails = await _userAccountService.GetGroupsForUser(user.Id);
             var userGroups = GetUserGroups(userGroupDetails).ToList();
             
-            var userRole = GetUserRole(userGroups);
-            var caseTypes = GetUserCaseTypes(userGroups);
+            var userRole = GetUserRole(userGroups).ToString();
+            var caseTypes = GetUserCaseTypes(userGroups).ToList();
 
             var response = new UserProfile
             {
@@ -59,7 +59,7 @@ namespace UserApi.Helper
                 DisplayName = user.DisplayName,
                 FirstName = user.GivenName,
                 LastName = user.Surname,
-                UserRole = userRole.ToString(),
+                UserRole = userRole,
                 CaseType = caseTypes
             };
 
@@ -68,12 +68,11 @@ namespace UserApi.Helper
 
         private static bool IsCaseType(AdGroup group) => CaseTypeMappings.ContainsKey(group);
 
-        private static List<string> GetUserCaseTypes(IEnumerable<AdGroup> userGroups)
+        private static IEnumerable<string> GetUserCaseTypes(IEnumerable<AdGroup> userGroups)
         {
             return userGroups
                 .Where(IsCaseType)
-                .Select(c => CaseTypeMappings[c])
-                .ToList();
+                .Select(c => CaseTypeMappings[c]);
         }
 
         private static UserRole GetUserRole(ICollection<AdGroup> userGroups)
