@@ -10,7 +10,6 @@ using Swashbuckle.AspNetCore.Annotations;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
-using UserApi.Security;
 using UserApi.Services;
 using UserApi.Services.Models;
 using UserApi.Validations;
@@ -58,16 +57,16 @@ namespace UserApi.Controllers
 
             try
             {
-                // throw new UserExistsException("The user exists in the AD.","test.user@hearings.reform.hmcts.net");
-                var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
-                await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
+                var adUserAccount =
+                    await _userAccountService.CreateUser(request.FirstName, request.LastName,
+                        request.RecoveryEmail);
                 var response = new NewUserResponse
                 {
                     UserId = adUserAccount.UserId,
                     Username = adUserAccount.Username,
                     OneTimePassword = adUserAccount.OneTimePassword
                 };
-                return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
+                return CreatedAtRoute("GetUserByAdUserId", new {userId = adUserAccount.UserId}, response);
             }
             catch (UserExistsException e)
             {
