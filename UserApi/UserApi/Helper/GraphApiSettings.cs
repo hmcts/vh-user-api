@@ -18,21 +18,15 @@ namespace UserApi.Helper
         private readonly ITokenProvider _tokenProvider;
         private readonly AzureAdConfiguration _azureAdConfiguration;
 
-        public GraphApiSettings(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
+        public GraphApiSettings(ITokenProvider tokenProvider, AzureAdConfiguration azureAdConfig)
         {
             _tokenProvider = tokenProvider;
-            _azureAdConfiguration = azureAdConfigOptions.Value;
+            _azureAdConfiguration = azureAdConfig;
         }
 
-        public string GraphApiBaseUriWindows
-        {
-            get { return "https://graph.windows.net/"; }
-        }
+        public string GraphApiBaseUriWindows => "https://graph.windows.net/";
 
-        public string TenantId
-        {
-            get { return _azureAdConfiguration.TenantId; }
-        }
+        public string TenantId => _azureAdConfiguration.TenantId;
 
         public string AccessToken
         {
@@ -53,12 +47,6 @@ namespace UserApi.Helper
             }
         }
 
-        public string GraphApiBaseUri
-        {
-            get
-            {
-                return _azureAdConfiguration.GraphApiBaseUri;
-            }
-        }
+        public string GraphApiBaseUri => _azureAdConfiguration.GraphApiBaseUri;
     }
 }
