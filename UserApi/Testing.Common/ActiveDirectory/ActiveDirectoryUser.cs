@@ -11,21 +11,21 @@ namespace Testing.Common.ActiveDirectory
     {
         private static string ApiBaseUrl => $"https://graph.microsoft.com/v1.0/{TestConfig.Instance.AzureAd.TenantId}";
 
-        public static async Task<bool> IsUserInAGroup(string user, string groupName, string token)
+        public static async Task<bool> IsUserInAGroupAsync(string user, string groupName, string token)
         {
             var url = $@"{ApiBaseUrl}/users/{user}/memberOf";
             var groupsResult = await SendGraphApiRequest(HttpMethod.Get, url, token);
             return groupsResult.Contains(groupName);
         }
 
-        public static async Task RemoveTheUserFromTheGroup(string user, string groupId, string token)
+        public static async Task RemoveTheUserFromTheGroupAsync(string user, string groupId, string token)
         {
             var url = $@"{ApiBaseUrl}/groups/{groupId}/members/{user}/$ref";
             await SendGraphApiRequest(HttpMethod.Delete, url, token);
             Console.WriteLine($"Deleted group '{groupId}' from user: {user}");
         }
 
-        public static async Task DeleteTheUserFromAd(string user, string token)
+        public static async Task DeleteTheUserFromAdAsync(string user, string token)
         {
             var url = $@"{ApiBaseUrl}/users/{user}";
             await SendGraphApiRequest(HttpMethod.Delete, url, token);
@@ -51,7 +51,9 @@ namespace Testing.Common.ActiveDirectory
 
             var response = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
+            {
                 throw new Exception($"Failed to execute {method} on {url}, got response {result.StatusCode}: {response}");
+            }
 
             return response;
         }
