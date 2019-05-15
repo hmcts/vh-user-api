@@ -40,7 +40,8 @@ namespace UserApi.Helper
         {
             var user = await _userAccountService.GetUserByFilter(filter);
 
-            if (user == null) {
+            if (user == null)
+            {
                 return null;
             }
 
@@ -109,7 +110,8 @@ namespace UserApi.Helper
         {
             foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
             {
-                if (GroupMappings.TryGetValue(displayName, out var adGroup)) {
+                if (GroupMappings.TryGetValue(displayName, out var adGroup))
+                {
                     yield return adGroup;
                 }
             }
