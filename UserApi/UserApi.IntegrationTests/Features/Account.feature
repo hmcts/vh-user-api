@@ -69,11 +69,10 @@ Scenario: AD groups not added for an invalid user
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 
-Scenario: User not added to a group that they are already a member of
+Scenario: User may be added to a group that they are already a member of
 	Given I have an add a user to a group request for an existing user id and existing group
 	When I send the request to the endpoint
-	Then the response should have the status NotFound and success status False
-	And the response message should read 'user already exists'
+	Then the response should have the status Accepted and success status True
 
 Scenario: User not added to a group with a nonexistent group
 	Given I have an add a user to a group request for an existing user id and nonexistent group

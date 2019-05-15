@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Options;
 using Microsoft.Graph;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,10 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Options;
-using UserApi.Common;
-using UserApi.Contract.Requests;
+using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -22,74 +17,58 @@ namespace UserApi.Services
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
-        private readonly TimeSpan _retryTimeout;
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
-        private readonly string _defaultPassword;
         private readonly bool _isLive;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
-
+        
         private static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings,
-            IIdentityServiceApiClient client, IOptions<Settings> settings)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings)
         {
-            _retryTimeout = TimeSpan.FromSeconds(60);
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
-            _defaultPassword = settings.Value.DefaultPassword;
-            _isLive = settings.Value.IsLive;
+            _isLive = settings.IsLive;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null)
+        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail)
         {
-            var userDisplayName = displayName ?? $"{firstName} {lastName}";
-
-            var userPrincipalName = await CheckForNextAvailableUsername(firstName, lastName);
-
-            var user = new User
+            var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
+            var user = await GetUserByFilter(filter);
+            if (user != null)
             {
-                AccountEnabled = true,
-                DisplayName = userDisplayName,
-                MailNickname = $"{firstName}.{lastName}",
-                PasswordProfile = new PasswordProfile
-                {
-                    ForceChangePasswordNextSignIn = true,
-                    Password = _defaultPassword
-                },
-                GivenName = firstName,
-                Surname = lastName,
-                UserPrincipalName = userPrincipalName
-            };
-
-            return await CreateUser(user);
+                // Avoid including the exact email to not leak it to logs
+                throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
+            }
+            
+            var username = await CheckForNextAvailableUsername(firstName, lastName);
+            var displayName = $"{firstName} {lastName}";
+            return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
         }
 
         public async Task AddUserToGroup(User user, Group group)
         {
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode) return;
 
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
+            
+            // if we failed because the user is already in the group, consider it done anyway 
+            if (reason.Contains("already exist")) return;
 
-        public async Task UpdateAuthenticationInformation(string userId, string recoveryMail)
-        {
-            var timeout = DateTime.Now.Add(_retryTimeout);
-            await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
+            var message = $"Failed to add user {user.Id} to group {group.Id}";
+            throw new UserServiceException(message, reason);
         }
 
         public async Task<User> GetUserById(string userId)
@@ -218,7 +197,8 @@ namespace UserApi.Services
                 return baseUsername + domain;
             }
 
-        lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+            // TODO: this doesn't work with over ten users because the ordering ends up wrong
+            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
             lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
             lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
             var lastNumber = int.Parse(lastUserPrincipalName);
@@ -231,61 +211,6 @@ namespace UserApi.Services
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await _client.GetUsernamesStartingWith(baseUsername);
             return users.OrderBy(username => username);
-        }
-
-        private async Task<NewAdUserAccount> CreateUser(User newUser)
-        {
-            var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users";
-            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var user = await responseMessage.Content.ReadAsAsync<User>();
-                var adUserAccount = new NewAdUserAccount
-                {
-                    Username = user.UserPrincipalName,
-                    OneTimePassword = newUser.PasswordProfile.Password,
-                    UserId = user.Id
-                };
-                return adUserAccount;
-            }
-
-            var message = $"Failed to add create user {newUser.UserPrincipalName}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
-
-        private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
-        {
-            var model = new UpdateAuthenticationInformationRequest
-            {
-                OtherMails = new List<string> { recoveryMail }
-            };
-            var stringContent = new StringContent(JsonConvert.SerializeObject(model));
-
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users/{userId}?api-version=1.6";
-            var responseMessage = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessTokenWindows, stringContent, accessUri);
-            
-            if (responseMessage.IsSuccessStatusCode) return;
-
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-
-            // If it's 404 try it again as the user might simply not have become "ready" in AD
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                if (DateTime.Now > timeout)
-                    throw new UserServiceException("Timed out trying to update alternative address for ${userId}",
-                        reason);
-
-                ApplicationLogger.Trace("APIFailure", "GraphAPI 404 PATCH /users/{id}",
-                    $"Failed to update authentication information for user {userId}, will retry.");
-                await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
-                return;
-            }
-
-            var message = $"Failed to update alternative email address for {userId}";
-            throw new UserServiceException(message, reason);
         }
 
         private string GetStringWithoutWord(string currentWord, string wordToRemove)
