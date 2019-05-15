@@ -36,7 +36,7 @@ namespace UserApi.Helper
             _userAccountService = userAccountService;
         }
 
-        public async Task<UserProfile> GetUserProfile(string filter)
+        public async Task<UserProfile> GetUserProfileAsync(string filter)
         {
             var user = await _userAccountService.GetUserByFilter(filter);
 
@@ -75,7 +75,7 @@ namespace UserApi.Helper
                 .ToList();
         }
 
-        private static UserRole GetUserRole(List<AdGroup> userGroups)
+        private static UserRole GetUserRole(ICollection<AdGroup> userGroups)
         {
             if (userGroups.Contains(AdGroup.VirtualRoomAdministrator))
             {
@@ -109,8 +109,9 @@ namespace UserApi.Helper
         {
             foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
             {
-                if (GroupMappings.TryGetValue(displayName, out var adGroup))
+                if (GroupMappings.TryGetValue(displayName, out var adGroup)) {
                     yield return adGroup;
+                }
             }
         }
     }
