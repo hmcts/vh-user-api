@@ -42,7 +42,7 @@ namespace Testing.Common.ActiveDirectory
             
             var tenantId = TestConfig.Instance.AzureAd.TenantId;
             var policy = Policy.HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
-                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
            
             
             // sometimes the api can be slow to actually allow us to access the created instance, so retry if it fails the first time
