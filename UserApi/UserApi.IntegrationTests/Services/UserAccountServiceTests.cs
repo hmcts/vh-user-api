@@ -1,11 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Testing.Common;
 using Testing.Common.ActiveDirectory;
-using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -16,23 +14,20 @@ namespace UserApi.IntegrationTests.Services
     public class UserAccountServiceTests
     {
         private UserAccountService _service;
-        private OptionsWrapper<AzureAdConfiguration> _configuration;
         private GraphApiSettings _graphApiSettings;
         private SecureHttpRequest _secureHttpRequest;
         private GraphApiClient _identityServiceApiClient;
-        private OptionsWrapper<Settings> _settings;
 
         [SetUp]
         public void Setup()
         {
             _secureHttpRequest = new SecureHttpRequest();
-            
-            _configuration = new OptionsWrapper<AzureAdConfiguration>(TestConfig.Instance.AzureAd);
-            _settings = new OptionsWrapper<Settings>(TestConfig.Instance.Settings);
-            var tokenProvider = new TokenProvider(_configuration);
-            _graphApiSettings = new GraphApiSettings(tokenProvider, _configuration);
-            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _settings);
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, _settings);
+
+            var settings = TestConfig.Instance.Settings;
+            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
+            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, settings);
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings);
         }
 
         [Test]

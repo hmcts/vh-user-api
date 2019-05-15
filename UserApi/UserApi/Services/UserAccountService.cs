@@ -1,5 +1,3 @@
-using Newtonsoft.Json;
-using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Newtonsoft.Json.Linq;
 using System;
@@ -8,7 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using UserApi.Common;
+using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -22,7 +20,6 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
-        private readonly string _defaultPassword;
         private readonly bool _isLive;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
@@ -30,14 +27,12 @@ namespace UserApi.Services
         private static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings,
-            IIdentityServiceApiClient client, IOptions<Settings> settings)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
-            _defaultPassword = settings.Value.DefaultPassword;
-            _isLive = settings.Value.IsLive;
+            _isLive = settings.IsLive;
         }
 
         public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail)
