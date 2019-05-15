@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
@@ -10,7 +10,6 @@ using Swashbuckle.AspNetCore.Annotations;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
-using UserApi.Security;
 using UserApi.Services;
 using UserApi.Services.Models;
 using UserApi.Validations;
@@ -163,6 +162,21 @@ namespace UserApi.Controllers
             if (userProfile == null) return NotFound();
 
             return Ok(userProfile);
+        }
+
+        /// <summary>
+        ///     Get Judges from AD
+        /// </summary>
+        [HttpGet("judges", Name = "GetJudges")]
+        [SwaggerOperation(OperationId = "GetJudges")]
+        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetJudges()
+        {
+            var adJudges = await _userAccountService.GetJudges();
+            if (adJudges == null || !adJudges.Any()) return Ok(new List<UserResponse>());
+
+            return Ok(adJudges);
         }
     }
 }

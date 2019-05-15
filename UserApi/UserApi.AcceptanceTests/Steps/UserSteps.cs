@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Faker;
 using FluentAssertions;
+using System.Collections.Generic;
+using System.Linq;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
@@ -52,6 +54,12 @@ namespace UserApi.AcceptanceTests.Steps
             _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByEmail(_acTestContext.TestSettings.ExistingEmail));
         }
 
+        [Given(@"I have a valid AD groupid and request for a list of judges")]
+        public void GivenIHaveAValidADGroupidAndRequestForAListOfJudges()
+        {
+            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges());
+        }
+
         [Then(@"the user should be added")]
         public void ThenTheUserShouldBeAdded()
         {
@@ -75,6 +83,22 @@ namespace UserApi.AcceptanceTests.Steps
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
         }
+
+        [Then(@"a list of ad judges should be retrieved")]
+        public void ThenAListOfAdJudgesShouldBeRetrieved()
+        {
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_acTestContext.Json);
+            model.Should().NotBeNull();
+            foreach (var user in model)
+            {
+                user.Email.Should().NotBeNullOrEmpty();
+                user.DisplayName.Should().NotBeNullOrEmpty();
+            }
+            var expectedUser = model.FirstOrDefault(u => u.Email == "Automation01Judge01@hearings.reform.hmcts.net");
+            expectedUser.DisplayName.Should().Be("Automation01 Judge01");
+        }
+
+
 
         [AfterScenario]
         public async Task NewUserClearUp()

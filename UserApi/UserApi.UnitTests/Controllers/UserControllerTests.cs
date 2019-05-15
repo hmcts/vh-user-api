@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.ApplicationInsights;
@@ -106,6 +107,28 @@ namespace UserApi.UnitTests.Controllers
             actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
+        }
+
+        [Test]
+        public async Task Should_get_users_for_group_by_group_id_from_api()
+        {
+            var response = new List<UserResponse>();
+            var user = new UserResponse() { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.reform.hmcts.net" };
+            response.Add(user);
+            user = new UserResponse() { DisplayName = "firstname1 lastname1", FirstName = "firstname1", LastName = "lastname1", Email = "firstname1.lastname1@hearings.reform.hmcts.net" };
+            response.Add(user);
+
+            List<UserResponse> userList = new List<UserResponse>()
+            {
+                new UserResponse() { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.reform.hmcts.net" }
+            };
+
+            _userAccountService.Setup(x => x.GetJudges()).Returns(Task.FromResult(response));
+            var actionResult = (OkObjectResult)await _controller.GetJudges();
+            var actualResponse = (List<UserResponse>)actionResult.Value;
+            actualResponse.Count.Should().BeGreaterThan(0);
+            actualResponse.FirstOrDefault().DisplayName.Should()
+                .BeSameAs(userList.FirstOrDefault().DisplayName);
         }
     }
 }

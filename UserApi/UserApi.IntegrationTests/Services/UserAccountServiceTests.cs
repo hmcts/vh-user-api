@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Microsoft.Graph;
 using NUnit.Framework;
 using Testing.Common;
 using Testing.Common.ActiveDirectory;
@@ -33,7 +32,7 @@ namespace UserApi.IntegrationTests.Services
             var tokenProvider = new TokenProvider(_configuration);
             _graphApiSettings = new GraphApiSettings(tokenProvider, _configuration);
             _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _settings);
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient);
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, _settings);
         }
 
         [Test]
