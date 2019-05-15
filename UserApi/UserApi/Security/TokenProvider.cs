@@ -15,9 +15,9 @@ namespace UserApi.Security
     {
         private readonly AzureAdConfiguration _azureAdConfiguration;
 
-        public TokenProvider(IOptions<AzureAdConfiguration> azureAdConfiguration)
+        public TokenProvider(AzureAdConfiguration azureAdConfiguration)
         {
-            _azureAdConfiguration = azureAdConfiguration.Value;
+            _azureAdConfiguration = azureAdConfiguration;
         }
 
         public string GetClientAccessToken(string clientId, string clientSecret, string clientResource)
