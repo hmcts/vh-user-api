@@ -226,7 +226,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_apiTestContext.NewUserId)) return;
-            await ActiveDirectoryUser.DeleteTheUserFromAd(_apiTestContext.NewUserId, _apiTestContext.GraphApiToken);
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_apiTestContext.NewUserId, _apiTestContext.GraphApiToken);
             _apiTestContext.NewUserId = null;
         }
     }

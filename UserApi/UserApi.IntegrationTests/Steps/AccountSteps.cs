@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using Testing.Common;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
@@ -196,28 +197,33 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"user should be added to the group")]
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(_apiTestContext.TestSettings.ExistingUserId,
+            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_apiTestContext.TestSettings.ExistingUserId,
                 _apiTestContext.TestSettings.NewGroups.First().DisplayName, _apiTestContext.GraphApiToken);
             userIsInTheGroup.Should().BeTrue();
             _apiTestContext.NewGroupId = _apiTestContext.TestSettings.NewGroups.First().GroupId;
         }
 
         [AfterScenario]
-        public async Task ClearUp(ApiTestContext testContext)
+        public async Task ClearUpAsync(ApiTestContext testContext)
         {
-            if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId)) return;
-            await RemoveGroupFromUserIfExists(testContext);
+            var newGroup = testContext.TestSettings.NewGroups.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(_apiTestContext.NewGroupId) || newGroup == null)
+            {
+                return;
+            }
+
+            await RemoveGroupFromUserIfExistsAsync(testContext, newGroup);
+
             testContext.NewGroupId = null;
         }
 
-        private static async Task RemoveGroupFromUserIfExists(ApiTestContext testContext)
+        private static async Task RemoveGroupFromUserIfExistsAsync(ApiTestContext testContext, Group group)
         {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(testContext.TestSettings.ExistingUserId,
-                testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
+            var userId = testContext.TestSettings.ExistingUserId;
+            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(userId, group.DisplayName, testContext.GraphApiToken);
             if (userIsInTheGroup)
             {
-                await ActiveDirectoryUser.RemoveTheUserFromTheGroup(testContext.TestSettings.ExistingUserId,
-                    testContext.TestSettings.NewGroups.First().GroupId, testContext.GraphApiToken);
+                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(userId, group.GroupId, testContext.GraphApiToken);
             }
             testContext.NewGroupId = null;
         }
