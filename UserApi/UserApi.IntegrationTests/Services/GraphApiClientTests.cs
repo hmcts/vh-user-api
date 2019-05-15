@@ -1,10 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Testing.Common;
-using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -13,7 +10,6 @@ namespace UserApi.IntegrationTests.Services
 {
     public class GraphApiClientTests
     {
-        private OptionsWrapper<AzureAdConfiguration> _configuration;
         private GraphApiSettings _graphApiSettings;
         private SecureHttpRequest _secureHttpRequest;
         private GraphApiClient _graphApiClient;
@@ -23,8 +19,8 @@ namespace UserApi.IntegrationTests.Services
         {
             _secureHttpRequest = new SecureHttpRequest();
             
-            _configuration = new OptionsWrapper<AzureAdConfiguration>(TestConfig.Instance.AzureAd);
-            _graphApiSettings = new GraphApiSettings(new TokenProvider(_configuration), _configuration);
+            var config = TestConfig.Instance.AzureAd;
+            _graphApiSettings = new GraphApiSettings(new TokenProvider(config), config);
             _graphApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings);
         }
 
