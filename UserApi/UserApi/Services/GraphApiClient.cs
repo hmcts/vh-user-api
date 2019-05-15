@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Services.Models;
@@ -27,11 +26,11 @@ namespace UserApi.Services
         private readonly string _baseUrl;
         private readonly string _defaultPassword;
 
-        public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IOptions<Settings> settings)
+        public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
-            _defaultPassword = settings.Value.DefaultPassword;
+            _defaultPassword = settings.DefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 

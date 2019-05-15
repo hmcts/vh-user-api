@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http;
-using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using UserApi.Helper;
@@ -13,15 +12,13 @@ namespace UserApi.UnitTests.Services
         private Mock<IGraphApiSettings> _graphApiSettings;
         private Mock<ISecureHttpRequest> _secureHttpRequest;
         private GraphApiClient _client;
-        private OptionsWrapper<Settings> _settings;
 
         [SetUp]
         public void Setup()
         {
-            _settings = new OptionsWrapper<Settings>(new Settings());
             _secureHttpRequest = new Mock<ISecureHttpRequest>();
             _graphApiSettings = new Mock<IGraphApiSettings>();
-            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _settings);
+            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, new Settings());
         }
         
         /// <summary>
