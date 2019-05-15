@@ -14,25 +14,25 @@ namespace Testing.Common.ActiveDirectory
         public static async Task<bool> IsUserInAGroup(string user, string groupName, string token)
         {
             var url = $@"{ApiBaseUrl}/users/{user}/memberOf";
-            var groupsResult = await SendGraphApiRequest(url, HttpMethod.Get, token);
+            var groupsResult = await SendGraphApiRequest(HttpMethod.Get, url, token);
             return groupsResult.Contains(groupName);
         }
 
         public static async Task RemoveTheUserFromTheGroup(string user, string groupId, string token)
         {
             var url = $@"{ApiBaseUrl}/groups/{groupId}/members/{user}/$ref";
-            await SendGraphApiRequest(url, HttpMethod.Delete, token);
+            await SendGraphApiRequest(HttpMethod.Delete, url, token);
             Console.WriteLine($"Deleted group '{groupId}' from user: {user}");
         }
 
         public static async Task DeleteTheUserFromAd(string user, string token)
         {
             var url = $@"{ApiBaseUrl}/users/{user}";
-            await SendGraphApiRequest(url, HttpMethod.Delete, token);
+            await SendGraphApiRequest(HttpMethod.Delete, url, token);
             Console.WriteLine($"Deleted user: {user}");
         }
 
-        private static async Task<string> SendGraphApiRequest(string url, HttpMethod method, string token)
+        private static async Task<string> SendGraphApiRequest(HttpMethod method, string url, string token)
         {
             var policy = Policy.HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
                 .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
