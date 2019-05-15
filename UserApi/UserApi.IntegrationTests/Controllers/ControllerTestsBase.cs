@@ -35,13 +35,11 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var testSettings = TestConfig.Instance.TestSettings;
 
-            var azureAdConfigOptions = Options.Create(TestConfig.Instance.AzureAd);
-            var azureAdConfiguration = azureAdConfigOptions.Value;
-            _bearerToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
+            _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 testSettings.TestClientId, testSettings.TestClientSecret,
-                azureAdConfiguration.VhUserApiResourceId);
+                TestConfig.Instance.AzureAd.VhUserApiResourceId);
 
-            GraphApiToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
+            GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 testSettings.TestClientId, testSettings.TestClientSecret,
                 "https://graph.microsoft.com");
         }

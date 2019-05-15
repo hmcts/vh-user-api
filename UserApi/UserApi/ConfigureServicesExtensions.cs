@@ -24,7 +24,6 @@ namespace UserApi
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
-            serviceCollection.AddScoped<AzureAdConfiguration>();
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
 
