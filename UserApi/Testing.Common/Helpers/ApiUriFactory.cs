@@ -55,6 +55,11 @@ namespace Testing.Common.Helpers
         {
             return $"{ApiRoot}/email/{email}";
         }
+
+        public string GetJudges()
+        {
+            return $"{ApiRoot}/judges";
+        }
     }
 
     public class HealthCheckEndpoints

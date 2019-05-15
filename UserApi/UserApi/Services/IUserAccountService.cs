@@ -26,5 +26,6 @@ namespace UserApi.Services
         Task<Group> GetGroupById(string groupId);
         Task<List<Group>> GetGroupsForUser(string userId);
         Task<User> GetUserByFilter(string filter);
+        Task<List<UserResponse>> GetJudges();
     }
 }
