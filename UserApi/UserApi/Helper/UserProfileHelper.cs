@@ -15,7 +15,7 @@ namespace UserApi.Helper
         /// <summary>
         /// Mappings for AD groups since the display names can contain spaces
         /// </summary>
-        private static readonly Dictionary<string, AdGroup> GroupMappings = new Dictionary<string, AdGroup>
+        private static readonly IDictionary<string, AdGroup> GroupMappings = new Dictionary<string, AdGroup>
         {
             {"External", AdGroup.External},
             {"VirtualRoomAdministrator", AdGroup.VirtualRoomAdministrator},
@@ -25,7 +25,7 @@ namespace UserApi.Helper
             {"Civil Money Claims", AdGroup.MoneyClaims}
         };
 
-        private static readonly Dictionary<AdGroup, string> CaseTypeMappings = new Dictionary<AdGroup, string>
+        private static readonly IDictionary<AdGroup, string> CaseTypeMappings = new Dictionary<AdGroup, string>
         {
             { AdGroup.MoneyClaims, "Civil Money Claims" },
             { AdGroup.FinancialRemedy, "Financial Remedy" }
