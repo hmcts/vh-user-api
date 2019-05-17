@@ -38,14 +38,14 @@ namespace UserApi.Helper
 
         public async Task<UserProfile> GetUserProfileAsync(string filter)
         {
-            var user = await _userAccountService.GetUserByFilter(filter);
+            var user = await _userAccountService.GetUserByFilterAsync(filter);
 
             if (user == null)
             {
                 return null;
             }
 
-            var userGroupDetails = await _userAccountService.GetGroupsForUser(user.Id);
+            var userGroupDetails = await _userAccountService.GetGroupsForUserAsync(user.Id);
             var userGroups = GetUserGroups(userGroupDetails).ToList();
             
             var userRole = GetUserRole(userGroups).ToString();

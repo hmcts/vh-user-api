@@ -38,7 +38,7 @@ namespace UserApi.Controllers
                 var email = "checkuser@test.com";
                 //Check if user profile end point is accessible
                 var filter = $"otherMails/any(c:c eq '{email}')";
-                await _userAccountService.GetUserByFilter(filter);
+                await _userAccountService.GetUserByFilterAsync(filter);
             }
             catch (UserServiceException)
             {
@@ -48,7 +48,7 @@ namespace UserApi.Controllers
             try
             {
                 //Check if group by name end point is accessible
-                await _userAccountService.GetGroupByName("TestGroup");
+                await _userAccountService.GetGroupByNameAsync("TestGroup");
             }
             catch (UserServiceException)
             {

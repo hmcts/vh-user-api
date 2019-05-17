@@ -57,7 +57,7 @@ namespace UserApi.Controllers
             try
             {
                 var adUserAccount =
-                    await _userAccountService.CreateUser(request.FirstName, request.LastName,
+                    await _userAccountService.CreateUserAsync(request.FirstName, request.LastName,
                         request.RecoveryEmail);
                 var response = new NewUserResponse
                 {
@@ -173,7 +173,7 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetJudges()
         {
-            var adJudges = await _userAccountService.GetJudges();
+            var adJudges = await _userAccountService.GetJudgesAsync();
             if (adJudges == null || !adJudges.Any()) return Ok(new List<UserResponse>());
 
             return Ok(adJudges);
