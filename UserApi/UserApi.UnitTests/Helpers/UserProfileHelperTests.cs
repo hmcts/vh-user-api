@@ -107,7 +107,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_null_for_no_user_found()
         {
-            _accountService.Setup(x => x.GetUserByFilter(Filter)).ReturnsAsync((User) null);
+            _accountService.Setup(x => x.GetUserByFilterAsync(Filter)).ReturnsAsync((User) null);
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -152,11 +152,11 @@ namespace UserApi.UnitTests.Helpers
 
         private void GivenFilterReturnsUserWithGroups(User user, params string[] groupDisplayNames)
         {
-            _accountService.Setup(x => x.GetUserByFilter(Filter))
+            _accountService.Setup(x => x.GetUserByFilterAsync(Filter))
                 .ReturnsAsync(user);
 
             var groups = groupDisplayNames.Select(aadGroup => new Group { DisplayName = aadGroup }).ToArray();
-            _accountService.Setup(x => x.GetGroupsForUser(user.Id))
+            _accountService.Setup(x => x.GetGroupsForUserAsync(user.Id))
                 .ReturnsAsync(new List<Group>(groups));
         }
 
