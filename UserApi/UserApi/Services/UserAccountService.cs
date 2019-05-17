@@ -195,7 +195,7 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            var domain = "@hearings.reform.hmcts.net";
+            const string domain = "@hearings.reform.hmcts.net";
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await GetUsersMatchingNameAsync(firstName, lastName);
             var lastUserPrincipalName = users.LastOrDefault();
