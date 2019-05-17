@@ -44,7 +44,7 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var adGroup = await _userAccountService.GetGroupByName(name);
+            var adGroup = await _userAccountService.GetGroupByNameAsync(name);
             if (adGroup == null) return NotFound();
 
             var response = new GroupsResponse
@@ -73,7 +73,7 @@ namespace UserApi.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var adGroup = await _userAccountService.GetGroupById(groupId);
+                var adGroup = await _userAccountService.GetGroupByIdAsync(groupId);
                 if (adGroup == null) return NotFound();
 
                 var response = new GroupsResponse
@@ -104,7 +104,7 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var adGroups = await _userAccountService.GetGroupsForUser(userId);
+            var adGroups = await _userAccountService.GetGroupsForUserAsync(userId);
             if (adGroups == null || !adGroups.Any()) return NotFound();
 
             var response = adGroups.Select(x => new GroupsResponse
@@ -139,7 +139,7 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var group = await _userAccountService.GetGroupByName(request.GroupName);
+            var group = await _userAccountService.GetGroupByNameAsync(request.GroupName);
             if (group == null)
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"Group not found '{request.GroupName}'",
@@ -148,7 +148,7 @@ namespace UserApi.Controllers
             }
 
             var filter = $"objectId  eq '{request.UserId}'";
-            var user = await _userAccountService.GetUserByFilter(filter);
+            var user = await _userAccountService.GetUserByFilterAsync(filter);
             if (user == null)
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"User with ID '{request.UserId}' not found ",
@@ -160,7 +160,7 @@ namespace UserApi.Controllers
 
             try
             {
-                await _userAccountService.AddUserToGroup(user, group);
+                await _userAccountService.AddUserToGroupAsync(user, group);
             }
             catch (UserServiceException)
             {

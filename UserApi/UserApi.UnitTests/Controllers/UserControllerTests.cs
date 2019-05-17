@@ -23,7 +23,7 @@ namespace UserApi.UnitTests.Controllers
         {
             _userAccountService = new Mock<IUserAccountService>();
             var representativeGroups = new List<Group> {new Group { DisplayName = AdGroup.VirtualRoomProfessionalUser.ToString()}};
-            _userAccountService.Setup(x => x.GetGroupsForUser(It.IsAny<string>())).ReturnsAsync(representativeGroups);
+            _userAccountService.Setup(x => x.GetGroupsForUserAsync(It.IsAny<string>())).ReturnsAsync(representativeGroups);
             _controller = new UserController(_userAccountService.Object, new TelemetryClient());
         }
 
@@ -45,7 +45,7 @@ namespace UserApi.UnitTests.Controllers
             };
 
             var filter = $"objectId  eq '{userId}'";
-            _userAccountService.Setup(x => x.GetUserByFilter(filter)).Returns(Task.FromResult(userResponse));
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).Returns(Task.FromResult(userResponse));
 
             var actionResult = (OkObjectResult) await _controller.GetUserByAdUserId(userId);
             var actualResponse = (UserProfile) actionResult.Value;
@@ -73,7 +73,7 @@ namespace UserApi.UnitTests.Controllers
             };
 
             var filter = $"userPrincipalName  eq '{userName}'";
-            _userAccountService.Setup(x => x.GetUserByFilter(filter)).Returns(Task.FromResult(userResponse));
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).Returns(Task.FromResult(userResponse));
 
             var actionResult = (OkObjectResult) await _controller.GetUserByUserName(userName);
             var actualResponse = (UserProfile) actionResult.Value;
@@ -100,7 +100,7 @@ namespace UserApi.UnitTests.Controllers
             };
 
             var filter = $"otherMails/any(c:c eq '{email}')";
-            _userAccountService.Setup(x => x.GetUserByFilter(filter)).Returns(Task.FromResult(userResponse));
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).Returns(Task.FromResult(userResponse));
 
             var actionResult = (OkObjectResult) await _controller.GetUserByEmail(email);
             var actualResponse = (UserProfile) actionResult.Value;
@@ -123,7 +123,7 @@ namespace UserApi.UnitTests.Controllers
                 new UserResponse() { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.reform.hmcts.net" }
             };
 
-            _userAccountService.Setup(x => x.GetJudges()).Returns(Task.FromResult(response));
+            _userAccountService.Setup(x => x.GetJudgesAsync()).Returns(Task.FromResult(response));
             var actionResult = (OkObjectResult)await _controller.GetJudges();
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().BeGreaterThan(0);
