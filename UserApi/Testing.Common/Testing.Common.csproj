@@ -8,10 +8,16 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
       <PackageReference Include="NBuilder" Version="6.0.0" />
       <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+      <PackageReference Include="NUnit" Version="3.11.0" />
+        <PackageReference Include="Microsoft.AspNetCore.All" />
+        <PackageReference Include="Polly" Version="7.1.0" />
+        <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
       <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
+      <ProjectReference Include="..\UserApi\UserApi.csproj" />
     </ItemGroup>
 
     <ItemGroup>

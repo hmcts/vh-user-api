@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
@@ -9,7 +10,6 @@ using Swashbuckle.AspNetCore.Annotations;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
-using UserApi.Security;
 using UserApi.Services;
 using UserApi.Services.Models;
 using UserApi.Validations;
@@ -56,20 +56,25 @@ namespace UserApi.Controllers
 
             try
             {
-                var adUserAccount = await _userAccountService.CreateUser(request.FirstName, request.LastName);
-                await _userAccountService.UpdateAuthenticationInformation(adUserAccount.UserId, request.RecoveryEmail);
+                var adUserAccount =
+                    await _userAccountService.CreateUserAsync(request.FirstName, request.LastName,
+                        request.RecoveryEmail);
                 var response = new NewUserResponse
                 {
                     UserId = adUserAccount.UserId,
                     Username = adUserAccount.Username,
                     OneTimePassword = adUserAccount.OneTimePassword
                 };
-                return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
+                return CreatedAtRoute("GetUserByAdUserId", new {userId = adUserAccount.UserId}, response);
             }
-            catch (UserServiceException)
+            catch (UserExistsException e)
             {
-                ModelState.AddModelError(nameof(request), "user already exists");
-                return BadRequest(ModelState);
+                return new ConflictObjectResult(new
+                {
+                    Message = "User already exists",
+                    Code = "UserExists",
+                    e.Username
+                });
             }
         }
 
@@ -90,7 +95,7 @@ namespace UserApi.Controllers
 
             var filter = $"objectId  eq '{userId}'";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
             {
@@ -118,7 +123,7 @@ namespace UserApi.Controllers
 
             var filter = $"userPrincipalName  eq '{userName}'";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
             {
@@ -152,11 +157,26 @@ namespace UserApi.Controllers
 
             var filter = $"otherMails/any(c:c eq '{email}')";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null) return NotFound();
 
             return Ok(userProfile);
+        }
+
+        /// <summary>
+        ///     Get Judges from AD
+        /// </summary>
+        [HttpGet("judges", Name = "GetJudges")]
+        [SwaggerOperation(OperationId = "GetJudges")]
+        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetJudges()
+        {
+            var adJudges = await _userAccountService.GetJudgesAsync();
+            if (adJudges == null || !adJudges.Any()) return Ok(new List<UserResponse>());
+
+            return Ok(adJudges);
         }
     }
 }

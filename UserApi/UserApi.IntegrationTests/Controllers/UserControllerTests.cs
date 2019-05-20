@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -80,6 +82,21 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.DisplayName.Should().NotBeNullOrWhiteSpace();
         }
+        
+        [Test]
+        public async Task should_get_case_administrator_by_id()
+        {
+            const string username = "moneyclaims.admin@hearings.reform.HMCTS.NET";
+            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var userResponseModel =
+                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                    .ReadAsStringAsync().Result);
+            userResponseModel.UserRole.Should().Be("CaseAdmin");
+            userResponseModel.FirstName.Should().Be("Money Claims");
+            userResponseModel.LastName.Should().Be("Admin");
+            userResponseModel.DisplayName.Should().Be("Money Claims Admin");
+        }
 
         [Test]
         public async Task should_get_user_by_id_not_found_with_bogus_user_id()
@@ -137,6 +154,18 @@ namespace UserApi.IntegrationTests.Controllers
             const string email = "i.do.not.exist@nowhere.ever.com";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Test]
+        public async Task should_get_users_for_group()
+        {
+            var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges());
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
+            usersForGroupModel.Should().NotBeEmpty();
+
+            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == "Judge.Bever@hearings.reform.hmcts.net");
+            expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
         }
 
         [TearDown]

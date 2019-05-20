@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -21,15 +22,18 @@ namespace UserApi
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
+        private AzureAdConfiguration AzureAdSettings { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ITelemetryInitializer>(new CloudRoleNameInitializer());
+            
             services.AddCors();
 
             ConfigureJsonSerialization(services);
-            RegisterSettings(services);
+            RegisterConfiguration(services);
 
             services.AddCustomTypes();
 
@@ -52,15 +56,18 @@ namespace UserApi
                 NamingStrategy = new SnakeCaseNamingStrategy()
             };
 
-            services.AddMvc().AddJsonOptions(options =>
+            services.AddMvc()
+                .AddJsonOptions(options =>
                     options.SerializerSettings.ContractResolver = contractResolver)
                 .AddJsonOptions(options =>
                     options.SerializerSettings.Converters.Add(new StringEnumConverter()));
         }
 
-        private void RegisterSettings(IServiceCollection services)
+        private void RegisterConfiguration(IServiceCollection services)
         {
-            services.Configure<AzureAdConfiguration>(options => Configuration.Bind("AzureAd", options));
+            AzureAdSettings = Configuration.GetSection("AzureAd").Get<AzureAdConfiguration>();
+            services.AddSingleton(AzureAdSettings);
+            services.AddSingleton(Configuration.Get<Settings>());
         }
 
         private void RegisterAuth(IServiceCollection services)
@@ -71,17 +78,15 @@ namespace UserApi
 
             services.AddMvc(options => { options.Filters.Add(new AuthorizeFilter(policy)); });
 
-            var securitySettings = Configuration.GetSection("AzureAd").Get<AzureAdConfiguration>();
-
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                options.Authority = $"{securitySettings.Authority}{securitySettings.TenantId}";
+                options.Authority = $"{AzureAdSettings.Authority}{AzureAdSettings.TenantId}";
                 options.TokenValidationParameters.ValidateLifetime = true;
-                options.Audience = securitySettings.VhUserApiResourceId;
+                options.Audience = AzureAdSettings.VhUserApiResourceId;
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
             });
 

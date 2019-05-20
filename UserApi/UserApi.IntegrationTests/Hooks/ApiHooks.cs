@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using TechTalk.SpecFlow;
 using Testing.Common;
-using UserApi.Common;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.Security;
 
@@ -28,24 +26,16 @@ namespace UserApi.IntegrationTests.Hooks
 
         private static void GetClientAccessTokenForUserApi(ApiTestContext apiTestContext)
         {
-            var configRootBuilder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddUserSecrets<Startup>();
+            apiTestContext.TestSettings = TestConfig.Instance.TestSettings;
 
-            var configRoot = configRootBuilder.Build();
+            var azureAdConfig = TestConfig.Instance.AzureAd;
 
-            var testSettingsOptions = Options.Create(configRoot.GetSection("Testing").Get<TestSettings>());
-            apiTestContext.TestSettings = testSettingsOptions.Value;
-
-            var azureAdConfigOptions = Options.Create(configRoot.GetSection("AzureAd").Get<AzureAdConfiguration>());
-            var azureAdConfiguration = azureAdConfigOptions.Value;
-
-            apiTestContext.BearerToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
+            apiTestContext.BearerToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
                 apiTestContext.TestSettings.TestClientId, apiTestContext.TestSettings.TestClientSecret,
-                azureAdConfiguration.VhUserApiResourceId);
+                azureAdConfig.VhUserApiResourceId);
 
-            apiTestContext.GraphApiToken = new TokenProvider(azureAdConfigOptions).GetClientAccessToken(
-                azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
+            apiTestContext.GraphApiToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
+                azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 "https://graph.microsoft.com");
         }
 

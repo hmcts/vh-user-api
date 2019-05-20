@@ -25,7 +25,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="SpecFlow" Version="3.0.169-beta" />
-    <PackageReference Include="SpecFlow.NUnit" Version="3.0.169-beta" />
     <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.0.169-beta" />
   </ItemGroup>
 

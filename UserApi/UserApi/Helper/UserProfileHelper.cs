@@ -12,65 +12,44 @@ namespace UserApi.Helper
     {
         private readonly IUserAccountService _userAccountService;
 
+        /// <summary>
+        /// Mappings for AD groups since the display names can contain spaces
+        /// </summary>
+        private static readonly Dictionary<string, AdGroup> GroupMappings = new Dictionary<string, AdGroup>
+        {
+            {"External", AdGroup.External},
+            {"VirtualRoomAdministrator", AdGroup.VirtualRoomAdministrator},
+            {"VirtualRoomJudge", AdGroup.VirtualRoomJudge},
+            {"VirtualRoomProfessionalUser", AdGroup.VirtualRoomProfessionalUser},
+            {"Financial Remedy", AdGroup.FinancialRemedy},
+            {"Civil Money Claims", AdGroup.MoneyClaims}
+        };
+
+        private static readonly Dictionary<AdGroup, string> CaseTypeMappings = new Dictionary<AdGroup, string>
+        {
+            { AdGroup.MoneyClaims, "Civil Money Claims" },
+            { AdGroup.FinancialRemedy, "Financial Remedy" }
+        };
+
         public UserProfileHelper(IUserAccountService userAccountService)
         {
             _userAccountService = userAccountService;
         }
 
-        public async Task<UserProfile> GetUserProfile(string filter)
+        public async Task<UserProfile> GetUserProfileAsync(string filter)
         {
-            var userRole = string.Empty;
-            var userCaseType = new List<string>();
-            var user = await _userAccountService.GetUserByFilter(filter);
+            var user = await _userAccountService.GetUserByFilterAsync(filter);
 
-            if (user == null) return null;
-
-            var userGroups = await _userAccountService.GetGroupsForUser(user.Id);
-            if (userGroups != null)
+            if (user == null)
             {
-                var userGroupIds = new List<int>();
-
-                GetUserGroupIds(userGroups, userGroupIds);
-
-                var lstVirtualRoomProfessionalPlusExternal = new List<int>
-                    {(int) AadGroup.VirtualRoomProfessional, (int) AadGroup.External};
-                var lstMoneyClaimsPlusFinancialRemedy = new List<int>
-                    {(int) AadGroup.MoneyClaims, (int) AadGroup.FinancialRemedy};
-
-                foreach (var userGroupId in userGroupIds)
-                {
-                    switch (userGroupId)
-                    {
-                        case 1:
-                            userRole = UserRole.VhOfficer.ToString();
-                            break;
-                        case 2:
-                            userRole = UserRole.Individual.ToString();
-                            break;
-                        case 3:
-                            userRole = UserRole.Judge.ToString();
-                            break;
-                        case 4:
-                            userRole = UserRole.CaseAdmin.ToString();
-                            userCaseType.Add(CaseType.MoneyClaims.ToString());
-                            break;
-                        case 5:
-                            userRole = UserRole.CaseAdmin.ToString();
-                            userCaseType.Add(CaseType.FinancialRemedy.ToString());
-                            break;
-                    }
-                }
-
-                if (userGroupIds.All(lstVirtualRoomProfessionalPlusExternal.Contains))
-                    userRole = UserRole.Representative.ToString();
-
-                if (userGroupIds.All(lstMoneyClaimsPlusFinancialRemedy.Contains))
-                {
-                    userRole = UserRole.CaseAdmin.ToString();
-                    userCaseType.Add(CaseType.MoneyClaims.ToString());
-                    userCaseType.Add(CaseType.FinancialRemedy.ToString());
-                }
+                return null;
             }
+
+            var userGroupDetails = await _userAccountService.GetGroupsForUserAsync(user.Id);
+            var userGroups = GetUserGroups(userGroupDetails).ToList();
+            
+            var userRole = GetUserRole(userGroups).ToString();
+            var caseTypes = GetUserCaseTypes(userGroups).ToList();
 
             var response = new UserProfile
             {
@@ -81,20 +60,59 @@ namespace UserApi.Helper
                 FirstName = user.GivenName,
                 LastName = user.Surname,
                 UserRole = userRole,
-                CaseType = userCaseType
+                CaseType = caseTypes
             };
 
             return response;
         }
 
-        private static void GetUserGroupIds(List<Group> userGroups, List<int> userGroupIds)
-        {
-            foreach (var usrGrp in userGroups)
-            {
-                EnumExtensions.TryParse<AadGroup>(usrGrp.DisplayName, out var rtnEnum);
+        private static bool IsCaseType(AdGroup group) => CaseTypeMappings.ContainsKey(group);
 
-                if (rtnEnum != null)
-                    userGroupIds.Add((int) Enum.Parse(typeof(AadGroup), rtnEnum.ToString()));
+        private static IEnumerable<string> GetUserCaseTypes(IEnumerable<AdGroup> userGroups)
+        {
+            return userGroups
+                .Where(IsCaseType)
+                .Select(c => CaseTypeMappings[c]);
+        }
+
+        private static UserRole GetUserRole(ICollection<AdGroup> userGroups)
+        {
+            if (userGroups.Contains(AdGroup.VirtualRoomAdministrator))
+            {
+                return UserRole.VhOfficer;
+            }
+
+            if (userGroups.Any(IsCaseType))
+            {
+                return UserRole.CaseAdmin;
+            }
+
+            if (userGroups.Contains(AdGroup.VirtualRoomJudge))
+            {
+                return UserRole.Judge;
+            }
+
+            if (userGroups.Contains(AdGroup.VirtualRoomProfessionalUser))
+            {
+                return UserRole.Representative;
+            }
+
+            if (userGroups.Contains(AdGroup.External))
+            {
+                return UserRole.Individual;
+            }
+
+            throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
+        }
+
+        private static IEnumerable<AdGroup> GetUserGroups(IEnumerable<Group> userGroups)
+        {
+            foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
+            {
+                if (GroupMappings.TryGetValue(displayName, out var adGroup))
+                {
+                    yield return adGroup;
+                }
             }
         }
     }

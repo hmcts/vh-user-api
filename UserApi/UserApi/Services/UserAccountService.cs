@@ -1,172 +1,95 @@
+using Microsoft.Graph;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Microsoft.Graph;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using UserApi.Common;
-using UserApi.Contract.Requests;
+using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
 
 namespace UserApi.Services
 {
-    public interface IUserAccountService
-    {
-        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
-            string password = null);
-
-        Task AddUserToGroup(User user, Group group);
-        Task UpdateAuthenticationInformation(string userId, string recoveryMail);
-
-        /// <summary>
-        ///     Get a user in AD either via Object ID or UserPrincipalName
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        Task<User> GetUserById(string userId);
-
-        Task<Group> GetGroupByName(string groupName);
-        Task<Group> GetGroupById(string groupId);
-        Task<List<Group>> GetGroupsForUser(string userId);
-        Task<User> GetUserByFilter(string filter);
-    }
-
     public class UserAccountService : IUserAccountService
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
-        private readonly AzureAdConfiguration _azureAdConfiguration;
-        private readonly TimeSpan _retryTimeout;
-        private readonly ITokenProvider _tokenProvider;
+        private readonly ISecureHttpRequest _secureHttpRequest;
+        private readonly IGraphApiSettings _graphApiSettings;
+        private readonly IIdentityServiceApiClient _client;
+        private readonly bool _isLive;
+        private const string JudgesGroup = "VirtualRoomJudge";
+        private const string JudgesTestGroup = "TestAccount";
+        
+        private static readonly Compare<UserResponse> CompareJudgeById =
+            Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
-        public UserAccountService(ITokenProvider tokenProvider, IOptions<AzureAdConfiguration> azureAdConfigOptions)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings)
         {
-            _retryTimeout = TimeSpan.FromSeconds(60);
-            _tokenProvider = tokenProvider;
-            _azureAdConfiguration = azureAdConfigOptions.Value;
+            _secureHttpRequest = secureHttpRequest;
+            _graphApiSettings = graphApiSettings;
+            _client = client;
+            _isLive = settings.IsLive;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string displayName = null,
-            string password = null)
+        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail)
         {
-            const string createdPassword = "Password123";
-            var userDisplayName = displayName ?? $@"{firstName} {lastName}";
-            var userPrincipalName = $@"{firstName}.{lastName}@hearings.reform.hmcts.net".ToLower();
-
-            var user = new User
+            var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
+            var user = await GetUserByFilterAsync(filter);
+            if (user != null)
             {
-                AccountEnabled = true,
-                DisplayName = userDisplayName,
-                MailNickname = $@"{firstName}.{lastName}",
-                PasswordProfile = new PasswordProfile
-                {
-                    ForceChangePasswordNextSignIn = true,
-                    Password = createdPassword
-                },
-                GivenName = firstName,
-                Surname = lastName,
-                UserPrincipalName = userPrincipalName
-            };
-
-            return await CreateUser(user);
+                // Avoid including the exact email to not leak it to logs
+                throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
+            }
+            
+            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
+            var displayName = $"{firstName} {lastName}";
+            return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
         }
 
-        public async Task AddUserToGroup(User user, Group group)
+        public async Task AddUserToGroupAsync(User user, Group group)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
             };
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
+            var stringContent = new StringContent(JsonConvert.SerializeObject(body));
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
+            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            if (responseMessage.IsSuccessStatusCode)
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Post,
-                        $@"{_azureAdConfiguration.GraphApiBaseUri}beta/groups/{group.Id}/members/$ref")
-                    {
-                        Content = stringContent
-                    };
-                responseMessage = await client.SendAsync(httpRequestMessage);
+                return;
             }
 
-            if (responseMessage.IsSuccessStatusCode) return;
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+            
+            // if we failed because the user is already in the group, consider it done anyway 
+            if (reason.Contains("already exist"))
+            {
+                return;
+            }
 
             var message = $"Failed to add user {user.Id} to group {group.Id}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
 
-        public async Task UpdateAuthenticationInformation(string userId, string recoveryMail)
+        public async Task<User> GetUserByFilterAsync(string filter)
         {
-            var timeout = DateTime.Now.Add(_retryTimeout);
-            await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
-        }
-
-        public async Task<User> GetUserById(string userId)
-        {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get,
-                        $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
-            if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<User>();
-
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
-
-            var message = $"Failed to get user by id {userId}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
-
-        public async Task<User> GetUserByFilter(string filter)
-        {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get,
-                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users?$filter={filter}&api-version=1.6");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, accessUri);
+            
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content
                     .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
-                if (!queryResponse.Value.Any()) return null;
+                if (!queryResponse.Value.Any())
+                {
+                    return null;
+                }
 
                 var adUser = queryResponse.Value.First();
                 return new User
@@ -180,27 +103,21 @@ namespace UserApi.Services
                 };
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
             var message = $"Failed to search user with filter {filter}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<Group> GetGroupByName(string groupName)
+        public async Task<Group> GetGroupByNameAsync(string groupName)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+            
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
@@ -212,43 +129,31 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<Group> GetGroupById(string groupId)
+        public async Task<Group> GetGroupByIdAsync(string groupId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
+            if (responseMessage.IsSuccessStatusCode)
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Get,
-                        $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/groups/{groupId}");
-                responseMessage = await client.SendAsync(httpRequestMessage);
+                return await responseMessage.Content.ReadAsAsync<Group>();
             }
 
-            if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<Group>();
-
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
             var message = $"Failed to get group by id {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<List<Group>> GetGroupsForUser(string userId)
+        public async Task<List<Group>> GetGroupsForUserAsync(string userId)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, _azureAdConfiguration.GraphApiBaseUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users/{userId}/memberOf");
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -261,7 +166,7 @@ namespace UserApi.Services
                     var itemProperties = item.Children<JProperty>();
                     var type = itemProperties.FirstOrDefault(x => x.Name == OdataType);
 
-                    //If #microsoft.graph.directoryRole ignore the group mappings
+                    // If #microsoft.graph.directoryRole ignore the group mappings
                     if (type.Value.ToString() == GraphGroupType)
                     {
                         var group = JsonConvert.DeserializeObject<Group>(item.ToString());
@@ -272,98 +177,113 @@ namespace UserApi.Services
                 return groups;
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new List<Group>();
+            }
 
             var message = $"Failed to get group for user {userId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
 
-
-        private async Task<NewAdUserAccount> CreateUser(User newUser)
+        /// <summary>
+        /// Determine the next available username for a participant based on username format [firstname].[lastname]
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <returns>next available user principal name</returns>
+        public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret,
-                _azureAdConfiguration.GraphApiBaseUri);
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
+            const string domain = "@hearings.reform.hmcts.net";
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var users = await GetUsersMatchingNameAsync(firstName, lastName);
+            var lastUserPrincipalName = users.LastOrDefault();
+            if (lastUserPrincipalName == null)
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(newUser));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Post, $"{_azureAdConfiguration.GraphApiBaseUri}v1.0/users");
-                httpRequestMessage.Content = stringContent;
-                responseMessage = await client.SendAsync(httpRequestMessage);
+                return baseUsername + domain;
             }
+
+            // TODO: this doesn't work with over ten users because the ordering ends up wrong
+            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
+            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
+            lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
+            var lastNumber = int.Parse(lastUserPrincipalName);
+            lastNumber += 1;
+            return $"{baseUsername}{lastNumber}{domain}";
+        }
+
+        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string firstName, string lastName)
+        {
+            var baseUsername = $"{firstName}.{lastName}".ToLower();
+            var users = await _client.GetUsernamesStartingWith(baseUsername);
+            return users.OrderBy(username => username);
+        }
+
+        private static string GetStringWithoutWord(string currentWord, string wordToRemove)
+        {
+            return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
+                wordToRemove.Length);
+        }
+
+        public async Task<List<UserResponse>> GetJudgesAsync()
+        {
+            var judges = await GetJudgesByGroupNameAsync(JudgesGroup);
+            if (_isLive)
+            {
+                judges = await ExcludeTestJudgesAsync(judges);
+            }
+
+            return judges.OrderBy(x=>x.DisplayName).ToList();
+        }
+        private async Task<List<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
+        {
+            var groupData = await GetGroupByNameAsync(groupName);
+            if (groupData == null)
+            {
+                return new List<UserResponse>();
+            }
+
+            var response = await GetJudgesAsync(groupData.Id);
+            return response.Select(x => new UserResponse
+            {
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+                DisplayName = x.DisplayName
+            }).ToList();
+        }
+        private async Task<List<UserResponse>> ExcludeTestJudgesAsync(List<UserResponse> judgesList)
+        {
+            var testJudges = await GetJudgesByGroupNameAsync(JudgesTestGroup);
+            return judgesList.Except(testJudges, CompareJudgeById).ToList();
+        }
+        private async Task<List<UserResponse>> GetJudgesAsync(string groupId)
+        {
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members";
+
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                var user = await responseMessage.Content.ReadAsAsync<User>();
-                var adUserAccount = new NewAdUserAccount
+                var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
+                var response = JsonConvert.DeserializeObject<List<User>>(queryResponse.AdditionalData["value"].ToString());
+                return response.Select(x => new UserResponse
                 {
-                    Username = user.UserPrincipalName,
-                    OneTimePassword = newUser.PasswordProfile.Password,
-                    UserId = user.Id
-                };
-                return adUserAccount;
+                    FirstName = x.GivenName,
+                    LastName = x.Surname,
+                    DisplayName = x.DisplayName,
+                    Email = x.UserPrincipalName
+                }).ToList();
             }
 
-            var message = $"Failed to add create user {newUser.UserPrincipalName}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
-
-        private async Task UpdateAuthenticationInformation(string userId, string recoveryMail, DateTime timeout)
-        {
-            var accessToken = _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                _azureAdConfiguration.ClientSecret, "https://graph.windows.net/");
-
-            var model = new UpdateAuthenticationInformationRequest
-            {
-                OtherMails = new List<string> {recoveryMail}
-            };
-
-            HttpResponseMessage responseMessage;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var stringContent = new StringContent(JsonConvert.SerializeObject(model));
-                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage =
-                    new HttpRequestMessage(HttpMethod.Patch,
-                        $"https://graph.windows.net/{_azureAdConfiguration.TenantId}/users/{userId}?api-version=1.6")
-                    {
-                        Content = stringContent
-                    };
-                responseMessage = await client.SendAsync(httpRequestMessage);
-            }
-
-            if (responseMessage.IsSuccessStatusCode) return;
-
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-
-            // If it's 404 try it again as the user might simply not have become "ready" in AD
             if (responseMessage.StatusCode == HttpStatusCode.NotFound)
             {
-                if (DateTime.Now > timeout)
-                    throw new UserServiceException("Timed out trying to update alternative address for ${userId}",
-                        reason);
-
-                ApplicationLogger.Trace("APIFailure", "GraphAPI 404 PATCH /users/{id}",
-                    $"Failed to update authentication information for user {userId}, will retry.");
-                await UpdateAuthenticationInformation(userId, recoveryMail, timeout);
-                return;
+                return null;
             }
 
-            var message = $"Failed to update alternative email address for {userId}";
+            var message = $"Failed to get users for group {groupId}";
+            var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
     }

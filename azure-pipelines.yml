@@ -11,6 +11,7 @@ variables:
     "AzureAd/ClientSecret":"$(vh-user-api-key)",
     "AzureAd/TenantId":"$(tenantid)",
     "AzureAd/VhUserApiResourceId":"$(vh-user-api-identifieruris)",
+    "DefaultPassword":"$(default-password)",
     "Testing/TestClientId":"$(vh-admin-web-appid)",
     "Testing/TestClientSecret":"$(vh-admin-web-key)",
     "Testing/ReformEmail": "$(testing-reformemail)",
@@ -27,7 +28,13 @@ variables:
     "Testing/ExistingGroups/1/Displayname": "$(testing-existinggroups-1-displayname)",
     "Testing/ExistingGroups/0/GroupId": "$(testing-existinggroups-0-groupid)",
     "Testing/ExistingGroups/0/Displayname": "$(testing-existinggroups-0-displayname)",
-    "Testing/ExistingEmail": "$(testing-existingemail)"
+    "Testing/ExistingEmail": "$(testing-existingemail)",
+    "Testing/CaseAdmin": "$(testing-caseadmin-username)",
+    "Testing/Individual": "$(testing-individual-username)",
+    "Testing/Judge": "$(testing-judge-username)",
+    "Testing/Representative": "$(testing-representative-username)",
+    "Testing/VhOfficer": "$(testing-vhofficer-username)",
+    "Testing/VhOfficerCaseAdmin": "$(testing-vhofficercaseadmin-username)"
     '
   dalWorkingDirectory: ''
   keyVaultName: vhcoreinfrahtdev # Used to get secrets for integration tests
@@ -41,11 +48,6 @@ resources:
     name: hmcts/azure-devops-templates
     ref: refs/heads/master # ref name to use, defaults to 'refs/heads/master'
     endpoint: 'GitHubDevOps'
-
-trigger:
-- master
-pr:
-- master
 
 jobs:
   

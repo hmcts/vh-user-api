@@ -9,11 +9,10 @@ Scenario: Create a new hearings reforms user account
 	Then the response should have the status Created and success status True
 	And the user should be added
 
-Scenario: User account not created for an existing user
+Scenario: User account created for an user with the same name as existing user
 	Given I have a new hearings reforms user account request with an existing email
 	When I send the request to the endpoint
-	Then the response should have the status BadRequest and success status False
-	And the error response message should contain 'user already exists'
+	Then the response should have the status Conflict and success status False
 
 Scenario: User account not created for an invalid user
 	Given I have a new hearings reforms user account request with an invalid email
@@ -29,20 +28,28 @@ Scenario: User account not created with an incorrectly formatted email
 	Then the response should have the status BadRequest and success status False
 	And the error response message should contain 'email has incorrect format'
 
-Scenario: Get user by AD user Id
-	Given I have a get user by AD user Id request for an existing user
+Scenario Outline: Get user by AD user Id
+	Given I have a get user by AD user Id request for an existing user with <role> 
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
+Examples: 
+| role               |
+| Individual         |
+| Representative     |
+| VhOfficer          |
+| CaseAdmin          |
+| Judge              |
+| VhOfficerCaseAdmin |
 
 Scenario: User account not retrieved for a nonexistent user
-	Given I have a get user by AD user Id request for a nonexistent user
+	Given I have a get user by AD user Id request for a nonexistent user with Individual
 	When I send the request to the endpoint
 	Then the response should have the status NotFound and success status False
 	And the error response message should contain 'user does not exist'
 	
 Scenario: User account not retrieved for an invalid user
-	Given I have a get user by AD user Id request for an invalid user
+	Given I have a get user by AD user Id request for an invalid user with Individual
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 	And the error response message should contain 'username cannot be empty'

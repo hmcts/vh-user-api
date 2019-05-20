@@ -1,5 +1,8 @@
-﻿using Faker;
+﻿using System.Threading.Tasks;
+using Faker;
 using FluentAssertions;
+using System.Collections.Generic;
+using System.Linq;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
@@ -51,6 +54,12 @@ namespace UserApi.AcceptanceTests.Steps
             _acTestContext.Request = _acTestContext.Get(_endpoints.GetUserByEmail(_acTestContext.TestSettings.ExistingEmail));
         }
 
+        [Given(@"I have a valid AD groupid and request for a list of judges")]
+        public void GivenIHaveAValidADGroupidAndRequestForAListOfJudges()
+        {
+            _acTestContext.Request = _acTestContext.Get(_endpoints.GetJudges());
+        }
+
         [Then(@"the user should be added")]
         public void ThenTheUserShouldBeAdded()
         {
@@ -75,13 +84,41 @@ namespace UserApi.AcceptanceTests.Steps
             model.UserName.Should().NotBeNullOrEmpty();
         }
 
+        [Then(@"a list of ad judges should be retrieved")]
+        public void ThenAListOfAdJudgesShouldBeRetrieved()
+        {
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_acTestContext.Json);
+            model.Should().NotBeNull();
+            foreach (var user in model)
+            {
+                user.Email.Should().NotBeNullOrEmpty();
+                user.DisplayName.Should().NotBeNullOrEmpty();
+            }
+            var expectedUser = model.FirstOrDefault(u => u.Email == "Automation01Judge01@hearings.reform.hmcts.net");
+            expectedUser.DisplayName.Should().Be("Automation01 Judge01");
+        }
+
+
+
         [AfterScenario]
-        public void NewUserClearUp()
+        public async Task NewUserClearUp()
         {
             if (string.IsNullOrWhiteSpace(_acTestContext.NewUserId)) return;
-            var userDeleted = ActiveDirectoryUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
+            var userDeleted = await ActiveDirectoryUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
             userDeleted.Should().BeTrue($"New user with ID {_acTestContext.NewUserId} is deleted");
             _acTestContext.NewUserId = null;
+        }
+
+        [Given(@"I have a new hearings reforms user account request with an existing name")]
+        public void GivenIHaveANewHearingsReformsUserAccountRequestWithAnExistingFullName()
+        {
+            var createUserRequest = new CreateUserRequest
+            {
+                RecoveryEmail = Internet.Email(),
+                FirstName = _acTestContext.TestSettings.ExistingUserFirstname,
+                LastName = _acTestContext.TestSettings.ExistingUserLastname
+            };
+            _acTestContext.Request = _acTestContext.Post(_endpoints.CreateUser, createUserRequest);
         }
     }
 }
