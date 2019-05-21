@@ -11,7 +11,7 @@ namespace UserApi.Services
         /// Creates a new user with a username based on first and last name
         /// </summary>
         /// <exception cref="UserExistsException">Thrown if a user with the recovery email already exists</exception>
-        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail);
+        Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail, string userRole);
 
         Task AddUserToGroup(User user, Group group);
 

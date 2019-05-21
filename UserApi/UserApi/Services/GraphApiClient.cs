@@ -46,7 +46,8 @@ namespace UserApi.Services
             return result.Value.Select(user => user.UserPrincipalName);
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string username, string firstName, string lastName, string displayName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUser(string username, string firstName, string lastName, 
+            string displayName, string recoveryEmail, string userRole)
         {            
             // the user object provided by the graph api nuget package is missing the otherMails property
             // but it's there in the API so using a dynamic request model instead

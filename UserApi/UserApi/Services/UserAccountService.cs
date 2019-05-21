@@ -35,7 +35,7 @@ namespace UserApi.Services
             _isLive = settings.IsLive;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail, string userRole)
         {
             var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
             var user = await GetUserByFilter(filter);
@@ -47,7 +47,7 @@ namespace UserApi.Services
             
             var username = await CheckForNextAvailableUsername(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
+            return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail, userRole);
         }
 
         public async Task AddUserToGroup(User user, Group group)
