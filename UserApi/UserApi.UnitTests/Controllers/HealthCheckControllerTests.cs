@@ -31,7 +31,7 @@ namespace UserApi.UnitTests.Controllers
             var message = "GetUserByFilter unauthorized access to Microsoft Graph";
             var reason = "service not available";
             _userAccountService
-                .Setup(x => x.GetUserByFilter(filter))
+                .Setup(x => x.GetUserByFilterAsync(filter))
                 .Throws(new UserServiceException(message, reason));
             var result = await _controller.Health();
             var objectResult = (ObjectResult)result;
@@ -47,7 +47,7 @@ namespace UserApi.UnitTests.Controllers
             var filter = $"otherMails/any(c:c eq '{email}')";
 
             _userAccountService
-                .Setup(x => x.GetUserByFilter(filter))
+                .Setup(x => x.GetUserByFilterAsync(filter))
                 .ReturnsAsync(new User());
 
             var result = await _controller.Health();

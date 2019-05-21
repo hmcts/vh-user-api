@@ -58,7 +58,7 @@ namespace UserApi.Controllers
             try
             {
                 var adUserAccount =
-                    await _userAccountService.CreateUser(request.FirstName, request.LastName,
+                    await _userAccountService.CreateUserAsync(request.FirstName, request.LastName,
                         request.RecoveryEmail, request.UserRole);
                 var response = new NewUserResponse
                 {
@@ -97,7 +97,7 @@ namespace UserApi.Controllers
 
             var filter = $"objectId  eq '{userId}'";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
             {
@@ -125,7 +125,7 @@ namespace UserApi.Controllers
 
             var filter = $"userPrincipalName  eq '{userName}'";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
             {
@@ -159,7 +159,7 @@ namespace UserApi.Controllers
 
             var filter = $"otherMails/any(c:c eq '{email}')";
             var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfile(filter);
+            var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null) return NotFound();
 
@@ -175,7 +175,7 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetJudges()
         {
-            var adJudges = await _userAccountService.GetJudges();
+            var adJudges = await _userAccountService.GetJudgesAsync();
             if (adJudges == null || !adJudges.Any()) return Ok(new List<UserResponse>());
 
             return Ok(adJudges);
