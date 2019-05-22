@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Graph;
 using Newtonsoft.Json;
 using UserApi.Helper;
+using UserApi.Security;
 using UserApi.Services.Models;
 using User = Microsoft.Graph.User;
 
@@ -25,6 +27,11 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly string _baseUrl;
         private readonly string _defaultPassword;
+        private const string INDIVIDUAL = "Individual";
+        private const string REPRESENTATIVE = "Representative";
+        private const string SOLICITOR = "Solicitor";
+        private const string EXTERNAL = "External";
+        private const string VIRTUALROOMPROFESSIONAL = "VirtualRoomProfessionalUser";
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, Settings settings)
         {
@@ -74,6 +81,10 @@ namespace UserApi.Services
             await AssertResponseIsSuccessful(response);
             var responseJson = await response.Content.ReadAsStringAsync();
             var adAccount = JsonConvert.DeserializeObject<User>(responseJson);
+
+            // add the user to a group based on the user role.
+            await AddUserToGroups(adAccount, userRole);
+
             return new NewAdUserAccount
             {
                 OneTimePassword = _defaultPassword,
@@ -90,6 +101,63 @@ namespace UserApi.Services
                 var message = await response.Content.ReadAsStringAsync();
                 throw new IdentityServiceApiException("Failed to call API: " + response.StatusCode + "\r\n" + message);
             }
+        }
+
+        private async Task AddUserToGroups(User user, string userRole)
+        {
+            // add individual and representative to 'External' group.
+            var group = await GetGroupByNameAsync(EXTERNAL);
+            await AddUserToGroupAsync(user, group);
+
+            // add representative to 'VirtualRoomProfessionalUser' group.
+            if (userRole == REPRESENTATIVE)
+            {
+                group = await GetGroupByNameAsync(VIRTUALROOMPROFESSIONAL);
+                await AddUserToGroupAsync(user, group);
+            }
+        }
+
+        public async Task<Group> GetGroupByNameAsync(string groupName)
+        {
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
+                return queryResponse.Value?.FirstOrDefault();
+            }
+
+            var message = $"Failed to get group by name {groupName}";
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+            throw new UserServiceException(message, reason);
+        }
+
+        public async Task AddUserToGroupAsync(User user, Group group)
+        {
+            var body = new CustomDirectoryObject
+            {
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
+            };
+
+            var stringContent = new StringContent(JsonConvert.SerializeObject(body));
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
+            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            var reason = await responseMessage.Content.ReadAsStringAsync();
+
+            // if we failed because the user is already in the group, consider it done anyway 
+            if (reason.Contains("already exist"))
+            {
+                return;
+            }
+
+            var message = $"Failed to add user {user.Id} to group {group.Id}";
+            throw new UserServiceException(message, reason);
         }
     }
 }

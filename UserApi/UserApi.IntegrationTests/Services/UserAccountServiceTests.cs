@@ -51,7 +51,8 @@ namespace UserApi.IntegrationTests.Services
             const string lastName = "Created";
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
             var recoveryEmail = $"{firstName}.{lastName}.{unique}@hearings.hmcts.net";
-            var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail);
+            var userRole = "Representative";
+            var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, userRole);
             var username = createdAccount.Username;
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());
