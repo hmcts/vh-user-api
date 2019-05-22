@@ -27,9 +27,7 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly string _baseUrl;
         private readonly string _defaultPassword;
-        private const string INDIVIDUAL = "Individual";
         private const string REPRESENTATIVE = "Representative";
-        private const string SOLICITOR = "Solicitor";
         private const string EXTERNAL = "External";
         private const string VIRTUALROOMPROFESSIONAL = "VirtualRoomProfessionalUser";
 
