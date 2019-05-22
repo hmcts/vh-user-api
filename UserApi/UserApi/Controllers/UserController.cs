@@ -38,7 +38,7 @@ namespace UserApi.Controllers
         [SwaggerOperation(OperationId = "CreateUser")]
         [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.Conflict)]
+        [ProducesResponseType(typeof(UserCreationConflictResponse),(int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
         {
             var result = new CreateUserRequestValidation().Validate(request);
