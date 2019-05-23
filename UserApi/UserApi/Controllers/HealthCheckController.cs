@@ -17,10 +17,12 @@ namespace UserApi.Controllers
     public class HealthCheckController : ControllerBase
     {
         private readonly IUserAccountService _userAccountService;
+        private readonly IIdentityServiceApiClient _identityServiceApiClient;
 
-        public HealthCheckController(IUserAccountService userAccountService)
+        public HealthCheckController(IUserAccountService userAccountService, IIdentityServiceApiClient identityServiceApiClient)
         {
             _userAccountService = userAccountService;
+            _identityServiceApiClient = identityServiceApiClient;
         }
 
         /// <summary>
@@ -48,7 +50,7 @@ namespace UserApi.Controllers
             try
             {
                 //Check if group by name end point is accessible
-                await _userAccountService.GetGroupByNameAsync("TestGroup");
+                await _identityServiceApiClient.GetGroupByNameAsync("TestGroup");
             }
             catch (UserServiceException)
             {

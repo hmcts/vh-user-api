@@ -22,11 +22,13 @@ namespace UserApi.Controllers
     {
         private readonly TelemetryClient _telemetryClient;
         private readonly IUserAccountService _userAccountService;
+        private readonly IIdentityServiceApiClient _identityServiceApiClient;
 
-        public AccountController(IUserAccountService userAccountService, TelemetryClient telemetryClient)
+        public AccountController(IUserAccountService userAccountService, TelemetryClient telemetryClient, IIdentityServiceApiClient identityServiceApiClient)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
+            _identityServiceApiClient = identityServiceApiClient;
         }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var adGroup = await _userAccountService.GetGroupByNameAsync(name);
+            var adGroup = await _identityServiceApiClient.GetGroupByNameAsync(name);
             if (adGroup == null) return NotFound();
 
             var response = new GroupsResponse
@@ -139,7 +141,7 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var group = await _userAccountService.GetGroupByNameAsync(request.GroupName);
+            var group = await _identityServiceApiClient.GetGroupByNameAsync(request.GroupName);
             if (group == null)
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"Group not found '{request.GroupName}'",
@@ -160,7 +162,7 @@ namespace UserApi.Controllers
 
             try
             {
-                await _userAccountService.AddUserToGroupAsync(user, group);
+                await _identityServiceApiClient.AddUserToGroupAsync(user, group);
             }
             catch (UserServiceException)
             {

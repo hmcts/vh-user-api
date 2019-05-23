@@ -50,32 +50,32 @@ namespace UserApi.Services
             return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail, userRole);
         }
 
-        public async Task AddUserToGroupAsync(User user, Group group)
-        {
-            var body = new CustomDirectoryObject
-            {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
-            };
+        //public async Task AddUserToGroupAsync(User user, Group group)
+        //{
+        //    var body = new CustomDirectoryObject
+        //    {
+        //        ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
+        //    };
 
-            var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
-            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                return;
-            }
+        //    var stringContent = new StringContent(JsonConvert.SerializeObject(body));
+        //    var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
+        //    var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+        //    if (responseMessage.IsSuccessStatusCode)
+        //    {
+        //        return;
+        //    }
 
-            var reason = await responseMessage.Content.ReadAsStringAsync();
+        //    var reason = await responseMessage.Content.ReadAsStringAsync();
             
-            // if we failed because the user is already in the group, consider it done anyway 
-            if (reason.Contains("already exist"))
-            {
-                return;
-            }
+        //    // if we failed because the user is already in the group, consider it done anyway 
+        //    if (reason.Contains("already exist"))
+        //    {
+        //        return;
+        //    }
 
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
-            throw new UserServiceException(message, reason);
-        }
+        //    var message = $"Failed to add user {user.Id} to group {group.Id}";
+        //    throw new UserServiceException(message, reason);
+        //}
 
         public async Task<User> GetUserByFilterAsync(string filter)
         {
@@ -113,21 +113,21 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<Group> GetGroupByNameAsync(string groupName)
-        {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+        //public async Task<Group> GetGroupByNameAsync(string groupName)
+        //{
+        //    var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+        //    var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
             
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
-                return queryResponse.Value?.FirstOrDefault();
-            }
+        //    if (responseMessage.IsSuccessStatusCode)
+        //    {
+        //        var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
+        //        return queryResponse.Value?.FirstOrDefault();
+        //    }
 
-            var message = $"Failed to get group by name {groupName}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
+        //    var message = $"Failed to get group by name {groupName}";
+        //    var reason = await responseMessage.Content.ReadAsStringAsync();
+        //    throw new UserServiceException(message, reason);
+        //}
 
         public async Task<Group> GetGroupByIdAsync(string groupId)
         {
@@ -238,7 +238,7 @@ namespace UserApi.Services
         }
         private async Task<List<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
-            var groupData = await GetGroupByNameAsync(groupName);
+            var groupData = await _client.GetGroupByNameAsync(groupName);
             if (groupData == null)
             {
                 return new List<UserResponse>();

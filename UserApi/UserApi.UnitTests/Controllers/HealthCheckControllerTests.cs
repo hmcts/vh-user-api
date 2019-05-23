@@ -15,12 +15,14 @@ namespace UserApi.UnitTests.Controllers
     {
         private HealthCheckController _controller;
         private Mock<IUserAccountService> _userAccountService;
+        private Mock<IIdentityServiceApiClient> _identityServiceClient;
 
         [SetUp]
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            _controller = new HealthCheckController(_userAccountService.Object);
+            _identityServiceClient = new Mock<IIdentityServiceApiClient>();
+            _controller = new HealthCheckController(_userAccountService.Object, _identityServiceClient.Object);
         }
 
         [Test]

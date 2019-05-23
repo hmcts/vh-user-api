@@ -17,12 +17,14 @@ namespace UserApi.UnitTests.Controllers
     {
         private AccountController _controller;
         private Mock<IUserAccountService> _userAccountService;
+        private Mock<IIdentityServiceApiClient> _identityServiceClient;
 
         [SetUp]
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            _controller = new AccountController(_userAccountService.Object, new TelemetryClient());
+            _identityServiceClient = new Mock<IIdentityServiceApiClient>();
+            _controller = new AccountController(_userAccountService.Object, new TelemetryClient(), _identityServiceClient.Object);
         }
 
         [Test]
@@ -32,7 +34,7 @@ namespace UserApi.UnitTests.Controllers
             var response = new Group();
             var groupResponse = new GroupsResponse();
 
-            _userAccountService.Setup(x => x.GetGroupByNameAsync(groupName)).ReturnsAsync(response);
+            _identityServiceClient.Setup(x => x.GetGroupByNameAsync(groupName)).ReturnsAsync(response);
 
             var actionResult = (OkObjectResult) await _controller.GetGroupByName(groupName);
             var actualResponse = (GroupsResponse) actionResult.Value;
