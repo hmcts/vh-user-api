@@ -49,8 +49,12 @@ resources:
     ref: refs/heads/master # ref name to use, defaults to 'refs/heads/master'
     endpoint: 'GitHubDevOps'
 
+trigger:
+  tags:
+    include:
+    - v*
+
 jobs:
-  
 - template: jobs/angularDotNetCore.yml@azureDevOpsTemplates # Template reference
   parameters:
     cleanCheckout: $(cleanCheckout)
