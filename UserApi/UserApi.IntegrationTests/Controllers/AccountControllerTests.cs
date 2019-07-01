@@ -47,7 +47,8 @@ namespace UserApi.IntegrationTests.Controllers
             var groupResponseModel =
                 ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
-            groupResponseModel.GroupId.Should().Be(groupId);
+
+            Assert.AreEqual("SSPR Enabled", groupResponseModel.DisplayName);
         }
 
         [Test]
