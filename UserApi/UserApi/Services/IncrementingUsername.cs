@@ -13,12 +13,12 @@ namespace UserApi.Services
         {
             if (string.IsNullOrEmpty(usernameBase))
             {
-                throw new ArgumentNullException(usernameBase);
+                throw new ArgumentNullException(nameof(usernameBase));
             }
 
             if (string.IsNullOrEmpty(domain))
             {
-                throw new ArgumentNullException(domain, nameof(domain));
+                throw new ArgumentNullException(nameof(domain));
             }
 
             _usernameBase = usernameBase.ToLowerInvariant();
