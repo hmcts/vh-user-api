@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -15,6 +16,16 @@ namespace UserApi.UnitTests.Services
         public void Setup()
         {
             _username = new IncrementingUsername("existing.user", Domain);
+        }
+
+        [Test]
+        public void should_throw_if_given_bad_arguments()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername(null, "domain"));
+            Assert.AreEqual("usernameBase", exception.ParamName);
+
+            exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername("username", null));
+            Assert.AreEqual("domain", exception.ParamName);
         }
 
         [Test]
