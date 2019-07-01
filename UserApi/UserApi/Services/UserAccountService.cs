@@ -195,22 +195,23 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            const string domain = "@hearings.reform.hmcts.net";
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
+            var username = new IncrementingUsername(baseUsername, "hearings.reform.hmcts.net");
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
-            var users = new HashSet<string>(existingUsernames.Select(username => username.ToLowerInvariant()));
-            if (!users.Contains(baseUsername + domain))
+            var users = new HashSet<string>(existingUsernames.Select(u => u.ToLowerInvariant()));
+
+            if (!users.Contains(username.WithoutNumberSuffix))
             {
-                return baseUsername + domain;
+                return username.WithoutNumberSuffix;
             }
 
             var suffix = 1;
-            while (users.Contains(baseUsername + suffix + domain))
+            while (users.Contains(username.WithSuffix(suffix)))
             {
                 suffix += 1;
             }
 
-            return baseUsername + suffix + domain;
+            return username.WithSuffix(suffix);
         }
 
         private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername)
