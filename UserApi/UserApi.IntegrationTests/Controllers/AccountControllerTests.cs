@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -60,13 +61,17 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_get_groups_for_user()
         {
-            const string userId = "84fa0832-cd70-4788-8f48-e869571e0c56";
+            // user id for Automation01Administrator01
+            const string userId = "9a435325-df6d-4937-9f37-baca2052dd5d";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupsForUser(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupsForUserModel =
                 ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
-            groupsForUserModel.Should().NotBeEmpty();
+
+            const string expectedGroupName = "VirtualRoomHearingAdministrator";
+            var group = groupsForUserModel.FirstOrDefault(g => g.DisplayName == expectedGroupName);
+            Assert.IsNotNull(group, $"Automation01Administrator01 should have group '{expectedGroupName}'");
         }
 
         [Test]
