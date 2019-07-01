@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace UserApi.Services
 {
     public class IncrementingUsername
@@ -7,7 +11,17 @@ namespace UserApi.Services
 
         public IncrementingUsername(string usernameBase, string domain)
         {
-            _usernameBase = usernameBase;
+            if (string.IsNullOrEmpty(usernameBase))
+            {
+                throw new ArgumentNullException(usernameBase);
+            }
+
+            if (string.IsNullOrEmpty(domain))
+            {
+                throw new ArgumentNullException(domain, nameof(domain));
+            }
+
+            _usernameBase = usernameBase.ToLowerInvariant();
             _domain = "@" + domain;
         }
 
@@ -16,6 +30,24 @@ namespace UserApi.Services
         public string WithSuffix(int suffix)
         {
             return _usernameBase + suffix + _domain;
+        }
+
+        public string GetGivenExistingUsers(IEnumerable<string> existingUsernames)
+        {
+            var users = new HashSet<string>(existingUsernames.Select(u => u.ToLowerInvariant()));
+
+            if (!users.Contains(WithoutNumberSuffix))
+            {
+                return WithoutNumberSuffix;
+            }
+
+            var suffix = 1;
+            while (users.Contains(WithSuffix(suffix)))
+            {
+                suffix += 1;
+            }
+
+            return WithSuffix(suffix);
         }
     }
 }
