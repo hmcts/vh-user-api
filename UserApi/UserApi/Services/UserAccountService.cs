@@ -198,20 +198,7 @@ namespace UserApi.Services
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, "***REMOVED***");
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
-            var users = new HashSet<string>(existingUsernames.Select(u => u.ToLowerInvariant()));
-
-            if (!users.Contains(username.WithoutNumberSuffix))
-            {
-                return username.WithoutNumberSuffix;
-            }
-
-            var suffix = 1;
-            while (users.Contains(username.WithSuffix(suffix)))
-            {
-                suffix += 1;
-            }
-
-            return username.WithSuffix(suffix);
+            return username.GetGivenExistingUsers(existingUsernames);
         }
 
         private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername)
