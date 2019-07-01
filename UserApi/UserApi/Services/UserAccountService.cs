@@ -1,7 +1,7 @@
 using Microsoft.Graph;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -23,7 +23,7 @@ namespace UserApi.Services
         private readonly bool _isLive;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
-        
+
         private static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
@@ -44,7 +44,7 @@ namespace UserApi.Services
                 // Avoid including the exact email to not leak it to logs
                 throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
             }
-            
+
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
             return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
@@ -66,8 +66,8 @@ namespace UserApi.Services
             }
 
             var reason = await responseMessage.Content.ReadAsStringAsync();
-            
-            // if we failed because the user is already in the group, consider it done anyway 
+
+            // if we failed because the user is already in the group, consider it done anyway
             if (reason.Contains("already exist"))
             {
                 return;
@@ -81,7 +81,7 @@ namespace UserApi.Services
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, accessUri);
-            
+
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content
@@ -117,7 +117,7 @@ namespace UserApi.Services
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
-            
+
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
@@ -196,34 +196,27 @@ namespace UserApi.Services
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
             const string domain = "@***REMOVED***";
-            var baseUsername = $"{firstName}.{lastName}".ToLower();
-            var users = await GetUsersMatchingNameAsync(firstName, lastName);
-            var lastUserPrincipalName = users.LastOrDefault();
-            if (lastUserPrincipalName == null)
+            var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
+            var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
+            var users = new HashSet<string>(existingUsernames.Select(username => username.ToLowerInvariant()));
+            if (!users.Contains(baseUsername + domain))
             {
                 return baseUsername + domain;
             }
 
-            // TODO: this doesn't work with over ten users because the ordering ends up wrong
-            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, domain);
-            lastUserPrincipalName = GetStringWithoutWord(lastUserPrincipalName, baseUsername);
-            lastUserPrincipalName = string.IsNullOrEmpty(lastUserPrincipalName) ? "0" : lastUserPrincipalName;
-            var lastNumber = int.Parse(lastUserPrincipalName);
-            lastNumber += 1;
-            return $"{baseUsername}{lastNumber}{domain}";
+            var suffix = 1;
+            while (users.Contains(baseUsername + suffix + domain))
+            {
+                suffix += 1;
+            }
+
+            return baseUsername + suffix + domain;
         }
 
-        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string firstName, string lastName)
+        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername)
         {
-            var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await _client.GetUsernamesStartingWith(baseUsername);
             return users.OrderBy(username => username);
-        }
-
-        private static string GetStringWithoutWord(string currentWord, string wordToRemove)
-        {
-            return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
-                wordToRemove.Length);
         }
 
         public async Task<List<UserResponse>> GetJudgesAsync()
