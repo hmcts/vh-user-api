@@ -104,8 +104,7 @@ namespace UserApi.AcceptanceTests.Steps
         public async Task NewUserClearUp()
         {
             if (string.IsNullOrWhiteSpace(_acTestContext.NewUserId)) return;
-            var userDeleted = await ActiveDirectoryUser.DeleteTheUserFromAd(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
-            userDeleted.Should().BeTrue($"New user with ID {_acTestContext.NewUserId} is deleted");
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_acTestContext.NewUserId, _acTestContext.GraphApiToken);
             _acTestContext.NewUserId = null;
         }
 

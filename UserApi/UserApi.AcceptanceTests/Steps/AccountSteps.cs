@@ -94,7 +94,7 @@ namespace UserApi.AcceptanceTests.Steps
             sw.Start();
             while (!userIsInTheGroup && sw.ElapsedMilliseconds < TimeoutInMilliseconds)
             {
-                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(_acTestContext.TestSettings.ExistingUserId,
+                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_acTestContext.TestSettings.ExistingUserId,
                     _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
                 await Task.Delay(DelayInMilliseconds);
             }
@@ -113,13 +113,12 @@ namespace UserApi.AcceptanceTests.Steps
 
         private static async Task RemoveGroupFromUserIfExists(AcTestContext testContext)
         {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroup(testContext.TestSettings.ExistingUserId,
+            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(testContext.TestSettings.ExistingUserId,
                 testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
             if (userIsInTheGroup)
             {
-                var userRemoved = ActiveDirectoryUser.RemoveTheUserFromTheGroup(testContext.TestSettings.ExistingUserId,
+                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(testContext.TestSettings.ExistingUserId,
                     testContext.TestSettings.NewGroups.First().GroupId, testContext.GraphApiToken);
-                userRemoved.Should().BeTrue($"{testContext.TestSettings.NewGroups.First().DisplayName} is deleted");
             }
             testContext.NewGroupId = null;
         }
