@@ -35,22 +35,22 @@ namespace UserApi.Services
             _isLive = settings.IsLive;
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string firstName, string lastName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail)
         {
             var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
-            var user = await GetUserByFilter(filter);
+            var user = await GetUserByFilterAsync(filter);
             if (user != null)
             {
                 // Avoid including the exact email to not leak it to logs
                 throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
             }
             
-            var username = await CheckForNextAvailableUsername(firstName, lastName);
+            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
             return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
         }
 
-        public async Task AddUserToGroup(User user, Group group)
+        public async Task AddUserToGroupAsync(User user, Group group)
         {
             var body = new CustomDirectoryObject
             {
@@ -60,32 +60,24 @@ namespace UserApi.Services
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
-            if (responseMessage.IsSuccessStatusCode) return;
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                return;
+            }
 
             var reason = await responseMessage.Content.ReadAsStringAsync();
             
             // if we failed because the user is already in the group, consider it done anyway 
-            if (reason.Contains("already exist")) return;
+            if (reason.Contains("already exist"))
+            {
+                return;
+            }
 
             var message = $"Failed to add user {user.Id} to group {group.Id}";
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<User> GetUserById(string userId)
-        {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}";
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<User>();
-
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
-
-            var message = $"Failed to get user by id {userId}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
-        }
-
-        public async Task<User> GetUserByFilter(string filter)
+        public async Task<User> GetUserByFilterAsync(string filter)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, accessUri);
@@ -94,7 +86,10 @@ namespace UserApi.Services
             {
                 var queryResponse = await responseMessage.Content
                     .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
-                if (!queryResponse.Value.Any()) return null;
+                if (!queryResponse.Value.Any())
+                {
+                    return null;
+                }
 
                 var adUser = queryResponse.Value.First();
                 return new User
@@ -108,14 +103,17 @@ namespace UserApi.Services
                 };
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
             var message = $"Failed to search user with filter {filter}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<Group> GetGroupByName(string groupName)
+        public async Task<Group> GetGroupByNameAsync(string groupName)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
@@ -131,21 +129,27 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<Group> GetGroupById(string groupId)
+        public async Task<Group> GetGroupByIdAsync(string groupId)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
-            if (responseMessage.IsSuccessStatusCode) return await responseMessage.Content.ReadAsAsync<Group>();
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                return await responseMessage.Content.ReadAsAsync<Group>();
+            }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
             var message = $"Failed to get group by id {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<List<Group>> GetGroupsForUser(string userId)
+        public async Task<List<Group>> GetGroupsForUserAsync(string userId)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
 
@@ -173,7 +177,10 @@ namespace UserApi.Services
                 return groups;
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return new List<Group>();
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new List<Group>();
+            }
 
             var message = $"Failed to get group for user {userId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
@@ -186,11 +193,11 @@ namespace UserApi.Services
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <returns>next available user principal name</returns>
-        public async Task<string> CheckForNextAvailableUsername(string firstName, string lastName)
+        public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            var domain = "@hearings.reform.hmcts.net";
+            const string domain = "@hearings.reform.hmcts.net";
             var baseUsername = $"{firstName}.{lastName}".ToLower();
-            var users = await GetUsersMatchingName(firstName, lastName);
+            var users = await GetUsersMatchingNameAsync(firstName, lastName);
             var lastUserPrincipalName = users.LastOrDefault();
             if (lastUserPrincipalName == null)
             {
@@ -206,33 +213,38 @@ namespace UserApi.Services
             return $"{baseUsername}{lastNumber}{domain}";
         }
 
-        private async Task<IEnumerable<string>> GetUsersMatchingName(string firstName, string lastName)
+        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLower();
             var users = await _client.GetUsernamesStartingWith(baseUsername);
             return users.OrderBy(username => username);
         }
 
-        private string GetStringWithoutWord(string currentWord, string wordToRemove)
+        private static string GetStringWithoutWord(string currentWord, string wordToRemove)
         {
             return currentWord.Remove(currentWord.IndexOf(wordToRemove, StringComparison.InvariantCultureIgnoreCase),
                 wordToRemove.Length);
         }
 
-        public async Task<List<UserResponse>> GetJudges()
+        public async Task<List<UserResponse>> GetJudgesAsync()
         {
-            var judges = await GetJudgesByGroupName(JudgesGroup);
+            var judges = await GetJudgesByGroupNameAsync(JudgesGroup);
             if (_isLive)
-                judges = await ExcludeTestJudges(judges);
+            {
+                judges = await ExcludeTestJudgesAsync(judges);
+            }
 
             return judges.OrderBy(x=>x.DisplayName).ToList();
         }
-        private async Task<List<UserResponse>> GetJudgesByGroupName(string groupName)
+        private async Task<List<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
-            var groupData = await GetGroupByName(groupName);
-            if (groupData == null) return new List<UserResponse>();
+            var groupData = await GetGroupByNameAsync(groupName);
+            if (groupData == null)
+            {
+                return new List<UserResponse>();
+            }
 
-            var response = await GetJudges(groupData.Id);
+            var response = await GetJudgesAsync(groupData.Id);
             return response.Select(x => new UserResponse
             {
                 FirstName = x.FirstName,
@@ -241,12 +253,12 @@ namespace UserApi.Services
                 DisplayName = x.DisplayName
             }).ToList();
         }
-        private async Task<List<UserResponse>> ExcludeTestJudges(List<UserResponse> judgesList)
+        private async Task<List<UserResponse>> ExcludeTestJudgesAsync(List<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesByGroupName(JudgesTestGroup);
+            var testJudges = await GetJudgesByGroupNameAsync(JudgesTestGroup);
             return judgesList.Except(testJudges, CompareJudgeById).ToList();
         }
-        private async Task<List<UserResponse>> GetJudges(string groupId)
+        private async Task<List<UserResponse>> GetJudgesAsync(string groupId)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members";
 
@@ -265,7 +277,10 @@ namespace UserApi.Services
                 }).ToList();
             }
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound) return null;
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
             var message = $"Failed to get users for group {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
