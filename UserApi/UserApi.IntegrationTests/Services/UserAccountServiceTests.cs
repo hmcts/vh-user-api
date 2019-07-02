@@ -33,22 +33,15 @@ namespace UserApi.IntegrationTests.Services
         [Test]
         public async Task should_generate_username_based_on_firstname_lastname()
         {
-            var nextUsername = await _service.CheckForNextAvailableUsername("Missing", "User");
+            var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Missing", "User");
             nextUsername.Should().Be("missing.user@***REMOVED***");
         }
 
         [Test]
         public async Task should_get_next_available_username_for_firstname_lastname()
         {
-            var nextUsername = await _service.CheckForNextAvailableUsername("Existing", "Individual");
+            var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual");
             nextUsername.Should().Be("existing.individual1@***REMOVED***");
-        }
-
-        [Test]
-        public async Task should_throw_exception_trying_to_add_user_to_invalid_group()
-        {
-            var user = await _service.GetUserById("Automation01Professional01@***REMOVED***");
-            Assert.ThrowsAsync<UserServiceException>(() => _service.AddUserToGroup(user, new Group {Id = "invalid"}));
         }
 
         [Test]
@@ -58,7 +51,7 @@ namespace UserApi.IntegrationTests.Services
             const string lastName = "Created";
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
             var recoveryEmail = $"{firstName}.{lastName}.{unique}@***REMOVED***";
-            var createdAccount = await _service.CreateUser(firstName, lastName, recoveryEmail);
+            var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail);
             var username = createdAccount.Username;
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());

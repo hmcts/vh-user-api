@@ -25,23 +25,31 @@ namespace UserApi.Helper
             {"Civil Money Claims", AdGroup.MoneyClaims}
         };
 
+        private static readonly Dictionary<AdGroup, string> CaseTypeMappings = new Dictionary<AdGroup, string>
+        {
+            { AdGroup.MoneyClaims, "Civil Money Claims" },
+            { AdGroup.FinancialRemedy, "Financial Remedy" }
+        };
+
         public UserProfileHelper(IUserAccountService userAccountService)
         {
             _userAccountService = userAccountService;
         }
 
-        public async Task<UserProfile> GetUserProfile(string filter)
+        public async Task<UserProfile> GetUserProfileAsync(string filter)
         {
-            var user = await _userAccountService.GetUserByFilter(filter);
+            var user = await _userAccountService.GetUserByFilterAsync(filter);
 
             if (user == null)
+            {
                 return null;
+            }
 
-            var userGroupDetails = await _userAccountService.GetGroupsForUser(user.Id);
+            var userGroupDetails = await _userAccountService.GetGroupsForUserAsync(user.Id);
             var userGroups = GetUserGroups(userGroupDetails).ToList();
             
-            var userRole = GetUserRole(userGroups);
-            var caseTypes = GetUserCaseTypes(userGroups);
+            var userRole = GetUserRole(userGroups).ToString();
+            var caseTypes = GetUserCaseTypes(userGroups).ToList();
 
             var response = new UserProfile
             {
@@ -51,24 +59,23 @@ namespace UserApi.Helper
                 DisplayName = user.DisplayName,
                 FirstName = user.GivenName,
                 LastName = user.Surname,
-                UserRole = userRole.ToString(),
+                UserRole = userRole,
                 CaseType = caseTypes
             };
 
             return response;
         }
 
-        private List<string> GetUserCaseTypes(List<AdGroup> userGroups)
+        private static bool IsCaseType(AdGroup group) => CaseTypeMappings.ContainsKey(group);
+
+        private static IEnumerable<string> GetUserCaseTypes(IEnumerable<AdGroup> userGroups)
         {
-            return userGroups.Where(IsCaseType).Select(g => g.ToString()).ToList();
+            return userGroups
+                .Where(IsCaseType)
+                .Select(c => CaseTypeMappings[c]);
         }
 
-        private bool IsCaseType(AdGroup group)
-        {
-            return group == AdGroup.FinancialRemedy || group == AdGroup.MoneyClaims;
-        }
-
-        private UserRole GetUserRole(List<AdGroup> userGroups)
+        private static UserRole GetUserRole(ICollection<AdGroup> userGroups)
         {
             if (userGroups.Contains(AdGroup.VirtualRoomAdministrator))
             {
@@ -103,7 +110,9 @@ namespace UserApi.Helper
             foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
             {
                 if (GroupMappings.TryGetValue(displayName, out var adGroup))
+                {
                     yield return adGroup;
+                }
             }
         }
     }

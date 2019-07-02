@@ -32,7 +32,7 @@ namespace UserApi.UnitTests.Controllers
             var response = new Group();
             var groupResponse = new GroupsResponse();
 
-            _userAccountService.Setup(x => x.GetGroupByName(groupName)).Returns(Task.FromResult(response));
+            _userAccountService.Setup(x => x.GetGroupByNameAsync(groupName)).ReturnsAsync(response);
 
             var actionResult = (OkObjectResult) await _controller.GetGroupByName(groupName);
             var actualResponse = (GroupsResponse) actionResult.Value;
@@ -54,7 +54,7 @@ namespace UserApi.UnitTests.Controllers
                 GroupId = "123"
             };
 
-            _userAccountService.Setup(x => x.GetGroupById(groupId)).Returns(Task.FromResult(response));
+            _userAccountService.Setup(x => x.GetGroupByIdAsync(groupId)).ReturnsAsync(response);
 
             var actionResult = (OkObjectResult) await _controller.GetGroupById(groupId);
             var actualResponse = (GroupsResponse) actionResult.Value;
@@ -79,12 +79,12 @@ namespace UserApi.UnitTests.Controllers
                 new GroupsResponse {DisplayName = "External"}
             };
 
-            _userAccountService.Setup(x => x.GetGroupsForUser(userId)).Returns(Task.FromResult(response));
+            _userAccountService.Setup(x => x.GetGroupsForUserAsync(userId)).ReturnsAsync(response);
 
             var actionResult = (OkObjectResult) await _controller.GetGroupsForUser(userId);
             var actualResponse = (IEnumerable<GroupsResponse>) actionResult.Value;
-            actualResponse.FirstOrDefault().DisplayName.Should()
-                .BeSameAs(groupResponseList.FirstOrDefault().DisplayName);
+            actualResponse.FirstOrDefault()?.DisplayName.Should()
+                .BeSameAs(groupResponseList.FirstOrDefault()?.DisplayName);
         }
     }
 }
