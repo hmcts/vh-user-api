@@ -56,7 +56,7 @@ namespace UserApi.IntegrationTests.Services
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());
 
-            await ActiveDirectoryUser.DeleteTheUserFromAd(username, _graphApiSettings.AccessToken);
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
         }
     }
 }
