@@ -1,13 +1,13 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using TechTalk.SpecFlow;
 using Testing.Common;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.AcceptanceTests.Helpers;
-using UserApi.Common;
+using UserApi.Contract.Responses;
 using UserApi.Security;
 
 namespace UserApi.AcceptanceTests.Steps
@@ -20,30 +20,52 @@ namespace UserApi.AcceptanceTests.Steps
         }
 
         [BeforeTestRun]
-        public static void OneTimeSetup(AcTestContext testContext)
+        public static void OneTimeSetup(TestContext context)
         {
             var azureAdConfiguration = TestConfig.Instance.AzureAd;
-            testContext.TestSettings = TestConfig.Instance.TestSettings;
+            context.TestSettings = TestConfig.Instance.TestSettings;
 
-            testContext.BearerToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
-                testContext.TestSettings.TestClientId, testContext.TestSettings.TestClientSecret,
+            context.BearerToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
+                context.TestSettings.TestClientId, context.TestSettings.TestClientSecret,
                 azureAdConfiguration.VhUserApiResourceId);
 
-            testContext.GraphApiToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
+            context.GraphApiToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
                 azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
                 "https://graph.microsoft.com");
 
             var apiTestsOptions = TestConfig.Instance.GetFromSection<AcceptanceTestConfiguration>("AcceptanceTestSettings");
-            testContext.BaseUrl = apiTestsOptions.UserApiBaseUrl;
+            context.BaseUrl = apiTestsOptions.UserApiBaseUrl;
         }
 
         [BeforeTestRun]
-        public static void CheckHealth(AcTestContext testContext)
+        public static void CheckHealth(TestContext context)
         {
             var endpoint = new ApiUriFactory().HealthCheckEndpoints;
-            testContext.Request = testContext.Get(endpoint.CheckServiceHealth());
-            testContext.Response = testContext.Client().Execute(testContext.Request);
-            testContext.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            context.Request = context.Get(endpoint.CheckServiceHealth());
+            context.Response = context.Client().Execute(context.Request);
+            context.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [BeforeTestRun]
+        public static void CheckUserExistsWithCorrectGroups(TestContext context)
+        {
+            var endpoint = new ApiUriFactory().AccountEndpoints;
+            context.Request = context.Get(endpoint.GetGroupsForUser(context.TestSettings.ExistingUserId));
+            context.Response = context.Client().Execute(context.Request);
+            context.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(context.Response.Content);
+            var actualGroups = new List<Group>();
+
+            foreach (var group in model)
+            {
+                actualGroups.Add(new Group()
+                {
+                    GroupId = group.GroupId,
+                    DisplayName = group.DisplayName                     
+                });
+            }
+
+            actualGroups.Should().BeEquivalentTo(context.TestSettings.ExistingGroups, opts => opts.WithoutStrictOrdering());
         }
     }
 }
