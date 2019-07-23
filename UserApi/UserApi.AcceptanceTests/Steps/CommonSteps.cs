@@ -8,28 +8,26 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class CommonSteps : BaseSteps
     {
-        private readonly ScenarioContext _context;
-        private readonly AcTestContext _acTestContext;
+        private readonly TestContext _context;
 
-        public CommonSteps(ScenarioContext injectedContext, AcTestContext acTestContext)
+        public CommonSteps(TestContext context)
         {
-            _context = injectedContext;
-            _acTestContext = acTestContext;
+            _context = context;
         }
 
         [When(@"I send the request to the endpoint")]
         public void WhenISendTheRequestToTheEndpoint()
         {
-            _acTestContext.Response = _acTestContext.Client().Execute(_acTestContext.Request);
-            if (_acTestContext.Response.Content != null)
-                _acTestContext.Json = _acTestContext.Response.Content;
+            _context.Response = _context.Client().Execute(_context.Request);
+            if (_context.Response.Content != null)
+                _context.Json = _context.Response.Content;
         }
 
         [Then(@"the response should have the status (.*) and success status (.*)")]
         public void ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode httpStatusCode, bool isSuccess)
         {
-            _acTestContext.Response.StatusCode.Should().Be(httpStatusCode, $"When {_acTestContext.Request.Method}ing to {_acTestContext.Request.Resource}");
-            _acTestContext.Response.IsSuccessful.Should().Be(isSuccess);
+            _context.Response.StatusCode.Should().Be(httpStatusCode, $"When {_context.Request.Method}ing to {_context.Request.Resource}");
+            _context.Response.IsSuccessful.Should().Be(isSuccess);
         }
     }
 }

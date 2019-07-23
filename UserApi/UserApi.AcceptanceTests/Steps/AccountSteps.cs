@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using TechTalk.SpecFlow;
@@ -16,18 +15,18 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class AccountSteps : BaseSteps
     {
-        private readonly AcTestContext _acTestContext;
+        private readonly TestContext _context;
         private readonly AccountEndpoints _endpoints = new ApiUriFactory().AccountEndpoints;
         private const int DelayInMilliseconds = 1000;
         private const int TimeoutInMilliseconds = 20000;
 
-        public AccountSteps(AcTestContext acTestContext)
+        public AccountSteps(TestContext context)
         {
-            _acTestContext = acTestContext;
+            _context = context;
         }
 
         [BeforeScenario]
-        public static async Task RemoveNewGroupIfExistsAsync(AcTestContext testContext)
+        public static async Task RemoveNewGroupIfExistsAsync(TestContext testContext)
         {
             await RemoveGroupFromUserIfExists(testContext);
         }
@@ -35,23 +34,23 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a get ad group by name request with a valid group name")]
         public void GivenIHaveAGetAdGroupByNameRequestWithAValidGroupName()
         {
-            _acTestContext.Request =
-                _acTestContext.Get(
-                    _endpoints.GetGroupByName(_acTestContext.TestSettings.ExistingGroups.First().DisplayName));
+            _context.Request =
+                _context.Get(
+                    _endpoints.GetGroupByName(_context.TestSettings.ExistingGroups.First().DisplayName));
         }
 
         [Given(@"I have a get ad group by id request with a valid group id")]
         public void GivenIHaveAGetAdGroupByIdRequestWithAValidGroupId()
         {
-            _acTestContext.Request =
-                _acTestContext.Get(_endpoints.GetGroupById(_acTestContext.TestSettings.ExistingGroups.First().GroupId));
+            _context.Request =
+                _context.Get(_endpoints.GetGroupById(_context.TestSettings.ExistingGroups.First().GroupId));
         }
 
         [Given(@"I have a get ad groups for a user request for a valid user id")]
         public void GivenIHaveAGetAdGroupsForAUserRequestForAValidUserId()
         {
-            _acTestContext.Request =
-                _acTestContext.Get(_endpoints.GetGroupsForUser(_acTestContext.TestSettings.ExistingUserId));
+            _context.Request =
+                _context.Get(_endpoints.GetGroupsForUser(_context.TestSettings.ExistingUserId));
         }
 
         [Given(@"I have an add a user to a group request for a valid user id and valid group")]
@@ -59,16 +58,16 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var addUserRequest = new AddUserToGroupRequest()
             {
-                UserId = _acTestContext.TestSettings.ExistingUserId,
-                GroupName = _acTestContext.TestSettings.NewGroups.First().DisplayName
+                UserId = _context.TestSettings.ExistingUserId,
+                GroupName = _context.TestSettings.NewGroups.First().DisplayName
             };
-            _acTestContext.Request = _acTestContext.Patch(_endpoints.AddUserToGroup, addUserRequest);
+            _context.Request = _context.Patch(_endpoints.AddUserToGroup, addUserRequest);
         }
 
         [Then(@"the ad groups should be retrieved")]
         public void ThenTheAdGroupsShouldBeRetrieved()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(_acTestContext.Json);
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(_context.Json);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.GroupId.Should().NotBeNullOrEmpty();
@@ -77,7 +76,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad groups should be retrieved")]
         public void ThenAListOfAdGroupsShouldBeRetrieved()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_acTestContext.Json);
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Json);
             model.Should().NotBeNull();
             foreach (var group in model)
             {
@@ -94,24 +93,24 @@ namespace UserApi.AcceptanceTests.Steps
             sw.Start();
             while (!userIsInTheGroup && sw.ElapsedMilliseconds < TimeoutInMilliseconds)
             {
-                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_acTestContext.TestSettings.ExistingUserId,
-                    _acTestContext.TestSettings.NewGroups.First().DisplayName, _acTestContext.GraphApiToken);
+                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_context.TestSettings.ExistingUserId,
+                    _context.TestSettings.NewGroups.First().DisplayName, _context.GraphApiToken);
                 await Task.Delay(DelayInMilliseconds);
             }
 
             sw.Stop();
             userIsInTheGroup.Should().BeTrue("User has been added to the group");
-            _acTestContext.NewGroupId = _acTestContext.TestSettings.NewGroups.First().GroupId;
+            _context.NewGroupId = _context.TestSettings.NewGroups.First().GroupId;
         }
 
         [AfterScenario]
-        public static async Task RemoveNewGroupAgainIfExists(AcTestContext testContext)
+        public static async Task RemoveNewGroupAgainIfExists(TestContext testContext)
         {
             await RemoveGroupFromUserIfExists(testContext);
             testContext.NewGroupId = null;
         }
 
-        private static async Task RemoveGroupFromUserIfExists(AcTestContext testContext)
+        private static async Task RemoveGroupFromUserIfExists(TestContext testContext)
         {
             var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(testContext.TestSettings.ExistingUserId,
                 testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
