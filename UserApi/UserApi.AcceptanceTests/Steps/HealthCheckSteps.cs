@@ -7,20 +7,18 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class HealthCheckSteps : BaseSteps
     {
-        private readonly ScenarioContext _context;
-        private readonly AcTestContext _acTestContext;
+        private readonly TestContext _context;
         private readonly HealthCheckEndpoints _endpoints = new ApiUriFactory().HealthCheckEndpoints;
 
-        public HealthCheckSteps(ScenarioContext injectedContext, AcTestContext acTestContext)
+        public HealthCheckSteps(TestContext context)
         {
-            _context = injectedContext;
-            _acTestContext = acTestContext;
+            _context = context;
         }
 
         [Given(@"I have a get health request")]
         public void GivenIHaveAGetHealthRequest()
         {
-            _acTestContext.Request = _acTestContext.Get(_endpoints.CheckServiceHealth());       
+            _context.Request = _context.Get(_endpoints.CheckServiceHealth());       
         }
     }
 }
