@@ -190,7 +190,6 @@ namespace UserApi.IntegrationTests.Steps
             var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
             model.Should().NotBeNull();
-            // model.CaseType.Should().NotBeNullOrEmpty();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
             model.LastName.Should().NotBeNullOrEmpty();

@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using UserApi.Helper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+using UserApi.Contract.Responses;
 using UserApi.Security;
 using UserApi.Services;
 
@@ -14,6 +12,7 @@ namespace UserApi.Controllers
     [Produces("application/json")]
     [Route("healthcheck")]
     [ApiController]
+    [AllowAnonymous]
     public class HealthCheckController : ControllerBase
     {
         private readonly IUserAccountService _userAccountService;
@@ -33,35 +32,41 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Health()
         {
+            var response = new UserApiHealthResponse();
             try
             {
-                var email = "checkuser@test.com";
+                const string email = "checkuser@test.com";
                 //Check if user profile end point is accessible
                 var filter = $"otherMails/any(c:c eq '{email}')";
                 await _userAccountService.GetUserByFilterAsync(filter);
+                response.UserAccessHealth.Successful = true;
             }
-            catch (UserServiceException)
+            catch (UserServiceException e)
             {
-                ModelState.AddModelError("User", "GetUserByFilter unauthorized access to Microsoft Graph");
+                response.UserAccessHealth.Successful = false;
+                response.UserAccessHealth.Data = e.Data;
+                response.UserAccessHealth.ErrorMessage = $"{e.Message} - {e.Reason}";
             }
 
             try
             {
                 //Check if group by name end point is accessible
                 await _userAccountService.GetGroupByNameAsync("TestGroup");
+                response.GroupAccessHealth.Successful = true;
             }
-            catch (UserServiceException)
+            catch (UserServiceException e)
             {
-                ModelState.AddModelError("User", "GetGroupByName unauthorized access to Microsoft Graph");
+                response.GroupAccessHealth.Successful = false;
+                response.GroupAccessHealth.Data = e.Data;
+                response.GroupAccessHealth.ErrorMessage = $"{e.Message} - {e.Reason}";
             }
 
-            var modelStateErrors = this.ModelState.Values.SelectMany(m => m.Errors);
-            if (modelStateErrors.Any())
+            if (!response.GroupAccessHealth.Successful || !response.UserAccessHealth.Successful)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError, ModelState);
+                return StatusCode((int) HttpStatusCode.InternalServerError, response);
             }
 
-            return Ok();
+            return Ok(response);
         }
     }
 }
