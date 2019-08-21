@@ -22,13 +22,15 @@ namespace UserApi.Helper
             {"VirtualRoomJudge", AdGroup.VirtualRoomJudge},
             {"VirtualRoomProfessionalUser", AdGroup.VirtualRoomProfessionalUser},
             {"Financial Remedy", AdGroup.FinancialRemedy},
-            {"Civil Money Claims", AdGroup.MoneyClaims}
+            {"Civil Money Claims", AdGroup.MoneyClaims},
+            {"Hearing", AdGroup.Hearing}
         };
 
         private static readonly Dictionary<AdGroup, string> CaseTypeMappings = new Dictionary<AdGroup, string>
         {
             { AdGroup.MoneyClaims, "Civil Money Claims" },
-            { AdGroup.FinancialRemedy, "Financial Remedy" }
+            { AdGroup.FinancialRemedy, "Financial Remedy" },
+            { AdGroup.Hearing, "Hearing" }
         };
 
         public UserProfileHelper(IUserAccountService userAccountService)
