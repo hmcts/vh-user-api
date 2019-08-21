@@ -7,6 +7,7 @@
         MoneyClaims,
         FinancialRemedy,
         VirtualRoomProfessionalUser,
-        VirtualRoomJudge
+        VirtualRoomJudge,
+        Hearing
     }
 }
