@@ -44,7 +44,17 @@ namespace UserApi.UnitTests.Helpers
 
             userProfile.UserRole.Should().Be("CaseAdmin");
         }
-        
+
+        [Test]
+        public async Task should_return_case_admin_for_user_with_generic_hearing_group()
+        {
+            GivenFilterReturnsUserWithGroups("Hearing");
+
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
+
+            userProfile.UserRole.Should().Be("CaseAdmin");
+        }
+
         [Test]
         public async Task should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
@@ -117,13 +127,14 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_types_for_case_admin()
         {
-            GivenFilterReturnsUserWithGroups("Civil Money Claims", "Financial Remedy");
+            GivenFilterReturnsUserWithGroups("Civil Money Claims", "Financial Remedy", "Hearing");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.CaseType.Count.Should().Be(2);
+            userProfile.CaseType.Count.Should().Be(3);
             userProfile.CaseType.Should().Contain("Civil Money Claims");
             userProfile.CaseType.Should().Contain("Financial Remedy");
+            userProfile.CaseType.Should().Contain("Hearing");
         }
         
         [Test]
