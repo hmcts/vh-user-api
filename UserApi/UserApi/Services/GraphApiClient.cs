@@ -35,10 +35,10 @@ namespace UserApi.Services
         }
 
         public async Task<IEnumerable<string>> GetUsernamesStartingWith(string text)
-        {
-            var filter = $"startswith(userPrincipalName,'{text}')";
+        { 
+            var filterText = text.Replace("'", "''");
+            var filter = $"startswith(userPrincipalName,'{filterText}')";
             var queryUrl = $"{_baseUrl}/users?$filter={filter}";
-
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
 
