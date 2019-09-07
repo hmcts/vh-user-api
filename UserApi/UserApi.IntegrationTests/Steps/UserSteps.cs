@@ -2,12 +2,10 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Faker;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
-using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
@@ -33,12 +31,8 @@ namespace UserApi.IntegrationTests.Steps
         {
             _apiTestContext.Uri = _endpoints.CreateUser;
             _apiTestContext.HttpMethod = HttpMethod.Post;
-            var createUserRequest = new CreateUserRequest
-            {
-                RecoveryEmail = Internet.Email(),
-                FirstName = Name.First(),
-                LastName = Name.Last()
-            };
+            var createUserRequest = new CreateUserRequestBuilder().Build();
+
             switch (scenario)
             {
                 case Scenario.Valid:
@@ -75,7 +69,7 @@ namespace UserApi.IntegrationTests.Steps
 
         [Given(@"I have a get user by AD user Id request for a (.*) user with (.*)")]
         [Given(@"I have a get user by AD user Id request for an (.*) user with (.*)")]
-        public void GivenIHaveAGetUserByADUserIdRequestForTheUser(Scenario scenario, UserRole userRole)
+        public void GivenIHaveAGetUserByAdUserIdRequestForTheUser(Scenario scenario, UserRole userRole)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
             switch (scenario)
