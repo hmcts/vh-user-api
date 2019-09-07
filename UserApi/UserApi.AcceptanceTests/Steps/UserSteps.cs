@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Faker;
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +6,6 @@ using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
-using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
 
@@ -27,13 +25,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a new hearings reforms user account request with a valid email")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestWithAValidEmail()
         {
-            var createUserRequest = new CreateUserRequest
-            {
-                RecoveryEmail = Internet.Email(),
-                FirstName = Name.First(),
-                LastName = Name.Last()
-            };
-            _context.Request = _context.Post(_endpoints.CreateUser, createUserRequest);
+            _context.Request = _context.Post(_endpoints.CreateUser, new CreateUserRequestBuilder().Build());
         }
 
         [Given(@"I have a get user by AD user Id request for an existing user")]
@@ -54,8 +46,8 @@ namespace UserApi.AcceptanceTests.Steps
             _context.Request = _context.Get(_endpoints.GetUserByEmail(_context.TestSettings.ExistingEmail));
         }
 
-        [Given(@"I have a valid AD groupid and request for a list of judges")]
-        public void GivenIHaveAValidADGroupidAndRequestForAListOfJudges()
+        [Given(@"I have a valid AD group id and request for a list of judges")]
+        public void GivenIHaveAValidAdGroupIdAndRequestForAListOfJudges()
         {
             _context.Request = _context.Get(_endpoints.GetJudges());
         }
@@ -63,13 +55,11 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a new hearings reforms user account request with an existing name")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestWithAnExistingFullName()
         {
-            var createUserRequest = new CreateUserRequest
-            {
-                RecoveryEmail = Internet.Email(),
-                FirstName = _context.TestSettings.ExistingUserFirstname,
-                LastName = _context.TestSettings.ExistingUserLastname
-            };
-            _context.Request = _context.Post(_endpoints.CreateUser, createUserRequest);
+            var request = new CreateUserRequestBuilder()
+                .WithFirstname(_context.TestSettings.ExistingUserFirstname)
+                .WithLastname(_context.TestSettings.ExistingUserLastname)
+                .Build();
+            _context.Request = _context.Post(_endpoints.CreateUser, request);
         }
 
         [Then(@"the user should be added")]
@@ -106,7 +96,7 @@ namespace UserApi.AcceptanceTests.Steps
                 user.Email.Should().NotBeNullOrEmpty();
                 user.DisplayName.Should().NotBeNullOrEmpty();
             }
-            var expectedUser = model.FirstOrDefault(u => u.Email == "Automation01Judge01@***REMOVED***");
+            var expectedUser = model.FirstOrDefault(u => u.Email.Equals(_context.TestSettings.Judge));
             expectedUser.DisplayName.Should().Be("Automation01 Judge01");
         }
 

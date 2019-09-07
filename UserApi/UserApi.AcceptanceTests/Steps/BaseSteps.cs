@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using FluentAssertions;
 using TechTalk.SpecFlow;
@@ -13,12 +12,8 @@ using UserApi.Security;
 namespace UserApi.AcceptanceTests.Steps
 {
     [Binding]
-    public abstract class BaseSteps
+    public class BaseSteps
     {
-        protected BaseSteps()
-        {
-        }
-
         [BeforeTestRun]
         public static void OneTimeSetup(TestContext context)
         {
