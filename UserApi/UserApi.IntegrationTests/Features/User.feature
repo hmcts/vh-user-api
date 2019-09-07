@@ -33,14 +33,14 @@ Scenario Outline: Get user by AD user Id
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
-Examples: 
-| role               |
-| Individual         |
-| Representative     |
-| VhOfficer          |
-| CaseAdmin          |
-| Judge              |
-| VhOfficerCaseAdmin |
+	Examples: 
+	| role               |
+	| Individual         |
+	| Representative     |
+	| VhOfficer          |
+	| CaseAdmin          |
+	| Judge              |
+	| VhOfficerCaseAdmin |
 
 Scenario: User account not retrieved for a nonexistent user
 	Given I have a get user by AD user Id request for a nonexistent user with Individual
