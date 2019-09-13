@@ -54,6 +54,7 @@ trigger:
   branches:
     include:
     - master
+    - release/*
   tags:
     include:
     - v*
