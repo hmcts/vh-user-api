@@ -121,7 +121,8 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var filter = $"userPrincipalName  eq '{userName}'";
+            var filterText = userName.Replace("'", "''");
+            var filter = $"userPrincipalName  eq '{filterText}'";
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfileAsync(filter);
 
