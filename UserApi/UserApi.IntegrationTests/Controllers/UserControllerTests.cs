@@ -86,16 +86,16 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_get_case_administrator_by_id()
         {
-            const string username = "moneyclaims.admin@hearings.reform.HMCTS.NET";
+            const string username = "Automation01Administrator01@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
                 ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserRole.Should().Be("CaseAdmin");
-            userResponseModel.FirstName.Should().Be("Money Claims");
-            userResponseModel.LastName.Should().Be("Admin");
-            userResponseModel.DisplayName.Should().Be("Money Claims Admin");
+            userResponseModel.FirstName.Should().Be("Automation01");
+            userResponseModel.LastName.Should().Be("Administrator01");
+            userResponseModel.DisplayName.Should().Be("Automation01 Administrator01");
         }
 
         [Test]
@@ -109,7 +109,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_get_user_profile_by_user_principal_name()
         {
-            const string username = "VirtualRoomAdministrator@hearings.reform.hmcts.net";
+            const string username = "Automation01Administrator01@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -134,7 +134,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_get_user_profile_by_email()
         {
-            const string email = "VirtualRoomAdministrator@kinley.com";
+            const string email = "Admin.Kinly@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
