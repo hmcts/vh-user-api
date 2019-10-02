@@ -40,8 +40,9 @@ namespace UserApi.IntegrationTests.Services
         [Test]
         public async Task should_get_next_available_username_for_firstname_lastname()
         {
+         
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual");
-            nextUsername.Should().Be("existing.individual1@hearings.reform.hmcts.net");
+            nextUsername.Should().Be("existing.individual@hearings.reform.hmcts.net");
         }
 
         [Test]
