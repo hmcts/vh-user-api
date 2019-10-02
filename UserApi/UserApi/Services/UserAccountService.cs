@@ -146,6 +146,7 @@ namespace UserApi.Services
 
             var message = $"Failed to get group by id {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
+                
             throw new UserServiceException(message, reason);
         }
 
