@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -80,6 +81,18 @@ namespace UserApi.UnitTests.Controllers
             actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
+        }
+
+        [Test]
+        public async Task Should_get_unauthorized_when_get_by_user_name_from_api()
+        {
+            const string userName = "sample.user@hearings.reform.hmcts.net";
+            _userAccountService
+                .Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
+                .Throws(new UnauthorizedAccessException("unauthorized"));
+
+            var result = (await _controller.GetUserByUserName(userName)) as UnauthorizedObjectResult;
+            Assert.NotNull(result);
         }
 
         [Test]
