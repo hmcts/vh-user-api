@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -123,16 +124,25 @@ namespace UserApi.Controllers
 
             var filterText = userName.Replace("'", "''");
             var filter = $"userPrincipalName  eq '{filterText}'";
-            var profile = new UserProfileHelper(_userAccountService);
-            var userProfile = await profile.GetUserProfileAsync(filter);
 
-            if (userProfile == null)
+            var profile = new UserProfileHelper(_userAccountService);
+            try
             {
+                var userProfile = await profile.GetUserProfileAsync(filter);
+
+                if (userProfile != null)
+                {
+                    return Ok(userProfile);
+                }
+
                 ModelState.AddModelError(nameof(userName), "user principal name does not exist");
                 return NotFound(ModelState);
-            }
 
-            return Ok(userProfile);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
         }
 
         /// <summary>
