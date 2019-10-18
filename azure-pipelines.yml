@@ -22,8 +22,6 @@ variables:
     "Testing/ExistingUserId": "$(testing-existinguserid)",
     "Testing/ExistingUserFirstname": "$(testing-existinguserfirstname)",
     "Testing/ExistingUserDisplayname": "$(testing-existinguserdisplayname)",
-    "Testing/ExistingGroups/2/GroupId": "$(testing-existinggroups-2-groupid)",
-    "Testing/ExistingGroups/2/Displayname": "$(testing-existinggroups-2-displayname)",
     "Testing/ExistingGroups/1/GroupId": "$(testing-existinggroups-1-groupid)",
     "Testing/ExistingGroups/1/Displayname": "$(testing-existinggroups-1-displayname)",
     "Testing/ExistingGroups/0/GroupId": "$(testing-existinggroups-0-groupid)",
