@@ -6,7 +6,6 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Security;
