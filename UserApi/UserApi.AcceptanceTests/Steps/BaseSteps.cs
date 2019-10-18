@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using FluentAssertions;
 using TechTalk.SpecFlow;
@@ -51,18 +52,8 @@ namespace UserApi.AcceptanceTests.Steps
             context.Response = context.Client().Execute(context.Request);
             context.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(context.Response.Content);
-            var actualGroups = new List<Group>();
-
-            foreach (var group in model)
-            {
-                actualGroups.Add(new Group()
-                {
-                    GroupId = group.GroupId,
-                    DisplayName = group.DisplayName                     
-                });
-            }
-
-            actualGroups.Should().BeEquivalentTo(context.TestSettings.ExistingGroups, opts => opts.WithoutStrictOrdering());
+            var actualGroups = model.Select(@group => new Group() {GroupId = @group.GroupId, DisplayName = @group.DisplayName}).ToList();
+            context.TestSettings.ExistingGroups.Should().BeEquivalentTo(actualGroups, opts => opts.WithoutStrictOrdering());
         }
     }
 }
