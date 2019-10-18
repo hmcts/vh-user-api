@@ -14,6 +14,8 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public class BaseSteps
     {
+        protected BaseSteps(){}
+
         [BeforeTestRun]
         public static void OneTimeSetup(TestContext context)
         {
