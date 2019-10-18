@@ -18,7 +18,7 @@ namespace UserApi.IntegrationTests.Controllers
         private string _newUserId;
 
         [Test]
-        public async Task should_get_group_by_name_not_found_with_bogus_group_name()
+        public async Task Should_get_group_by_name_not_found_with_bogus_group_name()
         {
             var groupName = "foo";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupByName(groupName));
@@ -26,9 +26,9 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_group_by_name()
+        public async Task Should_get_group_by_name()
         {
-            var groupName = "SSPR Enabled";
+            var groupName = "External";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel =
@@ -39,20 +39,20 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_group_by_id()
+        public async Task Should_get_group_by_id()
         {
-            var groupId = "***REMOVED***";
+            var groupId = "121fa058-1796-4531-a9ee-63be1d4dc630";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel =
                 ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
-            Assert.AreEqual("SSPR Enabled", groupResponseModel.DisplayName);
+            Assert.AreEqual("External", groupResponseModel.DisplayName);
         }
 
         [Test]
-        public async Task should_get_group_by_id_not_found_with_bogus_id()
+        public async Task Should_get_group_by_id_not_found_with_bogus_id()
         {
             var groupId = Guid.Empty.ToString();
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupById(groupId));
@@ -60,7 +60,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_groups_for_user()
+        public async Task Should_get_groups_for_user()
         {
             // user id for Automation01Administrator01
             const string userId = "9a435325-df6d-4937-9f37-baca2052dd5d";
@@ -76,7 +76,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_groups_for_user_not_found_with_bogus_user_id()
+        public async Task Should_get_groups_for_user_not_found_with_bogus_user_id()
         {
             var userId = Guid.Empty.ToString();
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupsForUser(userId));
