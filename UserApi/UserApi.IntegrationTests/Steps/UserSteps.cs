@@ -195,15 +195,10 @@ namespace UserApi.IntegrationTests.Steps
                 {
                     model.Email.Should().NotBeNullOrEmpty();
                 }
-                if(_userRole == UserRole.VhOfficerCaseAdmin)
-                {
-                    model.UserRole.Should().Be(UserRole.VhOfficer.ToString());
-                }
-                else
-                {
-                    model.UserRole.Should().Be(_userRole.ToString());
-                }
-                
+
+                model.UserRole.Should().Be(_userRole == UserRole.VhOfficerCaseAdmin
+                    ? UserRole.VhOfficer.ToString()
+                    : _userRole.ToString());
             }
         }
 

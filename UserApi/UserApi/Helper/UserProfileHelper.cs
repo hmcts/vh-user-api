@@ -1,8 +1,8 @@
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Graph;
 using UserApi.Services;
 using UserApi.Services.Models;
 
@@ -11,27 +11,6 @@ namespace UserApi.Helper
     public class UserProfileHelper
     {
         private readonly IUserAccountService _userAccountService;
-
-        /// <summary>
-        /// Mappings for AD groups since the display names can contain spaces
-        /// </summary>
-        private static readonly Dictionary<string, AdGroup> GroupMappings = new Dictionary<string, AdGroup>
-        {
-            {"External", AdGroup.External},
-            {"VirtualRoomAdministrator", AdGroup.VirtualRoomAdministrator},
-            {"VirtualRoomJudge", AdGroup.VirtualRoomJudge},
-            {"VirtualRoomProfessionalUser", AdGroup.VirtualRoomProfessionalUser},
-            {"Financial Remedy", AdGroup.FinancialRemedy},
-            {"Civil Money Claims", AdGroup.MoneyClaims},
-            {"Hearing", AdGroup.Hearing}
-        };
-
-        private static readonly Dictionary<AdGroup, string> CaseTypeMappings = new Dictionary<AdGroup, string>
-        {
-            { AdGroup.MoneyClaims, "Civil Money Claims" },
-            { AdGroup.FinancialRemedy, "Financial Remedy" },
-            { AdGroup.Hearing, "Hearing" }
-        };
 
         public UserProfileHelper(IUserAccountService userAccountService)
         {
@@ -47,11 +26,12 @@ namespace UserApi.Helper
                 return null;
             }
 
-            var userGroupDetails = await _userAccountService.GetGroupsForUserAsync(user.Id);
-            var userGroups = GetUserGroups(userGroupDetails).ToList();
-            
-            var userRole = GetUserRole(userGroups).ToString();
-            var caseTypes = GetUserCaseTypes(userGroups).ToList();
+            var groups = (await _userAccountService.GetGroupsForUserAsync(user.Id))
+                .Where(x => !string.IsNullOrWhiteSpace(x.DisplayName))
+                .ToList();
+
+            var userRole = GetUserRole(groups).ToString();
+            var caseTypes = groups.Where(IsCaseType).Select(x => x.DisplayName).ToList();
 
             var response = new UserProfile
             {
@@ -68,18 +48,9 @@ namespace UserApi.Helper
             return response;
         }
 
-        private static bool IsCaseType(AdGroup group) => CaseTypeMappings.ContainsKey(group);
-
-        private static IEnumerable<string> GetUserCaseTypes(IEnumerable<AdGroup> userGroups)
+        private static UserRole GetUserRole(ICollection<Group> userGroups)
         {
-            return userGroups
-                .Where(IsCaseType)
-                .Select(c => CaseTypeMappings[c]);
-        }
-
-        private static UserRole GetUserRole(ICollection<AdGroup> userGroups)
-        {
-            if (userGroups.Contains(AdGroup.VirtualRoomAdministrator))
+            if (userGroups.Any(IsVirtualRoomAdministrator))
             {
                 return UserRole.VhOfficer;
             }
@@ -89,17 +60,17 @@ namespace UserApi.Helper
                 return UserRole.CaseAdmin;
             }
 
-            if (userGroups.Contains(AdGroup.VirtualRoomJudge))
+            if (userGroups.Any(IsVirtualRoomJudge))
             {
                 return UserRole.Judge;
             }
 
-            if (userGroups.Contains(AdGroup.VirtualRoomProfessionalUser))
+            if (userGroups.Any(IsVirtualRoomProfessionalUser))
             {
                 return UserRole.Representative;
             }
 
-            if (userGroups.Contains(AdGroup.External))
+            if (userGroups.Any(IsExternal))
             {
                 return UserRole.Individual;
             }
@@ -107,15 +78,30 @@ namespace UserApi.Helper
             throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
         }
 
-        private static IEnumerable<AdGroup> GetUserGroups(IEnumerable<Group> userGroups)
+        private static bool IsCaseType(Group group)
         {
-            foreach (var displayName in userGroups.Select(g => g.DisplayName).Where(g => !string.IsNullOrEmpty(g)))
-            {
-                if (GroupMappings.TryGetValue(displayName, out var adGroup))
-                {
-                    yield return adGroup;
-                }
-            }
+            return !string.IsNullOrWhiteSpace(group.Description) &&
+                    string.Equals("CaseType", group.Description, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static bool IsVirtualRoomAdministrator(Group group)
+        {
+            return string.Equals("VirtualRoomAdministrator", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static bool IsVirtualRoomJudge(Group group)
+        {
+            return string.Equals("VirtualRoomJudge", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static bool IsVirtualRoomProfessionalUser(Group group)
+        {
+            return string.Equals("VirtualRoomProfessionalUser", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static bool IsExternal(Group group)
+        {
+            return string.Equals("External", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
