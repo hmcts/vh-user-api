@@ -146,6 +146,7 @@ namespace UserApi.Services
 
             var message = $"Failed to get group by id {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
+                
             throw new UserServiceException(message, reason);
         }
 
@@ -241,7 +242,7 @@ namespace UserApi.Services
         }
         private async Task<List<UserResponse>> GetJudgesAsync(string groupId)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$top=999";
 
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 

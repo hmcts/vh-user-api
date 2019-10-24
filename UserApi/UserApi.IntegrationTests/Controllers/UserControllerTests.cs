@@ -22,13 +22,13 @@ namespace UserApi.IntegrationTests.Controllers
         private string _newUserId;
 
         [Test]
-        public async Task should_create_citizen_user_on_ad()
+        public async Task Should_create_citizen_user_on_ad()
         {
             var createUserRequest = new CreateUserRequest
             {
-                RecoveryEmail = Internet.Email(),
-                FirstName = Name.First(),
-                LastName = Name.Last()
+                RecoveryEmail = $"Automation_{Internet.Email()}",
+                FirstName = $"Automation_{Name.First()}",
+                LastName = $"Automation_{Name.Last()}"
             };
             var createUserHttpRequest = new StringContent(
                 ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
@@ -50,15 +50,6 @@ namespace UserApi.IntegrationTests.Controllers
 
             _newUserId = createUserModel.UserId;
 
-            var addSsprGroupRequest = new AddUserToGroupRequest
-                {UserId = createUserModel.UserId, GroupName = "SSPR Enabled"};
-            var addSsprGroupHttpRequest = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addSsprGroupRequest),
-                Encoding.UTF8, "application/json");
-            var addSsprGroupHttpResponse =
-                await SendPatchRequestAsync(_accountEndpoints.AddUserToGroup, addSsprGroupHttpRequest);
-            addSsprGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
-
             var addExternalGroupRequest = new AddUserToGroupRequest
                 {UserId = createUserModel.UserId, GroupName = "External"};
             var addExternalGroupHttpRequest = new StringContent(
@@ -70,7 +61,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_user_by_id()
+        public async Task Should_get_user_by_id()
         {
             const string userId = "60c7fae1-8733-4d82-b912-eece8d55d54c";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserId(userId));
@@ -84,22 +75,22 @@ namespace UserApi.IntegrationTests.Controllers
         }
         
         [Test]
-        public async Task should_get_case_administrator_by_id()
+        public async Task Should_get_case_administrator_by_id()
         {
-            const string username = "moneyclaims.admin@hearings.reform.HMCTS.NET";
+            const string username = "Automation01Administrator01@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
                 ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserRole.Should().Be("CaseAdmin");
-            userResponseModel.FirstName.Should().Be("Money Claims");
-            userResponseModel.LastName.Should().Be("Admin");
-            userResponseModel.DisplayName.Should().Be("Money Claims Admin");
+            userResponseModel.FirstName.Should().Be("Automation01");
+            userResponseModel.LastName.Should().Be("Administrator01");
+            userResponseModel.DisplayName.Should().Be("Automation01 Administrator01");
         }
 
         [Test]
-        public async Task should_get_user_by_id_not_found_with_bogus_user_id()
+        public async Task Should_get_user_by_id_not_found_with_bogus_user_id()
         {
             var userId = "foo";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserId(userId));
@@ -107,9 +98,9 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_user_profile_by_user_principal_name()
+        public async Task Should_get_user_profile_by_user_principal_name()
         {
-            const string username = "VirtualRoomAdministrator@hearings.reform.hmcts.net";
+            const string username = "Automation01Administrator01@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -123,7 +114,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_user_profile_by_user_principal_name_not_found_with_bogus_mail()
+        public async Task Should_get_user_profile_by_user_principal_name_not_found_with_bogus_mail()
         {
             const string username = "i.do.not.exist@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
@@ -132,9 +123,9 @@ namespace UserApi.IntegrationTests.Controllers
 
 
         [Test]
-        public async Task should_get_user_profile_by_email()
+        public async Task Should_get_user_profile_by_email()
         {
-            const string email = "VirtualRoomAdministrator@kinley.com";
+            const string email = "Admin.Kinly@hearings.reform.hmcts.net";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -149,7 +140,7 @@ namespace UserApi.IntegrationTests.Controllers
 
 
         [Test]
-        public async Task should_get_profile_by_email_not_found_with_bogus_mail()
+        public async Task Should_get_profile_by_email_not_found_with_bogus_mail()
         {
             const string email = "i.do.not.exist@nowhere.ever.com";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
@@ -157,7 +148,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_users_for_group()
+        public async Task Should_get_users_for_group()
         {
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);

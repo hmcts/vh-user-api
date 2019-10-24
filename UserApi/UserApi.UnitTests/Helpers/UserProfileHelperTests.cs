@@ -28,7 +28,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_admin_for_user_with_money_claims_group()
         {
-            GivenFilterReturnsUserWithGroups("Civil Money Claims");
+            GivenFilterReturnsUserWithCaseTypeGroups("Civil Money Claims");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -38,7 +38,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_admin_for_user_with_financial_remedy_group()
         {
-            GivenFilterReturnsUserWithGroups("Financial Remedy");
+            GivenFilterReturnsUserWithCaseTypeGroups("Financial Remedy");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -46,9 +46,9 @@ namespace UserApi.UnitTests.Helpers
         }
 
         [Test]
-        public async Task should_return_case_admin_for_user_with_generic_hearing_group()
+        public async Task should_return_case_admin_for_user_with_generic_generic_group()
         {
-            GivenFilterReturnsUserWithGroups("Hearing");
+            GivenFilterReturnsUserWithCaseTypeGroups("Generic");
 
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -127,14 +127,14 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task should_return_case_types_for_case_admin()
         {
-            GivenFilterReturnsUserWithGroups("Civil Money Claims", "Financial Remedy", "Hearing");
+            GivenFilterReturnsUserWithCaseTypeGroups("Civil Money Claims", "Financial Remedy", "Generic");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.CaseType.Count.Should().Be(3);
             userProfile.CaseType.Should().Contain("Civil Money Claims");
             userProfile.CaseType.Should().Contain("Financial Remedy");
-            userProfile.CaseType.Should().Contain("Hearing");
+            userProfile.CaseType.Should().Contain("Generic");
         }
         
         [Test]
@@ -149,7 +149,8 @@ namespace UserApi.UnitTests.Helpers
                 Surname = "McGregor",
                 UserPrincipalName = "bob.mcgregor@hearings.reform.hmcts.net"
             };
-            GivenFilterReturnsUserWithGroups(user, "External");
+
+            GivenFilterReturnsUserWithGroups(user, null, "External");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -161,20 +162,27 @@ namespace UserApi.UnitTests.Helpers
             userProfile.UserName.Should().Be(user.UserPrincipalName);
         }
 
-        private void GivenFilterReturnsUserWithGroups(User user, params string[] groupDisplayNames)
-        {
-            _accountService.Setup(x => x.GetUserByFilterAsync(Filter))
-                .ReturnsAsync(user);
-
-            var groups = groupDisplayNames.Select(aadGroup => new Group { DisplayName = aadGroup }).ToArray();
-            _accountService.Setup(x => x.GetGroupsForUserAsync(user.Id))
-                .ReturnsAsync(new List<Group>(groups));
-        }
-
         private void GivenFilterReturnsUserWithGroups(params string[] groupDisplayNames)
         {
-            var user = new User {Id = Guid.NewGuid().ToString()};
-            GivenFilterReturnsUserWithGroups(user, groupDisplayNames);
-        }        
+            var user = new User { Id = Guid.NewGuid().ToString() };
+
+            GivenFilterReturnsUserWithGroups(user, null, groupDisplayNames);
+        }
+
+        private void GivenFilterReturnsUserWithGroups(User user, string description = null, params string[] groupDisplayNames)
+        {
+            _accountService.Setup(x => x.GetUserByFilterAsync(Filter)).ReturnsAsync(user);
+
+            var groups = groupDisplayNames.Select(aadGroup => new Group { DisplayName = aadGroup, Description = description }).ToArray();
+
+            _accountService.Setup(x => x.GetGroupsForUserAsync(user.Id)).ReturnsAsync(new List<Group>(groups));
+        }
+
+        private void GivenFilterReturnsUserWithCaseTypeGroups(params string[] groupDisplayNames)
+        {
+            var user = new User { Id = Guid.NewGuid().ToString() };
+
+            GivenFilterReturnsUserWithGroups(user, "CaseType", groupDisplayNames);
+        }
     }
 }

@@ -35,21 +35,17 @@ namespace UserApi.IntegrationTests.Steps
             switch (scenario)
             {
                 case Scenario.Valid:
-                {
-                    _apiTestContext.Uri = _endpoints.GetGroupByName(_apiTestContext.TestSettings.ExistingGroups.First().DisplayName);
-                        break;
-                }               
+                    _apiTestContext.Uri =
+                        _endpoints.GetGroupByName(_apiTestContext.TestSettings.ExistingGroups.First().DisplayName);
+                    break;
                 case Scenario.Nonexistent:
-                {
                     _apiTestContext.Uri = _endpoints.GetGroupByName("Does not exist");
                     break;
-                }
                 case Scenario.Invalid:
-                {
                     _apiTestContext.Uri = _endpoints.GetGroupByName(" ");
                     break;
-                }
-                default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
         }
 
