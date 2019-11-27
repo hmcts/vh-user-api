@@ -161,6 +161,31 @@ namespace UserApi.UnitTests.Helpers
             userProfile.UserId.Should().Be(user.Id);
             userProfile.UserName.Should().Be(user.UserPrincipalName);
         }
+        
+        [Test]
+        public async Task should_return_user_data_when_email_has_quotes()
+        {
+            var user = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                Mail = "bo'b@cont'oso.com",
+                DisplayName = "Bob McGregor",
+                GivenName = "Bob",
+                Surname = "McGregor",
+                UserPrincipalName = "bo'b.mcg'regor@hearings.reform.hmcts.net"
+            };
+
+            GivenFilterReturnsUserWithGroups(user, null, "External");
+            
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
+
+            userProfile.DisplayName.Should().Be(user.DisplayName);
+            userProfile.FirstName.Should().Be(user.GivenName);
+            userProfile.LastName.Should().Be(user.Surname);
+            userProfile.Email.Should().Be(user.Mail);
+            userProfile.UserId.Should().Be(user.Id);
+            userProfile.UserName.Should().Be(user.UserPrincipalName);
+        }
 
         private void GivenFilterReturnsUserWithGroups(params string[] groupDisplayNames)
         {

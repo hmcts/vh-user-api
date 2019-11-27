@@ -159,14 +159,15 @@ namespace UserApi.Controllers
                 ModelState.AddModelError(nameof(email), "email cannot be empty");
                 return BadRequest(ModelState);
             }
-
+            
             if (!(new EmailAddressAttribute().IsValid(email)))
             {
                 ModelState.AddModelError(nameof(email), "email does not exist");
                 return NotFound(ModelState);
             }
 
-            var filter = $"otherMails/any(c:c eq '{email}')";
+            var emailText = email.Replace("'", "''");
+            var filter = $"otherMails/any(c:c eq '{emailText}')";
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfileAsync(filter);
 
