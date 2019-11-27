@@ -37,7 +37,8 @@ namespace UserApi.Services
 
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail)
         {
-            var filter = $"otherMails/any(c:c eq '{recoveryEmail}')";
+            var recoveryEmailText = recoveryEmail.Replace("'", "''");
+            var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
             var user = await GetUserByFilterAsync(filter);
             if (user != null)
             {
