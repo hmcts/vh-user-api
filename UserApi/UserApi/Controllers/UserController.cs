@@ -1,12 +1,14 @@
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using UserApi.Authorization;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -35,6 +37,7 @@ namespace UserApi.Controllers
         /// </summary>
         /// <param name="request">Details of a new user</param>
         [HttpPost(Name = "CreateUser")]
+        [Authorize(Policies.WriteGroups)]
         [SwaggerOperation(OperationId = "CreateUser")]
         [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -65,7 +68,7 @@ namespace UserApi.Controllers
                     Username = adUserAccount.Username,
                     OneTimePassword = adUserAccount.OneTimePassword
                 };
-                return CreatedAtRoute("GetUserByAdUserId", new {userId = adUserAccount.UserId}, response);
+                return CreatedAtRoute("GetUserByAdUserId", new { userId = adUserAccount.UserId }, response);
             }
             catch (UserExistsException e)
             {
@@ -82,6 +85,7 @@ namespace UserApi.Controllers
         ///     Get User by AD User ID
         /// </summary>
         [HttpGet("{userId?}", Name = "GetUserByAdUserId")]
+        [Authorize(Policies.ReadUsers)]
         [SwaggerOperation(OperationId = "GetUserByAdUserId")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -93,7 +97,7 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var filter = $"objectId  eq '{userId}'";
+            var filter = $"Id  eq '{userId}'";
             var profile = new UserProfileHelper(_userAccountService);
             var userProfile = await profile.GetUserProfileAsync(filter);
 
@@ -110,6 +114,7 @@ namespace UserApi.Controllers
         ///     Get User by User principal name
         /// </summary>
         [HttpGet("userName/{userName?}", Name = "GetUserByAdUserName")]
+        [Authorize(Policies.ReadUsers)]
         [SwaggerOperation(OperationId = "GetUserByAdUserName")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -139,6 +144,7 @@ namespace UserApi.Controllers
         ///     Get user profile by email
         /// </summary>
         [HttpGet("email/{email?}", Name = "GetUserByEmail")]
+        [Authorize(Policies.ReadUsers)]
         [SwaggerOperation(OperationId = "GetUserByEmail")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -169,6 +175,7 @@ namespace UserApi.Controllers
         ///     Get Judges from AD
         /// </summary>
         [HttpGet("judges", Name = "GetJudges")]
+        [Authorize(Policies.ReadUsers)]
         [SwaggerOperation(OperationId = "GetJudges")]
         [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]

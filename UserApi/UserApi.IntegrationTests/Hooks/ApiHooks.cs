@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Options;
 using TechTalk.SpecFlow;
 using Testing.Common;
 using UserApi.IntegrationTests.Contexts;
@@ -32,11 +31,11 @@ namespace UserApi.IntegrationTests.Hooks
 
             apiTestContext.BearerToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
                 apiTestContext.TestSettings.TestClientId, apiTestContext.TestSettings.TestClientSecret,
-                azureAdConfig.VhUserApiResourceId);
+                new string[] { $"{azureAdConfig.AppIdUri}/.default" });
 
             apiTestContext.GraphApiToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
-                "https://graph.microsoft.com");
+                new string[] { "https://graph.microsoft.com/.default" });
         }
 
         [BeforeScenario]

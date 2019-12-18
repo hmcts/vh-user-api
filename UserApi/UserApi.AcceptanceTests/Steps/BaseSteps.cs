@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using FluentAssertions;
+using System.Collections.Generic;
 using System.Net;
-using FluentAssertions;
 using TechTalk.SpecFlow;
 using Testing.Common;
 using Testing.Common.Helpers;
@@ -22,11 +22,11 @@ namespace UserApi.AcceptanceTests.Steps
 
             context.BearerToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
                 context.TestSettings.TestClientId, context.TestSettings.TestClientSecret,
-                azureAdConfiguration.VhUserApiResourceId);
+                new string[] { $"{azureAdConfiguration.AppIdUri}/.default" });
 
             context.GraphApiToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
                 azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
-                "https://graph.microsoft.com");
+                new string[] { "https://graph.microsoft.com/.default" });
 
             var apiTestsOptions = TestConfig.Instance.GetFromSection<AcceptanceTestConfiguration>("AcceptanceTestSettings");
             context.BaseUrl = apiTestsOptions.UserApiBaseUrl;
@@ -56,7 +56,7 @@ namespace UserApi.AcceptanceTests.Steps
                 actualGroups.Add(new Group()
                 {
                     GroupId = group.GroupId,
-                    DisplayName = group.DisplayName                     
+                    DisplayName = group.DisplayName
                 });
             }
 

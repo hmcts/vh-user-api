@@ -1,12 +1,13 @@
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
-using UserApi.Common;
+using UserApi.Authorization;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Security;
@@ -33,6 +34,7 @@ namespace UserApi.Controllers
         ///     Get AD Group By Name
         /// </summary>
         [HttpGet("group", Name = "GetGroupByName")]
+        [Authorize(Policies.ReadGroups)]
         [SwaggerOperation(OperationId = "GetGroupByName")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -60,6 +62,7 @@ namespace UserApi.Controllers
         ///     Get AD Group By Id
         /// </summary>
         [HttpGet("group/{groupId?}", Name = "GetGroupById")]
+        [Authorize(Policies.ReadGroups)]
         [SwaggerOperation(OperationId = "GetGroupById")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -93,6 +96,7 @@ namespace UserApi.Controllers
         ///     Get AD Group For a User
         /// </summary>
         [HttpGet("user/{userId?}/groups", Name = "GetGroupsForUser")]
+        [Authorize(Policies.ReadUsers)]
         [SwaggerOperation(OperationId = "GetGroupsForUser")]
         [ProducesResponseType(typeof(List<GroupsResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -119,6 +123,7 @@ namespace UserApi.Controllers
         ///     Add a user to a group
         /// </summary>
         [HttpPatch("user/group", Name = "AddUserToGroup")]
+        [Authorize(Policies.WriteGroups)]
         [SwaggerOperation(OperationId = "AddUserToGroup")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -147,7 +152,7 @@ namespace UserApi.Controllers
                 return NotFound();
             }
 
-            var filter = $"objectId  eq '{request.UserId}'";
+            var filter = $"Id  eq '{request.UserId}'";
             var user = await _userAccountService.GetUserByFilterAsync(filter);
             if (user == null)
             {

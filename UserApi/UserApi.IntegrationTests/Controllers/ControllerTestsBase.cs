@@ -1,13 +1,10 @@
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using NUnit.Framework;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Testing.Common;
-using UserApi.Common;
 using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers
@@ -37,11 +34,11 @@ namespace UserApi.IntegrationTests.Controllers
 
             _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 testSettings.TestClientId, testSettings.TestClientSecret,
-                TestConfig.Instance.AzureAd.VhUserApiResourceId);
+                new string[] { $"{TestConfig.Instance.AzureAd.AppIdUri}/.default" });
 
             GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 testSettings.TestClientId, testSettings.TestClientSecret,
-                "https://graph.microsoft.com");
+                new string[] { "https://graph.microsoft.com/.default" });
         }
 
         [OneTimeTearDown]

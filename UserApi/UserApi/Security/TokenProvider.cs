@@ -1,14 +1,13 @@
+using Microsoft.Identity.Client;
 using System;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using UserApi.Common;
 
 namespace UserApi.Security
 {
     public interface ITokenProvider
     {
-        string GetClientAccessToken(string clientId, string clientSecret, string clientResource);
-        AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string clientResource);
+        string GetClientAccessToken(string clientId, string clientSecret, string[] scopes);
+        AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string[] scopes);
     }
 
     public class TokenProvider : ITokenProvider
@@ -20,24 +19,27 @@ namespace UserApi.Security
             _azureAdConfiguration = azureAdConfiguration;
         }
 
-        public string GetClientAccessToken(string clientId, string clientSecret, string clientResource)
+        public string GetClientAccessToken(string clientId, string clientSecret, string[] scopes)
         {
-            var result = GetAuthorisationResult(clientId, clientSecret, clientResource);
+            var result = GetAuthorisationResult(clientId, clientSecret, scopes);
             return result.AccessToken;
         }
 
-        public AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string clientResource)
+        public AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string[] scopes)
         {
             AuthenticationResult result;
-            var credential = new ClientCredential(clientId, clientSecret);
-            var authContext =
-                new AuthenticationContext($"{_azureAdConfiguration.Authority}{_azureAdConfiguration.TenantId}");
+
+            var app = ConfidentialClientApplicationBuilder.Create(clientId)
+           .WithAuthority(AzureCloudInstance.AzurePublic, _azureAdConfiguration.TenantId)
+           .WithClientSecret(clientSecret)
+           .Build();
 
             try
             {
-                result = authContext.AcquireTokenAsync(clientResource, credential).Result;
+                result = app.AcquireTokenForClient(scopes)
+                            .ExecuteAsync().Result;
             }
-            catch (AdalException)
+            catch (MsalServiceException ex)
             {
                 throw new UnauthorizedAccessException();
             }

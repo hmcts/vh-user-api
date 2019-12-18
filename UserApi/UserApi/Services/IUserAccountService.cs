@@ -1,6 +1,6 @@
+using Microsoft.Graph;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Graph;
 using UserApi.Services.Models;
 
 namespace UserApi.Services
@@ -19,6 +19,6 @@ namespace UserApi.Services
         Task<Group> GetGroupByIdAsync(string groupId);
         Task<List<Group>> GetGroupsForUserAsync(string userId);
         Task<User> GetUserByFilterAsync(string filter);
-        Task<List<UserResponse>> GetJudgesAsync();
+        Task<List<User>> GetJudgesAsync();
     }
 }

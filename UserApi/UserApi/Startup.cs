@@ -1,5 +1,5 @@
-﻿using System;
-using Microsoft.ApplicationInsights.Extensibility;
+﻿using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -10,7 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Collections.Generic;
+using UserApi.Authorization;
 using UserApi.Common;
+using UserApi.Extensions;
 using UserApi.Helper;
 
 namespace UserApi
@@ -29,7 +33,7 @@ namespace UserApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<ITelemetryInitializer>(new CloudRoleNameInitializer());
-            
+
             services.AddCors();
 
             ConfigureJsonSerialization(services);
@@ -72,11 +76,47 @@ namespace UserApi
 
         private void RegisterAuth(IServiceCollection services)
         {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser()
-                .Build();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new AuthorizeFilter(Policies.Default));
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            services.AddMvc(options => { options.Filters.Add(new AuthorizeFilter(policy)); });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.Default, policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                });
+                options.AddPolicy(Policies.ReadProfile, policy =>
+                {
+                    policy.RequirePermissions(
+                        delegated: new[] { Scopes.ProfileRead });
+                });
+                options.AddPolicy(Policies.ReadUsers, policy =>
+                {
+                    policy.RequirePermissions(
+                        delegated: new[] { Scopes.UsersRead, Scopes.UsersReadWriteAll },
+                        application: new[] { AppRoles.UsersRead, AppRoles.UsersReadWriteAll });
+                });
+                options.AddPolicy(Policies.ReadGroups, policy =>
+                {
+                    policy.RequirePermissions(
+                        delegated: new[] { Scopes.GroupsRead, Scopes.GroupsReadWriteAll },
+                        application: new[] { AppRoles.GroupsRead, AppRoles.GroupsReadWriteAll });
+                });
+                options.AddPolicy(Policies.WriteUsers, policy =>
+                {
+                    policy.RequirePermissions(
+                        delegated: new[] { Scopes.UsersReadWriteAll },
+                        application: new[] { AppRoles.UsersReadWriteAll });
+                });
+                options.AddPolicy(Policies.WriteGroups, policy =>
+                {
+                    policy.RequirePermissions(
+                        delegated: new[] { Scopes.GroupsReadWriteAll },
+                        application: new[] { AppRoles.GroupsReadWriteAll });
+                });
+            });
 
             services.AddAuthentication(options =>
             {
@@ -84,13 +124,21 @@ namespace UserApi
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                options.Authority = $"{AzureAdSettings.Authority}{AzureAdSettings.TenantId}";
-                options.TokenValidationParameters.ValidateLifetime = true;
-                options.Audience = AzureAdSettings.VhUserApiResourceId;
-                options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+                options.Authority = AzureAdSettings.Authority;
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
+                    ValidAudiences = new List<string>
+                    {
+                        AzureAdSettings.AppIdUri,
+                        AzureAdSettings.ClientId
+                    }
+                };
             });
 
-            services.AddAuthorization();
+            services.AddSingleton<IClaimsTransformation, AzureAdScopeClaimTransformation>();
+            services.AddSingleton<IAuthorizationHandler, PermissionRequirementHandler>();
         }
 
         /// <summary>
