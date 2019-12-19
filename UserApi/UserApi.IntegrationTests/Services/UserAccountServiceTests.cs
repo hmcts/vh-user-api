@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Graph;
+using Moq;
 using NUnit.Framework;
 using Testing.Common;
 using Testing.Common.ActiveDirectory;
@@ -17,6 +19,7 @@ namespace UserApi.IntegrationTests.Services
         private GraphApiSettings _graphApiSettings;
         private SecureHttpRequest _secureHttpRequest;
         private GraphApiClient _identityServiceApiClient;
+        private Mock<IGraphServiceClient> _graphServiceClient;
 
         [SetUp]
         public void Setup()
@@ -27,7 +30,9 @@ namespace UserApi.IntegrationTests.Services
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, settings);
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings);
+            _graphServiceClient = new Mock<IGraphServiceClient>();
+            
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _graphServiceClient.Object);
         }
 
         [Test]

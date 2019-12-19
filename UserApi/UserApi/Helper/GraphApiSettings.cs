@@ -34,7 +34,7 @@ namespace UserApi.Helper
             {
                 return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                    _azureAdConfiguration.ClientSecret,
-                   _azureAdConfiguration.GraphApiBaseUri);
+                   new []{$"{_azureAdConfiguration.GraphApiBaseUri}/.default"});
             }
         }
         public string AccessTokenWindows
@@ -43,7 +43,7 @@ namespace UserApi.Helper
             {
                 return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                    _azureAdConfiguration.ClientSecret,
-                   GraphApiBaseUriWindows);
+                   new []{$"{GraphApiBaseUriWindows}/.default"});
             }
         }
 

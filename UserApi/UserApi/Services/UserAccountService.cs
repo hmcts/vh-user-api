@@ -23,8 +23,8 @@ namespace UserApi.Services
         private const string JudgesTestGroup = "TestAccount";
         private readonly string _defaultPassword;
 
-        private static readonly Compare<User> CompareJudgeById =
-            Compare<User>.By((x, y) => x.Mail == y.Mail, x => x.Mail.GetHashCode());
+        private static readonly Compare<UserResponse> CompareJudgeById =
+            Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings, IGraphServiceClient graphServiceClient)
         {
@@ -218,46 +218,54 @@ namespace UserApi.Services
             return users.Select(u => u.UserPrincipalName);
         }
 
-        public async Task<List<User>> GetJudgesAsync()
+        public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
         {
             var judges = await GetJudgesByGroupNameAsync(JudgesGroup);
+            
             if (_isLive)
             {
                 judges = await ExcludeTestJudgesAsync(judges);
             }
 
-            return judges.OrderBy(x => x.DisplayName).ToList();
+            return judges.OrderBy(x => x.DisplayName);
         }
-        private async Task<List<User>> GetJudgesByGroupNameAsync(string groupName)
+        
+        private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
             var groupData = await GetGroupByNameAsync(groupName);
+            
             if (groupData == null)
             {
-                return new List<User>();
+                return new List<UserResponse>();
             }
 
-            var judges = await GetJudgesAsync(groupData.Id);
-            return judges.ToList();
+            return await GetJudgesAsync(groupData.Id);
         }
-        private async Task<List<User>> ExcludeTestJudgesAsync(List<User> judgesList)
+        
+        private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
             var testJudges = await GetJudgesByGroupNameAsync(JudgesTestGroup);
             return judgesList.Except(testJudges, CompareJudgeById).ToList();
         }
-        private async Task<IEnumerable<User>> GetJudgesAsync(string groupId)
+        
+        private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)
         {
             try
             {
-                var judgeGroup = await _graphClient.Groups.Request().Filter($"displayName eq '{groupId}'").GetAsync();
+                var judges = await _graphClient.Groups[groupId].Members.Request().GetAsync();
 
-                if (judgeGroup.Count == 0)
+                if (judges.Count == 0)
                 {
-                    throw new UserServiceException("Failed to get Judges", "No Judge group found");
+                    throw new UserServiceException("Failed to get Judges", "No Judge in the group");
                 }
 
-                var judges = await _graphClient.Groups[judgeGroup.First().Id].TransitiveMembers.Request().GetAsync();
-
-                return judges.Where(m => m.ODataType == GraphUserType).Cast<User>();
+                return judges.Cast<User>().Select(x => new UserResponse
+                {
+                    FirstName = x.GivenName,
+                    LastName = x.Surname,
+                    DisplayName = x.DisplayName,
+                    Email = x.UserPrincipalName
+                });
             }
             catch (Exception ex)
             {

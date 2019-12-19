@@ -123,7 +123,7 @@ namespace UserApi.UnitTests.Controllers
                 new UserResponse() { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.reform.hmcts.net" }
             };
 
-            _userAccountService.Setup(x => x.GetJudgesAsync()).Returns(Task.FromResult(response));
+            _userAccountService.Setup(x => x.GetJudgesAsync()).Returns(Task.FromResult(response.AsEnumerable()));
             var actionResult = (OkObjectResult)await _controller.GetJudges();
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().BeGreaterThan(0);
