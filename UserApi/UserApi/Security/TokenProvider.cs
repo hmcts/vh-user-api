@@ -37,9 +37,13 @@ namespace UserApi.Security
             try
             {
                 result = app.AcquireTokenForClient(scopes)
-                            .ExecuteAsync().Result;
+                    .ExecuteAsync().Result;
             }
             catch (MsalServiceException ex)
+            {
+                throw new UnauthorizedAccessException();
+            }
+            catch (Exception ex)
             {
                 throw new UnauthorizedAccessException();
             }

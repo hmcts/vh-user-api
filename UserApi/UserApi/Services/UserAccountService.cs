@@ -252,7 +252,7 @@ namespace UserApi.Services
         {
             try
             {
-                var judges = await _graphClient.Groups[groupId].Members.Request().GetAsync();
+                var judges = await _graphClient.Groups[groupId].Members.Request().Top(999).GetAsync();
 
                 if (judges.Count == 0)
                 {

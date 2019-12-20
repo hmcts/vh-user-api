@@ -6,10 +6,8 @@ namespace UserApi.Helper
 {
     public interface IGraphApiSettings
     {
-        string GraphApiBaseUriWindows { get; }
         string GraphApiBaseUri { get; }
         string AccessToken { get; }
-        string AccessTokenWindows { get; }
         string TenantId { get; }
     }
 
@@ -24,8 +22,6 @@ namespace UserApi.Helper
             _azureAdConfiguration = azureAdConfig;
         }
 
-        public string GraphApiBaseUriWindows => "https://graph.windows.net/";
-
         public string TenantId => _azureAdConfiguration.TenantId;
 
         public string AccessToken
@@ -34,16 +30,7 @@ namespace UserApi.Helper
             {
                 return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                    _azureAdConfiguration.ClientSecret,
-                   new []{$"{_azureAdConfiguration.GraphApiBaseUri}/.default"});
-            }
-        }
-        public string AccessTokenWindows
-        {
-            get
-            {
-                return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                   _azureAdConfiguration.ClientSecret,
-                   new []{$"{GraphApiBaseUriWindows}/.default"});
+                   new []{$"{_azureAdConfiguration.GraphApiBaseUri}.default"});
             }
         }
 
