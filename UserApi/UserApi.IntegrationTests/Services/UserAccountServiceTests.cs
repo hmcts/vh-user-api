@@ -6,8 +6,6 @@ using Moq;
 using NUnit.Framework;
 using Testing.Common;
 using Testing.Common.ActiveDirectory;
-using UserApi.Helper;
-using UserApi.Security;
 using UserApi.Services;
 
 namespace UserApi.IntegrationTests.Services
@@ -15,15 +13,12 @@ namespace UserApi.IntegrationTests.Services
     public class UserAccountServiceTests
     {
         private UserAccountService _service;
-        private IGraphApiSettings _graphApiSettings;
         private Mock<IGraphServiceClient> _graphServiceClient;
 
         [SetUp]
         public void Setup()
         {
             var settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider();
-            _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _graphServiceClient = new Mock<IGraphServiceClient>();
             
             _service = new UserAccountService(settings, _graphServiceClient.Object);
@@ -55,7 +50,7 @@ namespace UserApi.IntegrationTests.Services
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());
 
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, "Need real token from TokenProvider");
         }
     }
 }
