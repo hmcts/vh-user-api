@@ -9,30 +9,24 @@ using Testing.Common.ActiveDirectory;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
-using Group = Microsoft.Graph.Group;
 
 namespace UserApi.IntegrationTests.Services
 {
     public class UserAccountServiceTests
     {
         private UserAccountService _service;
-        private GraphApiSettings _graphApiSettings;
-        private SecureHttpRequest _secureHttpRequest;
-        private GraphApiClient _identityServiceApiClient;
+        private IGraphApiSettings _graphApiSettings;
         private Mock<IGraphServiceClient> _graphServiceClient;
 
         [SetUp]
         public void Setup()
         {
-            _secureHttpRequest = new SecureHttpRequest();
-
             var settings = TestConfig.Instance.Settings;
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
-            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, settings);
             _graphServiceClient = new Mock<IGraphServiceClient>();
             
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _graphServiceClient.Object);
+            _service = new UserAccountService(settings, _graphServiceClient.Object);
         }
 
         [Test]

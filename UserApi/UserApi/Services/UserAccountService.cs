@@ -11,12 +11,7 @@ namespace UserApi.Services
 {
     public class UserAccountService : IUserAccountService
     {
-        private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
-        private const string GraphUserType = "#microsoft.graph.user";
-        private readonly ISecureHttpRequest _secureHttpRequest;
-        private readonly IGraphApiSettings _graphApiSettings;
-        private readonly IIdentityServiceApiClient _client;
         private readonly IGraphServiceClient _graphClient;
         private readonly bool _isLive;
         private const string JudgesGroup = "VirtualRoomJudge";
@@ -26,13 +21,10 @@ namespace UserApi.Services
         private static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings, IGraphServiceClient graphServiceClient)
+        public UserAccountService(Settings settings, IGraphServiceClient graphServiceClient)
         {
-            _secureHttpRequest = secureHttpRequest;
-            _graphApiSettings = graphApiSettings;
             _graphClient = graphServiceClient;
             _defaultPassword = settings.DefaultPassword;
-            _client = client;
             _isLive = settings.IsLive;
         }
 
@@ -90,11 +82,9 @@ namespace UserApi.Services
                 {
                     return;
                 }
-                else
-                {
-                    var message = $"Failed to add user {user.Id} to group {group.Id}";
-                    throw new UserServiceException(message, ex.Message);
-                }
+
+                var message = $"Failed to add user {user.Id} to group {group.Id}";
+                throw new UserServiceException(message, ex.Message);
             }
             catch (Exception ex)
             {
@@ -170,18 +160,11 @@ namespace UserApi.Services
 
         public async Task<List<Group>> GetGroupsForUserAsync(string userId)
         {
-
             try
             {
                 var memberships = await _graphClient.Users[userId].TransitiveMemberOf.Request().GetAsync();
 
-                var groups = new List<Group>();
-                foreach (Group group in memberships.Where(m => m.ODataType == GraphGroupType))
-                {
-                    groups.Add(group);
-                }
-
-                return groups;
+                return memberships.Where(m => m.ODataType == GraphGroupType).OfType<Group>().ToList();
             }
             catch (Exception ex)
             {
@@ -201,6 +184,7 @@ namespace UserApi.Services
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, "hearings.reform.hmcts.net");
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
+            
             return username.GetGivenExistingUsers(existingUsernames);
         }
 
@@ -221,7 +205,7 @@ namespace UserApi.Services
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
         {
             var judges = await GetJudgesByGroupNameAsync(JudgesGroup);
-            
+
             if (_isLive)
             {
                 judges = await ExcludeTestJudgesAsync(judges);
@@ -229,11 +213,11 @@ namespace UserApi.Services
 
             return judges.OrderBy(x => x.DisplayName);
         }
-        
+
         private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
             var groupData = await GetGroupByNameAsync(groupName);
-            
+
             if (groupData == null)
             {
                 return new List<UserResponse>();
@@ -241,13 +225,13 @@ namespace UserApi.Services
 
             return await GetJudgesAsync(groupData.Id);
         }
-        
+
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
             var testJudges = await GetJudgesByGroupNameAsync(JudgesTestGroup);
             return judgesList.Except(testJudges, CompareJudgeById).ToList();
         }
-        
+
         private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)
         {
             try

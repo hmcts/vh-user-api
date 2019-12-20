@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using UserApi.Common;
+﻿using UserApi.Common;
 using UserApi.Security;
 
 namespace UserApi.Helper
@@ -28,9 +27,13 @@ namespace UserApi.Helper
         {
             get
             {
-                return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                   _azureAdConfiguration.ClientSecret,
-                   new []{$"{_azureAdConfiguration.GraphApiBaseUri}.default"});
+                return _tokenProvider.GetClientAccessToken
+                (
+                    _azureAdConfiguration.ClientId, _azureAdConfiguration.ClientSecret, new []
+                    {
+                        $"{_azureAdConfiguration.GraphApiBaseUri}.default"
+                    }
+                );
             }
         }
 

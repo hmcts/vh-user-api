@@ -4,8 +4,6 @@ using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common;
-using UserApi.Helper;
-using UserApi.Security;
 using UserApi.Services;
 
 namespace UserApi.UnitTests.Services
@@ -14,8 +12,6 @@ namespace UserApi.UnitTests.Services
     {
         private const string Domain = "@hearings.reform.hmcts.net";
 
-        private Mock<SecureHttpRequest> _secureHttpRequest;
-        private GraphApiSettings _graphApiSettings;
         private Mock<IIdentityServiceApiClient> _identityServiceApiClient;
         private UserAccountService _service;
         private Mock<IGraphServiceClient> _graphServiceClient;
@@ -23,15 +19,11 @@ namespace UserApi.UnitTests.Services
         [SetUp]
         public void Setup()
         {
-            _secureHttpRequest = new Mock<SecureHttpRequest>();
-
             var settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
-            _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _identityServiceApiClient = new Mock<IIdentityServiceApiClient>();
             _graphServiceClient = new Mock<IGraphServiceClient>();
             
-            _service = new UserAccountService(_secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, settings, _graphServiceClient.Object);
+            _service = new UserAccountService(settings, _graphServiceClient.Object);
         }
 
         [Test]

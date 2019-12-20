@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Graph;
+﻿using Microsoft.Graph;
 using System.Net.Http.Headers;
 
 namespace UserApi.Helper
@@ -15,16 +14,13 @@ namespace UserApi.Helper
 
         public GraphServiceClient GetAuthenticatedClient()
         {
-            GraphServiceClient graphClient = new GraphServiceClient( 
+            return new GraphServiceClient( 
                 new DelegateAuthenticationProvider(
-                    async (requestMessage) =>
+                    async requestMessage =>
                     {
-                        string accessToken = _graphApiSettings.AccessToken;
-
-                        // Append the access token to the request.
+                        var accessToken = _graphApiSettings.AccessToken;
                         requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", accessToken);
                     }));
-            return graphClient;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace UserApi.UnitTests.Services
         {
             _secureHttpRequest = new Mock<ISecureHttpRequest>();
             _graphApiSettings = new Mock<IGraphApiSettings>();
-            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, new Settings());
+            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object);
         }
         
         /// <summary>

@@ -1,15 +1,10 @@
 using Microsoft.Identity.Client;
 using System;
+using System.Collections.Generic;
 using UserApi.Common;
 
 namespace UserApi.Security
 {
-    public interface ITokenProvider
-    {
-        string GetClientAccessToken(string clientId, string clientSecret, string[] scopes);
-        AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string[] scopes);
-    }
-
     public class TokenProvider : ITokenProvider
     {
         private readonly AzureAdConfiguration _azureAdConfiguration;
@@ -25,25 +20,21 @@ namespace UserApi.Security
             return result.AccessToken;
         }
 
-        public AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string[] scopes)
+        private AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, IEnumerable<string> scopes)
         {
             AuthenticationResult result;
 
-            var app = ConfidentialClientApplicationBuilder.Create(clientId)
-           .WithAuthority(AzureCloudInstance.AzurePublic, _azureAdConfiguration.TenantId)
-           .WithClientSecret(clientSecret)
-           .Build();
+            var app = 
+                ConfidentialClientApplicationBuilder.Create(clientId)
+               .WithAuthority(AzureCloudInstance.AzurePublic, _azureAdConfiguration.TenantId)
+               .WithClientSecret(clientSecret)
+               .Build();
 
             try
             {
-                result = app.AcquireTokenForClient(scopes)
-                    .ExecuteAsync().Result;
+                result = app.AcquireTokenForClient(scopes).ExecuteAsync().Result;
             }
             catch (MsalServiceException ex)
-            {
-                throw new UnauthorizedAccessException();
-            }
-            catch (Exception ex)
             {
                 throw new UnauthorizedAccessException();
             }
