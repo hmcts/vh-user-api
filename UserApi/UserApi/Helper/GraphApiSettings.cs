@@ -28,8 +28,7 @@ namespace UserApi.Helper
             get
             {
                 return _tokenProvider.GetClientAccessToken
-                (
-                    _azureAdConfiguration.ClientId, _azureAdConfiguration.ClientSecret, new []
+                (_azureAdConfiguration.TenantId, _azureAdConfiguration.ClientId, _azureAdConfiguration.ClientSecret, new []
                     {
                         $"{_azureAdConfiguration.GraphApiBaseUri}.default"
                     }

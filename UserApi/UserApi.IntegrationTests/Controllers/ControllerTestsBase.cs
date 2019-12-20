@@ -12,7 +12,7 @@ namespace UserApi.IntegrationTests.Controllers
     [Parallelizable(ParallelScope.All)]
     public abstract class ControllerTestsBase
     {
-        private string _bearerToken;
+        private string _clientApiToken;
         private TestServer _server;
         protected string GraphApiToken;
 
@@ -32,12 +32,10 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var testSettings = TestConfig.Instance.TestSettings;
 
-            _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
-                testSettings.TestClientId, testSettings.TestClientSecret,
-                new string[] { $"{TestConfig.Instance.AzureAd.AppIdUri}/.default" });
+            _clientApiToken = new TokenProvider().GetClientAccessToken("", testSettings.TestClientId, testSettings.TestClientSecret,
+                new string[] { "https://devhearingsreform.onmicrosoft.com/user-api-dev/.default" });
 
-            GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
-                testSettings.TestClientId, testSettings.TestClientSecret,
+            GraphApiToken = new TokenProvider().GetClientAccessToken("", testSettings.TestClientId, testSettings.TestClientSecret,
                 new string[] { "https://graph.microsoft.com/.default" });
         }
 
@@ -51,7 +49,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using (var client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_clientApiToken}");
                 return await client.GetAsync(uri);
             }
         }
@@ -60,7 +58,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using (var client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_clientApiToken}");
                 return await client.PostAsync(uri, httpContent);
             }
         }
@@ -69,7 +67,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using (var client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_clientApiToken}");
                 return await client.PatchAsync(uri, httpContent);
             }
         }
@@ -78,7 +76,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using (var client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_clientApiToken}");
                 return await client.PutAsync(uri, httpContent);
             }
         }
@@ -87,7 +85,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using (var client = _server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_clientApiToken}");
                 return await client.DeleteAsync(uri);
             }
         }

@@ -22,7 +22,7 @@ namespace UserApi.IntegrationTests.Services
         public void Setup()
         {
             var settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            var tokenProvider = new TokenProvider();
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _graphServiceClient = new Mock<IGraphServiceClient>();
             

@@ -20,7 +20,7 @@ namespace UserApi.IntegrationTests.Services
             _secureHttpRequest = new SecureHttpRequest();
             
             var config = TestConfig.Instance.AzureAd;
-            _graphApiSettings = new GraphApiSettings(new TokenProvider(config), config);
+            _graphApiSettings = new GraphApiSettings(new TokenProvider(), config);
             _graphApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings);
         }
 

@@ -2,6 +2,6 @@
 {
     public interface ITokenProvider
     {
-        string GetClientAccessToken(string clientId, string clientSecret, string[] scopes);
+        string GetClientAccessToken(string tenantId, string clientId, string clientSecret, string[] scopes);
     }
 }

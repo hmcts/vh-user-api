@@ -29,12 +29,10 @@ namespace UserApi.IntegrationTests.Hooks
 
             var azureAdConfig = TestConfig.Instance.AzureAd;
 
-            apiTestContext.BearerToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
-                apiTestContext.TestSettings.TestClientId, apiTestContext.TestSettings.TestClientSecret,
-                new string[] { $"{azureAdConfig.AppIdUri}/.default" });
+            apiTestContext.BearerToken = new TokenProvider().GetClientAccessToken("", apiTestContext.TestSettings.TestClientId, apiTestContext.TestSettings.TestClientSecret,
+                new string[] { "https://devhearingsreform.onmicrosoft.com/user-api-dev/.default" });
 
-            apiTestContext.GraphApiToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
-                azureAdConfig.ClientId, azureAdConfig.ClientSecret,
+            apiTestContext.GraphApiToken = new TokenProvider().GetClientAccessToken("", azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 new string[] { "https://graph.microsoft.com/.default" });
         }
 

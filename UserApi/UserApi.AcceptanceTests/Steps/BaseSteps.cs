@@ -20,12 +20,10 @@ namespace UserApi.AcceptanceTests.Steps
             var azureAdConfiguration = TestConfig.Instance.AzureAd;
             context.TestSettings = TestConfig.Instance.TestSettings;
 
-            context.BearerToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
-                context.TestSettings.TestClientId, context.TestSettings.TestClientSecret,
-                new string[] { $"{azureAdConfiguration.AppIdUri}/.default" });
+            context.ClientApiToken = new TokenProvider().GetClientAccessToken("", context.TestSettings.TestClientId, context.TestSettings.TestClientSecret,
+                new string[] { "https://devhearingsreform.onmicrosoft.com/user-api-dev/.default" });
 
-            context.GraphApiToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
-                azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
+            context.GraphApiToken = new TokenProvider().GetClientAccessToken("", azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
                 new string[] { "https://graph.microsoft.com/.default" });
 
             var apiTestsOptions = TestConfig.Instance.GetFromSection<AcceptanceTestConfiguration>("AcceptanceTestSettings");

@@ -5,7 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Threading.Tasks;
+using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -15,7 +18,7 @@ namespace UserApi
 {
     public static class ConfigureServicesExtensions
     {
-        public static IServiceCollection AddCustomTypes(this IServiceCollection serviceCollection)
+        public static void AddCustomTypes(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddMemoryCache();
 
@@ -26,15 +29,26 @@ namespace UserApi
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
             serviceCollection.AddScoped<IGraphServiceClient, GraphServiceClient>(x =>
             {
-                var settings = x.GetService<IGraphApiSettings>();
-                var factory = new GraphServiceClientFactory(settings);
+                var delegateAuthProvider = new DelegateAuthenticationProvider(requestMessage =>
+                {
+                    var tokenProvider = x.GetService<ITokenProvider>();
+                    var azureAdSettings = x.GetService<AzureAdConfiguration>();
 
-                return factory.GetAuthenticatedClient();
+                    var accessToken = tokenProvider.GetClientAccessToken(azureAdSettings.TenantId, azureAdSettings.ClientId, azureAdSettings.ClientSecret,
+                    new[]
+                    {
+                        $"{azureAdSettings.GraphApiBaseUri}.default"
+                    });
+                    
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", accessToken);
+                    
+                    return Task.CompletedTask;
+                });
+
+                return new GraphServiceClient(delegateAuthProvider);
             });
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
-
-            return serviceCollection;
         }
 
         private static void AddSwaggerToApi(this IServiceCollection serviceCollection)
