@@ -29,14 +29,14 @@ namespace UserApi.AcceptanceTests.Steps
                 TestConfig.Instance.AzureAd.TenantId,
                 TestConfig.Instance.AzureAd.ClientId,
                 TestConfig.Instance.AzureAd.ClientSecret,
-                new []{ $"{TestConfig.Instance.AzureAd.VhUserApiResourceId}/.default"}
+                new []{ $"{TestConfig.Instance.AzureAd.Scope}/.default"}
             );
 
             context.GraphApiToken = tokenProvider.GetClientAccessToken
             (
-                TestConfig.Instance.AzureAd.TenantId,
-                TestConfig.Instance.AzureAd.ClientId,
-                TestConfig.Instance.AzureAd.ClientSecret,
+                TestConfig.Instance.AzureAd.AzureAdGraphApiConfig.TenantId,
+                TestConfig.Instance.AzureAd.AzureAdGraphApiConfig.ClientId,
+                TestConfig.Instance.AzureAd.AzureAdGraphApiConfig.ClientSecret,
                 new []{ $"{TestConfig.Instance.AzureAd.GraphApiBaseUri}.default"}
             );
 

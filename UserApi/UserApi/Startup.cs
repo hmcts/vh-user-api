@@ -86,7 +86,7 @@ namespace UserApi
             {
                 options.Authority = $"{AzureAdSettings.Authority}{AzureAdSettings.TenantId}";
                 options.TokenValidationParameters.ValidateLifetime = true;
-                options.Audience = AzureAdSettings.VhUserApiResourceId;
+                options.Audience = AzureAdSettings.Scope;
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
             });
 
