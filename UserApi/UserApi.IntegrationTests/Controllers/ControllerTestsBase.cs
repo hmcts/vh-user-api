@@ -30,12 +30,12 @@ namespace UserApi.IntegrationTests.Controllers
 
         private void GetClientAccessTokenForBookHearingApi()
         {
-            var testSettings = TestConfig.Instance.TestSettings;
+            var settings = TestConfig.Instance;
 
-            _clientApiToken = new TokenProvider().GetClientAccessToken("", testSettings.TestClientId, testSettings.TestClientSecret,
+            _clientApiToken = new TokenProvider().GetClientAccessToken(settings.AzureAd.TenantId, settings.TestSettings.TestClientId, settings.TestSettings.TestClientSecret,
                 new string[] { "https://devhearingsreform.onmicrosoft.com/user-api-dev/.default" });
 
-            GraphApiToken = new TokenProvider().GetClientAccessToken("", testSettings.TestClientId, testSettings.TestClientSecret,
+            GraphApiToken = new TokenProvider().GetClientAccessToken(settings.AzureAd.AzureAdGraphApiConfig.TenantId, settings.AzureAd.AzureAdGraphApiConfig.ClientId, settings.AzureAd.AzureAdGraphApiConfig.ClientSecret,
                 new string[] { "https://graph.microsoft.com/.default" });
         }
 

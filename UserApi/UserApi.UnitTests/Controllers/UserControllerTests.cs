@@ -44,7 +44,7 @@ namespace UserApi.UnitTests.Controllers
                 LastName = "Sample"
             };
 
-            var filter = $"objectId  eq '{userId}'";
+            var filter = $"Id  eq '{userId}'";
             _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).Returns(Task.FromResult(userResponse));
 
             var actionResult = (OkObjectResult) await _controller.GetUserByAdUserId(userId);

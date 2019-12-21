@@ -32,11 +32,14 @@ namespace UserApi
                     var tokenProvider = x.GetService<ITokenProvider>();
                     var azureAdSettings = x.GetService<AzureAdConfiguration>();
 
-                    var accessToken = tokenProvider.GetClientAccessToken(azureAdSettings.TenantId, azureAdSettings.ClientId, azureAdSettings.ClientSecret,
-                    new[]
-                    {
-                        $"{azureAdSettings.GraphApiBaseUri}.default"
-                    });
+                    var accessToken = tokenProvider.GetClientAccessToken
+                    (
+                        azureAdSettings.AzureAdGraphApiConfig.TenantId, azureAdSettings.AzureAdGraphApiConfig.ClientId, azureAdSettings.AzureAdGraphApiConfig.ClientSecret,
+                        new[]
+                        {
+                            $"{azureAdSettings.GraphApiBaseUri}.default"
+                        }
+                    );
                     
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", accessToken);
                     
