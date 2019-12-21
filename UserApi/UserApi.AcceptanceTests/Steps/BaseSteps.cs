@@ -22,14 +22,21 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var azureAdConfiguration = TestConfig.Instance.AzureAd;
             context.TestSettings = TestConfig.Instance.TestSettings;
+            var tokenProvider = new TokenProvider(azureAdConfiguration);
 
-            context.BearerToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
-                context.TestSettings.TestClientId, context.TestSettings.TestClientSecret,
-                azureAdConfiguration.VhUserApiResourceId);
+            context.BearerToken = tokenProvider.GetClientAccessToken
+            (
+                context.TestSettings.TestClientId,
+                context.TestSettings.TestClientSecret,
+                azureAdConfiguration.VhUserApiResourceId
+            );
 
-            context.GraphApiToken = new TokenProvider(azureAdConfiguration).GetClientAccessToken(
-                azureAdConfiguration.ClientId, azureAdConfiguration.ClientSecret,
-                "https://graph.microsoft.com");
+            context.GraphApiToken = tokenProvider.GetClientAccessToken
+            (
+                azureAdConfiguration.ClientId,
+                azureAdConfiguration.ClientSecret,
+                "https://graph.microsoft.com"
+            );
 
             var apiTestsOptions = TestConfig.Instance.GetFromSection<AcceptanceTestConfiguration>("AcceptanceTestSettings");
             context.BaseUrl = apiTestsOptions.UserApiBaseUrl;

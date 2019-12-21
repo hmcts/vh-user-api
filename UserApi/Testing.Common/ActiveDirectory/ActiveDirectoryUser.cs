@@ -9,7 +9,7 @@ namespace Testing.Common.ActiveDirectory
 {
     public static class ActiveDirectoryUser
     {
-        private static string ApiBaseUrl => $"https://graph.microsoft.com/v1.0/{TestConfig.Instance.AzureAd.TenantId}";
+        private static string ApiBaseUrl => $"https://graph.microsoft.com/v1.0/{TestConfig.Instance.AzureAd.AzureAdGraphApiConfig.TenantId}";
 
         public static async Task<bool> IsUserInAGroupAsync(string user, string groupName, string token)
         {

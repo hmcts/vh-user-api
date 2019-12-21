@@ -8,11 +8,14 @@
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
         public string GraphApiBaseUri { get; set; }
-        public string VhBookingsApiResourceId { get; set; }
+        public AzureAdGraphApiConfig AzureAdGraphApiConfig { get; set; }
     }
 
-    public class HealthConfiguration
+    public class AzureAdGraphApiConfig
     {
-        public string HealthCheckEmail { get; set; }
+        public string Authority { get; set; }
+        public string TenantId { get; set; }
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
     }
 }
