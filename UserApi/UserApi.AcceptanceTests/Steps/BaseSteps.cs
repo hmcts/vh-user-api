@@ -24,7 +24,7 @@ namespace UserApi.AcceptanceTests.Steps
             context.TestSettings = TestConfig.Instance.TestSettings;
             var tokenProvider = new TokenProvider(azureAdConfiguration);
 
-            context.BearerToken = tokenProvider.GetClientAccessToken
+            context.userApiToken = tokenProvider.GetClientAccessToken
             (
                 context.TestSettings.TestClientId,
                 context.TestSettings.TestClientSecret,

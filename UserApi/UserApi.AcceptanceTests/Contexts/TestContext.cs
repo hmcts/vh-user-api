@@ -8,7 +8,7 @@ namespace UserApi.AcceptanceTests.Contexts
     {
         public RestRequest Request { get; set; }
         public IRestResponse Response { get; set; }
-        public string BearerToken { get; set; }
+        public string userApiToken { get; set; }
         public string BaseUrl { get; set; }
         public string Json { get; set; }
         public string NewUserId { get; set; }
@@ -20,7 +20,7 @@ namespace UserApi.AcceptanceTests.Contexts
         {
             var client = new RestClient(BaseUrl);
             client.AddDefaultHeader("Accept", "application/json");
-            client.AddDefaultHeader("Authorization", $"Bearer {BearerToken}");
+            client.AddDefaultHeader("Authorization", $"Bearer {userApiToken}");
             return client;
         }
 

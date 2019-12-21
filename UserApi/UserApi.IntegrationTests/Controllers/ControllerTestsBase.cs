@@ -3,11 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Testing.Common;
-using UserApi.Common;
 using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers
@@ -28,20 +25,21 @@ namespace UserApi.IntegrationTests.Controllers
                 .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
 
-            GetClientAccessTokenForBookHearingApi();
-        }
+            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            
+            _bearerToken = tokenProvider.GetClientAccessToken
+            (
+                TestConfig.Instance.TestSettings.TestClientId, 
+                TestConfig.Instance.TestSettings.TestClientSecret,
+                TestConfig.Instance.AzureAd.VhUserApiResourceId
+            );
 
-        private void GetClientAccessTokenForBookHearingApi()
-        {
-            var testSettings = TestConfig.Instance.TestSettings;
-
-            _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
-                testSettings.TestClientId, testSettings.TestClientSecret,
-                TestConfig.Instance.AzureAd.VhUserApiResourceId);
-
-            GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
-                testSettings.TestClientId, testSettings.TestClientSecret,
-                "https://graph.microsoft.com");
+            GraphApiToken = tokenProvider.GetClientAccessToken
+            (
+                TestConfig.Instance.TestSettings.TestClientId, 
+                TestConfig.Instance.TestSettings.TestClientSecret,
+                "https://graph.microsoft.com"
+            );
         }
 
         [OneTimeTearDown]
