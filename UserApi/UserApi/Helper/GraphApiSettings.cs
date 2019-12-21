@@ -29,16 +29,18 @@ namespace UserApi.Helper
 
         public string AccessToken => _tokenProvider.GetClientAccessToken
         (
+            _azureAdConfiguration.AzureAdGraphApiConfig.TenantId,
             _azureAdConfiguration.AzureAdGraphApiConfig.ClientId,
             _azureAdConfiguration.AzureAdGraphApiConfig.ClientSecret,
-            _azureAdConfiguration.GraphApiBaseUri
+            new []{ $"{_azureAdConfiguration.GraphApiBaseUri}.default"}
         );
 
         public string AccessTokenWindows => _tokenProvider.GetClientAccessToken
         (
+            _azureAdConfiguration.AzureAdGraphApiConfig.TenantId,
             _azureAdConfiguration.AzureAdGraphApiConfig.ClientId,
             _azureAdConfiguration.AzureAdGraphApiConfig.ClientSecret,
-            GraphApiBaseUriWindows
+            new []{ $"{GraphApiBaseUriWindows}.default"}
         );
     }
 }

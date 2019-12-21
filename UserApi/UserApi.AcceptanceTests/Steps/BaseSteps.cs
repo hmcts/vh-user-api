@@ -7,6 +7,7 @@ using Testing.Common;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.AcceptanceTests.Helpers;
+using UserApi.Common;
 using UserApi.Contract.Responses;
 using UserApi.Security;
 
@@ -20,22 +21,23 @@ namespace UserApi.AcceptanceTests.Steps
         [BeforeTestRun]
         public static void OneTimeSetup(TestContext context)
         {
-            var azureAdConfiguration = TestConfig.Instance.AzureAd;
             context.TestSettings = TestConfig.Instance.TestSettings;
-            var tokenProvider = new TokenProvider(azureAdConfiguration);
+            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
 
-            context.userApiToken = tokenProvider.GetClientAccessToken
+            context.UserApiToken = tokenProvider.GetClientAccessToken
             (
-                context.TestSettings.TestClientId,
-                context.TestSettings.TestClientSecret,
-                azureAdConfiguration.VhUserApiResourceId
+                TestConfig.Instance.AzureAd.TenantId,
+                TestConfig.Instance.AzureAd.ClientId,
+                TestConfig.Instance.AzureAd.ClientSecret,
+                new []{ $"{TestConfig.Instance.AzureAd.VhUserApiResourceId}/.default"}
             );
 
             context.GraphApiToken = tokenProvider.GetClientAccessToken
             (
-                azureAdConfiguration.ClientId,
-                azureAdConfiguration.ClientSecret,
-                "https://graph.microsoft.com"
+                TestConfig.Instance.AzureAd.TenantId,
+                TestConfig.Instance.AzureAd.ClientId,
+                TestConfig.Instance.AzureAd.ClientSecret,
+                new []{ $"{TestConfig.Instance.AzureAd.GraphApiBaseUri}.default"}
             );
 
             var apiTestsOptions = TestConfig.Instance.GetFromSection<AcceptanceTestConfiguration>("AcceptanceTestSettings");

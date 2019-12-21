@@ -30,18 +30,20 @@ namespace UserApi.IntegrationTests.Hooks
             var azureAdConfig = TestConfig.Instance.AzureAd;
             var tokenProvider = new TokenProvider(azureAdConfig);
 
-            apiTestContext.BearerToken = tokenProvider.GetClientAccessToken
+            apiTestContext.UserApiToken = tokenProvider.GetClientAccessToken
             (
-                apiTestContext.TestSettings.TestClientId, 
-                apiTestContext.TestSettings.TestClientSecret,
-                azureAdConfig.VhUserApiResourceId
+                TestConfig.Instance.AzureAd.TenantId,
+                TestConfig.Instance.AzureAd.ClientId,
+                TestConfig.Instance.AzureAd.ClientSecret,
+                new []{ $"{TestConfig.Instance.AzureAd.VhUserApiResourceId}/.default"}
             );
 
             apiTestContext.GraphApiToken = tokenProvider.GetClientAccessToken
             (
-                azureAdConfig.ClientId, 
-                azureAdConfig.ClientSecret,
-                "https://graph.microsoft.com"
+                TestConfig.Instance.AzureAd.TenantId,
+                TestConfig.Instance.AzureAd.ClientId,
+                TestConfig.Instance.AzureAd.ClientSecret,
+                new []{ $"{TestConfig.Instance.AzureAd.GraphApiBaseUri}.default"}
             );
         }
 

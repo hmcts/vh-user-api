@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using UserApi.Common;
 
@@ -6,7 +7,7 @@ namespace UserApi.Security
 {
     public interface ITokenProvider
     {
-        string GetClientAccessToken(string clientId, string clientSecret, string clientResource);
+        string GetClientAccessToken(string tenantId, string clientId, string clientSecret, string[] scopes);
     }
 
     public class TokenProvider : ITokenProvider
@@ -18,21 +19,21 @@ namespace UserApi.Security
             _azureAdConfiguration = azureAdConfiguration;
         }
 
-        public string GetClientAccessToken(string clientId, string clientSecret, string clientResource)
+        public string GetClientAccessToken(string tenantId, string clientId, string clientSecret, string[] scopes)
         {
-            var credential = new ClientCredential(clientId, clientSecret);
-            var authContext = new AuthenticationContext
-            (
-                $"{_azureAdConfiguration.AzureAdGraphApiConfig.Authority}{_azureAdConfiguration.AzureAdGraphApiConfig.TenantId}"
-            );
+            var app = ConfidentialClientApplicationBuilder
+                .Create(clientId)
+                .WithAuthority(AzureCloudInstance.AzurePublic, tenantId)
+                .WithClientSecret(clientSecret)
+                .Build();
 
             try
             {
-                return authContext.AcquireTokenAsync(clientResource, credential).Result.AccessToken;
+                return app.AcquireTokenForClient(scopes).ExecuteAsync().Result.AccessToken;
             }
-            catch (AdalException)
+            catch (MsalServiceException ex)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedAccessException("Error getting token", ex);
             }
         }
     }
