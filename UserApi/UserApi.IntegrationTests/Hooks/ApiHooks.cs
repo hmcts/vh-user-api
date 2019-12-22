@@ -27,8 +27,7 @@ namespace UserApi.IntegrationTests.Hooks
         {
             apiTestContext.TestSettings = TestConfig.Instance.TestSettings;
 
-            var azureAdConfig = TestConfig.Instance.AzureAd;
-            var tokenProvider = new TokenProvider(azureAdConfig);
+            var tokenProvider = new TokenProvider();
 
             apiTestContext.UserApiToken = tokenProvider.GetClientAccessToken
             (

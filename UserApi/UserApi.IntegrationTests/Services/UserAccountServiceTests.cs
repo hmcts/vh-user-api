@@ -7,7 +7,6 @@ using Testing.Common.ActiveDirectory;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
-using Group = Microsoft.Graph.Group;
 
 namespace UserApi.IntegrationTests.Services
 {
@@ -24,7 +23,7 @@ namespace UserApi.IntegrationTests.Services
             _secureHttpRequest = new SecureHttpRequest();
 
             var settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            var tokenProvider = new TokenProvider();
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, settings);
             _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings);

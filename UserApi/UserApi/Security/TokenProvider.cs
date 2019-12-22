@@ -1,7 +1,5 @@
 using System;
 using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using UserApi.Common;
 
 namespace UserApi.Security
 {
@@ -12,13 +10,6 @@ namespace UserApi.Security
 
     public class TokenProvider : ITokenProvider
     {
-        private readonly AzureAdConfiguration _azureAdConfiguration;
-
-        public TokenProvider(AzureAdConfiguration azureAdConfiguration)
-        {
-            _azureAdConfiguration = azureAdConfiguration;
-        }
-
         public string GetClientAccessToken(string tenantId, string clientId, string clientSecret, string[] scopes)
         {
             var app = ConfidentialClientApplicationBuilder

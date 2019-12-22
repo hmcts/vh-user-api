@@ -22,7 +22,7 @@ namespace UserApi.AcceptanceTests.Steps
         public static void OneTimeSetup(TestContext context)
         {
             context.TestSettings = TestConfig.Instance.TestSettings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            var tokenProvider = new TokenProvider();
 
             context.UserApiToken = tokenProvider.GetClientAccessToken
             (

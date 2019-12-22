@@ -25,7 +25,7 @@ namespace UserApi.IntegrationTests.Controllers
                 .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
 
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            var tokenProvider = new TokenProvider();
             
             _userApiToken = tokenProvider.GetClientAccessToken
             (

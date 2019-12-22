@@ -23,11 +23,10 @@ namespace UserApi.UnitTests.Services
         {
             _secureHttpRequest = new Mock<SecureHttpRequest>();
 
-            var settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+            var tokenProvider = new TokenProvider();
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _identityServiceApiClient = new Mock<IIdentityServiceApiClient>();
-            _service = new UserAccountService(_secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, settings);
+            _service = new UserAccountService(_secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, TestConfig.Instance.Settings);
         }
 
         [Test]
