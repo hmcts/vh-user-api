@@ -2,6 +2,7 @@
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
@@ -16,10 +17,13 @@ namespace UserApi.AcceptanceTests.Steps
     {
         private readonly TestContext _context;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
+        private string _newUsername;
+        private readonly CommonSteps _commonSteps;
 
-        public UserSteps(TestContext context)
+        public UserSteps(TestContext context, CommonSteps commonSteps)
         {
             _context = context;
+            _commonSteps = commonSteps;
         }
 
         [Given(@"I have a new hearings reforms user account request with a valid email")]
@@ -38,6 +42,23 @@ namespace UserApi.AcceptanceTests.Steps
         public void GivenIHaveAGetUserByUserPrincipalNameRequestForAnExistingUserPrincipalName()
         {
             _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_context.TestSettings.ExistingUserPrincipal));
+        }
+
+        [Given(@"I have a new user")]
+        public void GivenIHaveANewUser()
+        {
+            _context.Request = _context.Post(_endpoints.CreateUser, new CreateUserRequestBuilder().Build());
+            _commonSteps.WhenISendTheRequestToTheEndpoint();
+            _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Created, true);
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Json);
+            model.Username.Should().NotBeNullOrEmpty();
+            _newUsername = model.Username;
+        }
+
+        [Given(@"I have a delete user request for the new user")]
+        public void GivenIHaveADeleteUserRequestForTheNewUser()
+        {
+            _context.Request = _context.Delete(_endpoints.DeleteUser(_newUsername));
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]
@@ -84,6 +105,14 @@ namespace UserApi.AcceptanceTests.Steps
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
+        }
+
+        [Then(@"the new user should be deleted")]
+        public void ThenTheNewUserShouldBeDeleted()
+        {
+            _context.Request = _context.Get(_endpoints.GetUserByEmail(_newUsername));
+            _commonSteps.WhenISendTheRequestToTheEndpoint();
+            _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.NotFound, false);
         }
 
         [Then(@"a list of ad judges should be retrieved")]
