@@ -158,6 +158,31 @@ namespace UserApi.IntegrationTests.Controllers
             var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == "Judge.Bever@***REMOVED***");
             expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
         }
+        
+        [Test]
+        public async Task Should_delete_user()
+        {
+            var createUserRequest = new CreateUserRequest
+            {
+                RecoveryEmail = $"Automation_{Internet.Email()}",
+                FirstName = $"Automation_{Name.First()}",
+                LastName = $"Automation_{Name.Last()}"
+            };
+            var createUserHttpRequest = new StringContent(
+                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+                Encoding.UTF8, "application/json");
+
+            var createUserResponse =
+                await SendPostRequestAsync(_userEndpoints.CreateUser, createUserHttpRequest);
+
+            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            var createUserModel =
+                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content
+                    .ReadAsStringAsync().Result);
+            
+            var getResponse = await SendDeleteRequestAsync(_userEndpoints.DeleteUser(createUserModel.Username));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
 
         [TearDown]
         public void ClearUp()

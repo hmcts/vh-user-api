@@ -9,7 +9,6 @@ using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using UserApi.Controllers;
-using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
 namespace UserApi.UnitTests.Controllers
@@ -142,6 +141,46 @@ namespace UserApi.UnitTests.Controllers
             actualResponse.Count.Should().BeGreaterThan(0);
             actualResponse.FirstOrDefault().DisplayName.Should()
                 .BeSameAs(userList.FirstOrDefault().DisplayName);
+        }
+        
+        [Test]
+        public async Task Should_return_bad_request_delete_user()
+        {
+            (await _controller.DeleteUser(null)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+            (await _controller.DeleteUser(string.Empty)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+            (await _controller.DeleteUser(" ")).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+        }
+        
+        [Test]
+        public async Task Should_delete_user_not_found()
+        {
+            const string email = "sample.user@gmail.com";
+
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult<User>(null));
+            
+            var result = await _controller.DeleteUser(email);
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<NotFoundResult>();
+        }
+        
+        [Test]
+        public async Task Should_delete_user_successfully()
+        {
+            const string email = "sample.user@gmail.com";
+            var userResponse = new User
+            {
+                DisplayName = "Sample User",
+                GivenName = "User",
+                Surname = "Sample"
+            };
+
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(userResponse));
+            
+            var result = await _controller.DeleteUser(email);
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<NoContentResult>();
         }
     }
 }

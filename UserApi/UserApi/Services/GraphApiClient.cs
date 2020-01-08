@@ -34,7 +34,7 @@ namespace UserApi.Services
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
-        public async Task<IEnumerable<string>> GetUsernamesStartingWith(string text)
+        public async Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text)
         { 
             var filterText = text.Replace("'", "''");
             var filter = $"startswith(userPrincipalName,'{filterText}')";
@@ -46,7 +46,7 @@ namespace UserApi.Services
             return result.Value.Select(user => user.UserPrincipalName);
         }
 
-        public async Task<NewAdUserAccount> CreateUser(string username, string firstName, string lastName, string displayName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail)
         {            
             // the user object provided by the graph api nuget package is missing the otherMails property
             // but it's there in the API so using a dynamic request model instead
@@ -79,6 +79,13 @@ namespace UserApi.Services
                 UserId = adAccount.Id,
                 Username = adAccount.UserPrincipalName
             };
+        }
+
+        public async Task DeleteUserAsync(string username)
+        {
+            var queryUrl = $"{_baseUrl}/users/{username}";
+            var response = await _secureHttpRequest.DeleteAsync(_graphApiSettings.AccessToken, queryUrl);
+            await AssertResponseIsSuccessful(response);
         }
 
         private static async Task AssertResponseIsSuccessful(HttpResponseMessage response)
