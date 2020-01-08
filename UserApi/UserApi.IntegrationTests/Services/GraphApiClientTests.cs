@@ -28,7 +28,7 @@ namespace UserApi.IntegrationTests.Services
         [Test]
         public async Task should_return_all_users_beginning_with_filter()
         {
-            var users = await _graphApiClient.GetUsernamesStartingWith("automation");
+            var users = await _graphApiClient.GetUsernamesStartingWithAsync("automation");
             foreach (var username in users)
             {
                 username.ToLower().Should().StartWith("automation");

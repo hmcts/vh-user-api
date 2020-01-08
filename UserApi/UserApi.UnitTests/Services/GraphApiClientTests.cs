@@ -36,7 +36,7 @@ namespace UserApi.UnitTests.Services
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(invalidResponse);
 
-            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.GetUsernamesStartingWith("bob"));
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.GetUsernamesStartingWithAsync("bob"));
         }
     }
 }
