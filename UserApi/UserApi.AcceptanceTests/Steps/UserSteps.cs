@@ -1,8 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
@@ -15,6 +17,7 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class UserSteps : BaseSteps
     {
+        private const int Timeout = 300;
         private readonly TestContext _context;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
         private string _newUsername;
@@ -53,6 +56,22 @@ namespace UserApi.AcceptanceTests.Steps
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Json);
             model.Username.Should().NotBeNullOrEmpty();
             _newUsername = model.Username;
+            PollForUserInAad().Should().BeTrue("User has been created in AAD");
+        }
+
+        private bool PollForUserInAad()
+        {
+            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                if (_context.Response.IsSuccessful)
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+            return false;
         }
 
         [Given(@"I have a delete user request for the new user")]
@@ -110,7 +129,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the new user should be deleted")]
         public void ThenTheNewUserShouldBeDeleted()
         {
-            _context.Request = _context.Get(_endpoints.GetUserByEmail(_newUsername));
+            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
             _commonSteps.WhenISendTheRequestToTheEndpoint();
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.NotFound, false);
         }
