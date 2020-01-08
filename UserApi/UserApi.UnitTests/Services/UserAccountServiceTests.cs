@@ -41,5 +41,16 @@ namespace UserApi.UnitTests.Services
             var nextAvailable = await _service.CheckForNextAvailableUsernameAsync("Existing", "User");
             Assert.AreEqual("existing.user2" + Domain, nextAvailable);
         }
+        
+        [Test]
+        public async Task should_delete()
+        {
+            _identityServiceApiClient.Setup(x => x.DeleteUserAsync(It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            await _service.DeleteUserAsync("User");
+            
+            _identityServiceApiClient.VerifyAll();
+        }
     }
 }
