@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
+using Polly;
 using TechTalk.SpecFlow;
 using UserApi.IntegrationTests.Contexts;
 
@@ -33,6 +34,25 @@ namespace UserApi.IntegrationTests.Steps
                 case "DELETE": _apiTestContext.ResponseMessage = await SendDeleteRequestAsync(_apiTestContext); break;
                 default: throw new ArgumentOutOfRangeException(_apiTestContext.HttpMethod.ToString(), _apiTestContext.HttpMethod.ToString(), null);
             }
+        }
+
+        [When(@"I send the delete request to the endpoint with polling")]
+        public async Task WhenISendTheDeleteRequestToTheEndpointWithPolling()
+        {
+            _apiTestContext.ResponseMessage = new HttpResponseMessage();
+
+            var policy = Policy
+                .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (msg, time) => { Console.WriteLine($"Received {msg.Result.StatusCode} for deleting user, retrying..."); });
+
+            var getResponse = await policy.ExecuteAsync
+            (
+                async () => await SendDeleteRequestAsync(_apiTestContext)
+            );
+
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            _apiTestContext.ResponseMessage = getResponse;
         }
 
         [Then(@"the response should have the status (.*) and success status (.*)")]
