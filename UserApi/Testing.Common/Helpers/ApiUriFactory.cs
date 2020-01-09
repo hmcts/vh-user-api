@@ -60,6 +60,11 @@ namespace Testing.Common.Helpers
         {
             return $"{ApiRoot}/judges";
         }
+        
+        public string DeleteUser(string userName)
+        {
+            return $"{ApiRoot}/username/{userName}";
+        }
     }
 
     public class HealthCheckEndpoints

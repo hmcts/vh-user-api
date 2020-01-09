@@ -1,7 +1,6 @@
 using Microsoft.Graph;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -48,7 +47,12 @@ namespace UserApi.Services
 
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            return await _client.CreateUser(username, firstName, lastName, displayName, recoveryEmail);
+            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
+        }
+
+        public async Task DeleteUserAsync(string username)
+        {
+            await _client.DeleteUserAsync(username);
         }
 
         public async Task AddUserToGroupAsync(User user, Group group)
@@ -205,7 +209,7 @@ namespace UserApi.Services
 
         private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername)
         {
-            var users = await _client.GetUsernamesStartingWith(baseUsername);
+            var users = await _client.GetUsernamesStartingWithAsync(baseUsername);
             return users.OrderBy(username => username);
         }
 

@@ -22,6 +22,13 @@ Scenario: Get user by user principal name
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
 
+Scenario: Delete an AAD user
+	Given I have a new user
+	And I have a delete user request for the new user
+	When I send the request to the endpoint
+	Then the response should have the status NoContent and success status True
+	And the new user should be deleted
+
 Scenario: Get user profile by email
 	Given I have a get user profile by email request for an existing email
 	When I send the request to the endpoint
