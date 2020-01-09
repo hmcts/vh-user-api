@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Faker;
 using FluentAssertions;
 using NUnit.Framework;
+using Polly;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -162,26 +164,54 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_delete_user()
         {
-            var createUserRequest = new CreateUserRequest
-            {
-                RecoveryEmail = $"Automation_{Internet.Email()}",
-                FirstName = $"Automation_{Name.First()}",
-                LastName = $"Automation_{Name.Last()}"
-            };
-            var createUserHttpRequest = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
-                Encoding.UTF8, "application/json");
-
-            var createUserResponse =
-                await SendPostRequestAsync(_userEndpoints.CreateUser, createUserHttpRequest);
-
-            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content
-                    .ReadAsStringAsync().Result);
+            // Create User
+            var createUserResponse = await SendPostRequestAsync
+            (
+                _userEndpoints.CreateUser, 
+                new StringContent
+                (
+                    ApiRequestHelper.SerialiseRequestToSnakeCaseJson(new CreateUserRequest
+                    {
+                        RecoveryEmail = $"Automation_{Internet.Email()}",
+                        FirstName = $"Automation_{Name.First()}",
+                        LastName = $"Automation_{Name.Last()}"
+                    }),
+                    Encoding.UTF8, "application/json"
+                )
+            );
             
-            var getResponse = await SendDeleteRequestAsync(_userEndpoints.DeleteUser(createUserModel.Username));
-            getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            var createUserModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>
+            (
+                createUserResponse.Content.ReadAsStringAsync().Result
+            );
+            
+            //Add User to group
+
+            var addExternalGroupHttpRequest = new StringContent
+            (
+                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(new AddUserToGroupRequest
+                {
+                    UserId = createUserModel.UserId, GroupName = "External"
+                }),
+                Encoding.UTF8, "application/json"
+            );
+            
+            var addExternalGroupHttpResponse = await SendPatchRequestAsync(_accountEndpoints.AddUserToGroup, addExternalGroupHttpRequest);
+            addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
+            
+            // Delete User
+            var policy = Policy
+                .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (msg, time) => { Console.WriteLine($"Received {msg.Result.StatusCode} for deleting user, retrying..."); });
+           
+            var getResponse = await policy.ExecuteAsync
+            (
+                async () => await SendDeleteRequestAsync(_userEndpoints.DeleteUser(createUserModel.Username))
+            );
+            
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
         [TearDown]

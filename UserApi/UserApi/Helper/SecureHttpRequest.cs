@@ -44,8 +44,12 @@ namespace UserApi.Helper
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage = new HttpRequestMessage(httpMethod, accessUri);
-                httpRequestMessage.Content = stringContent;
+                
+                var httpRequestMessage = new HttpRequestMessage(httpMethod, accessUri)
+                {
+                    Content = stringContent
+                };
+                
                 return await client.SendAsync(httpRequestMessage);
             }
         }
