@@ -26,7 +26,7 @@ Scenario: Delete an AAD user
 	Given I have a new user
 	And I have a delete user request for the new user
 	When I send the request to the endpoint
-	Then the response should have the status OK and success status True
+	Then the response should have the status NoContent and success status True
 	And the new user should be deleted
 
 Scenario: Get user profile by email
