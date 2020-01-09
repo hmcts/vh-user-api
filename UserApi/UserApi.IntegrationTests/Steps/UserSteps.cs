@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Polly;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
+using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
@@ -17,8 +20,10 @@ namespace UserApi.IntegrationTests.Steps
     public sealed class UserSteps : BaseSteps
     {
         private readonly ApiTestContext _apiTestContext;
+        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
         private UserRole? _userRole;
+        private NewUserResponse _newUser;
 
         public UserSteps(ApiTestContext apiTestContext)
         {
@@ -138,6 +143,55 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
+        }
+
+        [Given(@"I have a new user")]
+        public async Task GivenIHaveANewUser()
+        {
+            _newUser = await CreateTheNewUser();
+            await AddUserToExternalGroup(_newUser.UserId);
+        }
+
+        private async Task<NewUserResponse> CreateTheNewUser()
+        {
+            _apiTestContext.Uri = _endpoints.CreateUser;
+            _apiTestContext.HttpMethod = HttpMethod.Post;
+            var createUserRequest = new CreateUserRequestBuilder().Build();
+            _apiTestContext.HttpContent = new StringContent(
+                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+                Encoding.UTF8, "application/json");
+            _apiTestContext.ResponseMessage = await SendPostRequestAsync(_apiTestContext);
+            _apiTestContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
+            var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
+            return ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
+        }
+
+        private async Task AddUserToExternalGroup(string userId)
+        {
+            _apiTestContext.HttpMethod = HttpMethod.Patch;
+            _apiTestContext.Uri = _accountEndpoints.AddUserToGroup;
+            var addUserRequest = new AddUserToGroupRequest()
+            {
+                UserId = userId,
+                GroupName = "External"
+            };
+            var jsonBody = ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            _apiTestContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            _apiTestContext.ResponseMessage = await SendPatchRequestAsync(_apiTestContext);
+            _apiTestContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        }
+
+        [Given(@"I have a delete user request for the new user")]
+        public void GivenIHaveADeleteUserRequestForTheNewUser()
+        {
+            _apiTestContext.HttpMethod = HttpMethod.Delete;
+            _apiTestContext.Uri = _endpoints.DeleteUser(_newUser.Username);
+        }
+
+        [Given(@"I have a delete user request for a nonexistent user")]
+        public void GivenIHaveADeleteUserRequest()
+        {
+            _apiTestContext.Uri = _endpoints.DeleteUser("Does not exist");
         }
 
         [Given(@"I have a get user profile by email request for a (.*) email")]
