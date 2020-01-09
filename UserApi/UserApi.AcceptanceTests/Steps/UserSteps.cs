@@ -9,6 +9,7 @@ using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
+using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
 
@@ -17,9 +18,11 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class UserSteps : BaseSteps
     {
-        private const int Timeout = 300;
+        private const int Timeout = 60;
         private readonly TestContext _context;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
+        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
+
         private string _newUsername;
         private readonly CommonSteps _commonSteps;
 
@@ -50,13 +53,32 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a new user")]
         public void GivenIHaveANewUser()
         {
+            var model = CreateNewUser();
+            _newUsername = model.Username;
+            AddUserToExternalGroup(model.UserId);
+            PollForUserInAad().Should().BeTrue("User has been created in AAD");
+        }
+
+        private NewUserResponse CreateNewUser()
+        {
             _context.Request = _context.Post(_endpoints.CreateUser, new CreateUserRequestBuilder().Build());
             _commonSteps.WhenISendTheRequestToTheEndpoint();
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Created, true);
             var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Json);
             model.Username.Should().NotBeNullOrEmpty();
-            _newUsername = model.Username;
-            PollForUserInAad().Should().BeTrue("User has been created in AAD");
+            return model;
+        }
+
+        private void AddUserToExternalGroup(string userId)
+        {
+            var request = new AddUserToGroupRequest()
+            {
+                UserId = userId,
+                GroupName = "External"
+            };
+            _context.Request = _context.Patch(_accountEndpoints.AddUserToGroup, request);
+            _commonSteps.WhenISendTheRequestToTheEndpoint();
+            _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Accepted, true);
         }
 
         private bool PollForUserInAad()
