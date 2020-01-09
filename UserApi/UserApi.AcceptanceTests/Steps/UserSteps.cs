@@ -4,7 +4,9 @@ using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
+using Polly;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
@@ -57,6 +59,7 @@ namespace UserApi.AcceptanceTests.Steps
             _newUsername = model.Username;
             AddUserToExternalGroup(model.UserId);
             PollForUserInAad().Should().BeTrue("User has been created in AAD");
+            PollForUserGroupAdded(model.UserId).Should().BeTrue("User added to group");
         }
 
         private NewUserResponse CreateNewUser()
@@ -88,6 +91,22 @@ namespace UserApi.AcceptanceTests.Steps
             {
                 _commonSteps.WhenISendTheRequestToTheEndpoint();
                 if (_context.Response.IsSuccessful)
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+            return false;
+        }
+
+        private bool PollForUserGroupAdded(string userId)
+        {
+            _context.Request = _context.Get(_accountEndpoints.GetGroupsForUser(userId));
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                var groups = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Json);
+                if (groups.Any(x => x.DisplayName.Equals("External")))
                 {
                     return true;
                 }
@@ -151,9 +170,22 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the new user should be deleted")]
         public void ThenTheNewUserShouldBeDeleted()
         {
+            PollForUserDeleted().Should().BeTrue("User has been successfully deleted");
+        }
+
+        private bool PollForUserDeleted()
+        {
             _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
-            _commonSteps.WhenISendTheRequestToTheEndpoint();
-            _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.NotFound, false);
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                if (_context.Response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+            return false;
         }
 
         [Then(@"a list of ad judges should be retrieved")]
@@ -166,7 +198,7 @@ namespace UserApi.AcceptanceTests.Steps
                 user.Email.Should().NotBeNullOrEmpty();
                 user.DisplayName.Should().NotBeNullOrEmpty();
             }
-            var expectedUser = model.FirstOrDefault(u => u.Email.Equals(_context.TestSettings.Judge));
+            var expectedUser = model.First(u => u.Email.Equals(_context.TestSettings.Judge));
             expectedUser.DisplayName.Should().Be("Automation01 Judge01");
         }
 
