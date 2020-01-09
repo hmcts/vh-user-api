@@ -12,9 +12,8 @@ namespace UserApi.Services
         /// </summary>
         /// <exception cref="UserExistsException">Thrown if a user with the recovery email already exists</exception>
         Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail);
-
+        Task DeleteUserAsync(string username);
         Task AddUserToGroupAsync(User user, Group group);
-
         Task<Group> GetGroupByNameAsync(string groupName);
         Task<Group> GetGroupByIdAsync(string groupId);
         Task<List<Group>> GetGroupsForUserAsync(string userId);

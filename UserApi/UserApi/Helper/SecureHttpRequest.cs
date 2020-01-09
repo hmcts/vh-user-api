@@ -1,17 +1,16 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using StackExchange.Redis;
 
 namespace UserApi.Helper
 {
     public interface ISecureHttpRequest
     {
         Task<HttpResponseMessage> GetAsync(string accessToken, string accessUri);
-
         Task<HttpResponseMessage> PatchAsync(string accessToken, StringContent stringContent, string accessUri);
-        
         Task<HttpResponseMessage> PostAsync(string accessToken, StringContent stringContent, string accessUri);
+        Task<HttpResponseMessage> SendAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod);
+        Task<HttpResponseMessage> DeleteAsync(string accessToken, string url);
     }
 
     public class SecureHttpRequest : ISecureHttpRequest
@@ -37,7 +36,7 @@ namespace UserApi.Helper
             return SendAsync(accessToken, stringContent, accessUri, HttpMethod.Post);
         }
 
-        private async Task<HttpResponseMessage> SendAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod)
+        public async Task<HttpResponseMessage> SendAsync(string accessToken, StringContent stringContent, string accessUri, HttpMethod httpMethod)
         {
             using (var client = new HttpClient())
             {
@@ -45,8 +44,12 @@ namespace UserApi.Helper
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                var httpRequestMessage = new HttpRequestMessage(httpMethod, accessUri);
-                httpRequestMessage.Content = stringContent;
+                
+                var httpRequestMessage = new HttpRequestMessage(httpMethod, accessUri)
+                {
+                    Content = stringContent
+                };
+                
                 return await client.SendAsync(httpRequestMessage);
             }
         }

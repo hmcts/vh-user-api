@@ -36,7 +36,32 @@ namespace UserApi.UnitTests.Services
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(invalidResponse);
 
-            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.GetUsernamesStartingWith("bob"));
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.GetUsernamesStartingWithAsync("bob"));
+        }
+        
+        [Test]
+        public void should_raise_IdentityServiceApiException_on_unsuccessful_response_on_delete()
+        {
+            var invalidResponse = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent("test")
+            };
+            
+            _secureHttpRequest.Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(invalidResponse);
+
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.DeleteUserAsync("bob"));
+        }
+        
+        [Test]
+        public void should_be_successful_response_on_delete()
+        {
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
+            
+            _secureHttpRequest.Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(responseMessage);
+
+            Assert.DoesNotThrowAsync(() => _client.DeleteUserAsync("bob"));
         }
     }
 }

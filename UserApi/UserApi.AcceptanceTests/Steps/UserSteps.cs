@@ -1,11 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Threading;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
+using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
 
@@ -14,12 +18,18 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class UserSteps : BaseSteps
     {
+        private const int Timeout = 60;
         private readonly TestContext _context;
         private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
+        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
 
-        public UserSteps(TestContext context)
+        private string _newUsername;
+        private readonly CommonSteps _commonSteps;
+
+        public UserSteps(TestContext context, CommonSteps commonSteps)
         {
             _context = context;
+            _commonSteps = commonSteps;
         }
 
         [Given(@"I have a new hearings reforms user account request with a valid email")]
@@ -38,6 +48,75 @@ namespace UserApi.AcceptanceTests.Steps
         public void GivenIHaveAGetUserByUserPrincipalNameRequestForAnExistingUserPrincipalName()
         {
             _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_context.TestSettings.ExistingUserPrincipal));
+        }
+
+        [Given(@"I have a new user")]
+        public void GivenIHaveANewUser()
+        {
+            var model = CreateNewUser();
+            _newUsername = model.Username;
+            AddUserToExternalGroup(model.UserId);
+            PollForUserInAad().Should().BeTrue("User has been created in AAD");
+            PollForUserGroupAdded(model.UserId).Should().BeTrue("User added to group");
+        }
+
+        private NewUserResponse CreateNewUser()
+        {
+            _context.Request = _context.Post(_endpoints.CreateUser, new CreateUserRequestBuilder().Build());
+            _commonSteps.WhenISendTheRequestToTheEndpoint();
+            _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Created, true);
+            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Json);
+            model.Username.Should().NotBeNullOrEmpty();
+            return model;
+        }
+
+        private void AddUserToExternalGroup(string userId)
+        {
+            var request = new AddUserToGroupRequest()
+            {
+                UserId = userId,
+                GroupName = "External"
+            };
+            _context.Request = _context.Patch(_accountEndpoints.AddUserToGroup, request);
+            _commonSteps.WhenISendTheRequestToTheEndpoint();
+            _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Accepted, true);
+        }
+
+        private bool PollForUserInAad()
+        {
+            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                if (_context.Response.IsSuccessful)
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+            return false;
+        }
+
+        private bool PollForUserGroupAdded(string userId)
+        {
+            _context.Request = _context.Get(_accountEndpoints.GetGroupsForUser(userId));
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                var groups = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Json);
+                if (groups.Any(x => x.DisplayName.Equals("External")))
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+            return false;
+        }
+
+        [Given(@"I have a delete user request for the new user")]
+        public void GivenIHaveADeleteUserRequestForTheNewUser()
+        {
+            _context.Request = _context.Delete(_endpoints.DeleteUser(_newUsername));
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]
@@ -86,6 +165,27 @@ namespace UserApi.AcceptanceTests.Steps
             model.UserName.Should().NotBeNullOrEmpty();
         }
 
+        [Then(@"the new user should be deleted")]
+        public void ThenTheNewUserShouldBeDeleted()
+        {
+            PollForUserDeleted().Should().BeTrue("User has been successfully deleted");
+        }
+
+        private bool PollForUserDeleted()
+        {
+            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                if (_context.Response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+            return false;
+        }
+
         [Then(@"a list of ad judges should be retrieved")]
         public void ThenAListOfAdJudgesShouldBeRetrieved()
         {
@@ -96,7 +196,7 @@ namespace UserApi.AcceptanceTests.Steps
                 user.Email.Should().NotBeNullOrEmpty();
                 user.DisplayName.Should().NotBeNullOrEmpty();
             }
-            var expectedUser = model.FirstOrDefault(u => u.Email.Equals(_context.TestSettings.Judge));
+            var expectedUser = model.First(u => u.Email.Equals(_context.TestSettings.Judge));
             expectedUser.DisplayName.Should().Be("Automation01 Judge01");
         }
 
