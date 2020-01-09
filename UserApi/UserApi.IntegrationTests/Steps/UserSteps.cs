@@ -220,6 +220,25 @@ namespace UserApi.IntegrationTests.Steps
             }
         }
 
+        [When(@"I send the delete request to the endpoint with polling")]
+        public async Task WhenISendTheDeleteRequestToTheEndpointWithPolling()
+        {
+            _apiTestContext.ResponseMessage = new HttpResponseMessage();
+
+            var policy = Policy
+                .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (msg, time) => { Console.WriteLine($"Received {msg.Result.StatusCode} for deleting user, retrying..."); });
+
+            var getResponse = await policy.ExecuteAsync
+            (
+                async () => await SendDeleteRequestAsync(_apiTestContext)
+            );
+
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            _apiTestContext.ResponseMessage = getResponse;
+        }
+
         [Then(@"the user should be added")]
         public async Task ThenTheUserShouldBeAdded()
         {
