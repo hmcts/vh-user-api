@@ -19,5 +19,6 @@ namespace UserApi.Services
         Task<List<Group>> GetGroupsForUserAsync(string userId);
         Task<User> GetUserByFilterAsync(string filter);
         Task<List<UserResponse>> GetJudgesAsync();
+        Task UpdateUserAsync(string username);
     }
 }

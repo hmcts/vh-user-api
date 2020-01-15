@@ -273,5 +273,10 @@ namespace UserApi.Services
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
         }
+
+        public async Task UpdateUserAsync(string username)
+        {
+            await _client.UpdateUserAsync(username);
+        }
     }
 }

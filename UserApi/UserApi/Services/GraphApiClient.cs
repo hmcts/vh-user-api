@@ -97,5 +97,24 @@ namespace UserApi.Services
                 throw new IdentityServiceApiException("Failed to call API: " + response.StatusCode + "\r\n" + message);
             }
         }
+
+        public async Task UpdateUserAsync(string username)
+        {
+            var user = new
+            {
+                userPrincipalName = username,
+                passwordProfile = new
+                {
+                    forceChangePasswordNextSignIn = true,
+                    password = _defaultPassword
+                }
+            };
+
+            var json = JsonConvert.SerializeObject(user);
+            var stringContent = new StringContent(json);
+            var accessUri = $"{_baseUrl}/users/{username}";
+            var response = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            await AssertResponseIsSuccessful(response);
+        }
     }
 }
