@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 using Moq;
@@ -22,7 +23,9 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            _controller = new AccountController(_userAccountService.Object, new TelemetryClient());
+            var config = TelemetryConfiguration.CreateDefault();
+            var client = new TelemetryClient(config);
+            _controller = new AccountController(_userAccountService.Object, client);
         }
 
         [Test]

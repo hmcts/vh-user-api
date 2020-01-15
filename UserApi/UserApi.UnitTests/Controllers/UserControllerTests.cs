@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 using Moq;
@@ -22,9 +23,12 @@ namespace UserApi.UnitTests.Controllers
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            var representativeGroups = new List<Group> {new Group { DisplayName = "VirtualRoomProfessionalUser" } };
-            _userAccountService.Setup(x => x.GetGroupsForUserAsync(It.IsAny<string>())).ReturnsAsync(representativeGroups);
-            _controller = new UserController(_userAccountService.Object, new TelemetryClient());
+            var representativeGroups = new List<Group> {new Group {DisplayName = "VirtualRoomProfessionalUser"}};
+            _userAccountService.Setup(x => x.GetGroupsForUserAsync(It.IsAny<string>()))
+                .ReturnsAsync(representativeGroups);
+            var config = TelemetryConfiguration.CreateDefault();
+            var client = new TelemetryClient(config);
+            _controller = new UserController(_userAccountService.Object, client);
         }
 
         [Test]

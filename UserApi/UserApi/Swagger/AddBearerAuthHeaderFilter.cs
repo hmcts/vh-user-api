@@ -17,8 +17,6 @@ namespace UserApi.Swagger
 
             if (!isAuthorized || allowAnonymous) return;
 
-            // if (operation.Parameters == null) operation.Parameters = new List<IParameter>();
-
             operation.Parameters.Add(new OpenApiParameter
             {
                 Name = "Authorization",
