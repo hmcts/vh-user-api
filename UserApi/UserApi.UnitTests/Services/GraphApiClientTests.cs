@@ -63,5 +63,30 @@ namespace UserApi.UnitTests.Services
 
             Assert.DoesNotThrowAsync(() => _client.DeleteUserAsync("bob"));
         }
+
+        [Test]
+        public void should_be_successful_response_on_update()
+        {
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
+
+            _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(responseMessage);
+
+            Assert.DoesNotThrowAsync(() => _client.UpdateUserAsync("bob"));
+        }
+
+        [Test]
+        public void should_raise_IdentityServiceApiException_on_unsuccessful_response_on_update()
+        {
+            var invalidResponse = new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                Content = new StringContent("test")
+            };
+
+            _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(invalidResponse);
+
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserAsync("bob"));
+        }
     }
 }
