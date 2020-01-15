@@ -3,8 +3,8 @@ variables:
   apiDirectory: 'UserApi/UserApi'
   sonarCloudPrepareExtraProperties: |
     sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)\Coverage\coverage.opencover.xml
-    sonar.coverage.exclusions="*UserApi/Swagger/**,**/Program.cs,**/Startup.cs,Testing.Common/**,UserApi.Common/**,UserApi.IntegrationTests/**,UserApi.UnitTests/**,UserApi/Helper/**,UserApi/ConfigureServicesExtensions.cs,UserApi/Extensions/**"
-    sonar.cpd.exclusions="**/Program.cs,**/Startup.cs,Testing.Common/**,UserApi/Swagger/**"
+    sonar.coverage.exclusions="**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**"
+    sonar.cpd.exclusions="**/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi/Swagger/**"
   coverletCoverageExclusions: '"\"[UserApi.*Tests?]*,[UserApi.API]Startup,[UserApi.Common]*,[Testing.Common]*\""'
   integrationTestsAppSettingsTransform: '
     "AzureAd/ClientId":"$(vh-user-api-appid)",
