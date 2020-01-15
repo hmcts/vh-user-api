@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace UserApi.Swagger
 {
     public class AddBearerAuthHeaderFilter : IOperationFilter
     {
-        public void Apply(Operation operation, OperationFilterContext context)
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
             var filterPipeline = context.ApiDescription.ActionDescriptor.FilterDescriptors;
             var isAuthorized = filterPipeline.Select(filterInfo => filterInfo.Filter)
@@ -18,15 +17,14 @@ namespace UserApi.Swagger
 
             if (!isAuthorized || allowAnonymous) return;
 
-            if (operation.Parameters == null) operation.Parameters = new List<IParameter>();
+            // if (operation.Parameters == null) operation.Parameters = new List<IParameter>();
 
-            operation.Parameters.Add(new NonBodyParameter
+            operation.Parameters.Add(new OpenApiParameter
             {
                 Name = "Authorization",
-                In = "header",
+                In = ParameterLocation.Header,
                 Description = "access token",
-                Required = true,
-                Type = "string"
+                Required = true
             });
         }
     }

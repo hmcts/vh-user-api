@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using UserApi.Common;
 
