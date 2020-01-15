@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace UserApi.IntegrationTests.Helpers
+﻿namespace UserApi.IntegrationTests.Helpers
 {
     public enum UserRole
     {
