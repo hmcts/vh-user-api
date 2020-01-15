@@ -34,7 +34,7 @@ namespace UserApi
         {
             services.AddControllers()
                 .AddNewtonsoftJson();
-            services.AddSingleton<ITelemetryInitializer>(new CloudRoleNameInitializer());
+            services.AddSingleton<ITelemetryInitializer, BadRequestTelemetry>();
             
             services.AddCors(options => options.AddPolicy("CorsPolicy",
                 builder =>
