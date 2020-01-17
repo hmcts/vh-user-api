@@ -191,6 +191,7 @@ namespace UserApi.IntegrationTests.Steps
         [Given(@"I have a delete user request for a nonexistent user")]
         public void GivenIHaveADeleteUserRequest()
         {
+            _apiTestContext.HttpMethod = HttpMethod.Delete;
             _apiTestContext.Uri = _endpoints.DeleteUser("Does not exist");
         }
 

@@ -1,30 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Faker.NETCore" Version="1.0.1" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
-      <PackageReference Include="NBuilder" Version="6.0.0" />
-      <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-      <PackageReference Include="NUnit" Version="3.11.0" />
-        <PackageReference Include="Microsoft.AspNetCore.All" />
-        <PackageReference Include="Polly" Version="7.1.0" />
+        <PackageReference Include="Faker.NETCore" Version="1.0.2" />
+        <PackageReference Include="FluentAssertions" Version="5.10.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.1" />
+        <PackageReference Include="NBuilder" Version="6.1.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="NUnit" Version="3.11.0" />
+        <PackageReference Include="Polly" Version="7.2.0" />
         <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
-      <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
-      <ProjectReference Include="..\UserApi\UserApi.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="FluentAssertions">
-        <HintPath>..\..\..\..\..\.nuget\packages\fluentassertions\5.6.0\lib\netcoreapp2.0\FluentAssertions.dll</HintPath>
-      </Reference>
+        <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
+        <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
+        <ProjectReference Include="..\UserApi\UserApi.csproj" />
     </ItemGroup>
 
 </Project>

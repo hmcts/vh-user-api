@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
-using UserApi.Common;
+using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -35,23 +34,28 @@ namespace UserApi
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
+            var contractsXmlFile = $"{typeof(AddUserToGroupRequest).Assembly.GetName().Name}.xml";
+            var contractsXmlPath = Path.Combine(AppContext.BaseDirectory, contractsXmlFile);
+            
             serviceCollection.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info {Title = "User API", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "User API", Version = "v1"});
+                c.AddFluentValidationRules();
                 c.IncludeXmlComments(xmlPath);
+                c.IncludeXmlComments(contractsXmlPath);
                 c.EnableAnnotations();
-                c.AddSecurityDefinition("Bearer",
-                    new ApiKeyScheme
-                    {
-                        In = "header", Description = "Please enter JWT with Bearer into field", Name = "Authorization",
-                        Type = "apiKey"
-                    });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    {"Bearer", Enumerable.Empty<string>()}
+                    In = ParameterLocation.Header,
+                    Description = "Please enter JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
                 });
+                
                 c.OperationFilter<AuthResponsesOperationFilter>();
             });
+            serviceCollection.AddSwaggerGenNewtonsoftSupport();
         }
     }
 }
