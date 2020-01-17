@@ -3,11 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Testing.Common;
-using UserApi.Common;
 using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers

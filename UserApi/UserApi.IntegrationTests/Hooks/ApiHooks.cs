@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Options;
 using TechTalk.SpecFlow;
 using Testing.Common;
 using UserApi.IntegrationTests.Contexts;

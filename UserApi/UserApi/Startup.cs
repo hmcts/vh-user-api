@@ -1,4 +1,5 @@
 ﻿using System;
+using FluentValidation.AspNetCore;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -8,10 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using UserApi.Common;
 using UserApi.Helper;
+using UserApi.Validations;
 
 namespace UserApi
 {
@@ -28,9 +32,19 @@ namespace UserApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<ITelemetryInitializer>(new CloudRoleNameInitializer());
+            services.AddControllers()
+                .AddNewtonsoftJson();
+            services.AddSingleton<ITelemetryInitializer, BadRequestTelemetry>();
             
-            services.AddCors();
+            services.AddCors(options => options.AddPolicy("CorsPolicy",
+                builder =>
+                {
+                    builder
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .SetIsOriginAllowed((host) => true)
+                        .AllowCredentials();
+                }));
 
             ConfigureJsonSerialization(services);
             RegisterConfiguration(services);
@@ -38,29 +52,27 @@ namespace UserApi
             services.AddCustomTypes();
 
             RegisterAuth(services);
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
             services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
         }
 
 
         private void ConfigureJsonSerialization(IServiceCollection services)
         {
-            services.AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-                .AddJsonOptions(options =>
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter())
-                );
-
             var contractResolver = new DefaultContractResolver
             {
                 NamingStrategy = new SnakeCaseNamingStrategy()
             };
 
             services.AddMvc()
-                .AddJsonOptions(options =>
-                    options.SerializerSettings.ContractResolver = contractResolver)
-                .AddJsonOptions(options =>
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter()));
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ContractResolver = contractResolver;
+                    options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                });
         }
 
         private void RegisterConfiguration(IServiceCollection services)
@@ -98,7 +110,7 @@ namespace UserApi
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -117,18 +129,15 @@ namespace UserApi
                 app.UseHttpsRedirection();
             }
 
+            app.UseRouting();
+            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseCors("CorsPolicy");
 
-            app.UseCors(builder => builder
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowCredentials()
-                .AllowAnyHeader());
-
+            app.UseEndpoints(endpoints => { endpoints.MapDefaultControllerRoute(); });
+            
             app.UseMiddleware<LogRequestMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
-
-            app.UseMvc(); // need it in the pipeline as authentication uses this.
         }
     }
 }

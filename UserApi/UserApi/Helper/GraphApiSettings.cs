@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using UserApi.Common;
+﻿using UserApi.Common;
 using UserApi.Security;
 
 namespace UserApi.Helper

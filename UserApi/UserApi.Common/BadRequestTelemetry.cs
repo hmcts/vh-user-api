@@ -19,6 +19,8 @@ namespace UserApi.Common
 
         public void Initialize(ITelemetry telemetry)
         {
+            telemetry.Context.Cloud.RoleName = "vh-user-api";
+            
             if (!(telemetry is RequestTelemetry requestTelemetry)) return;
 
             if (!IsReadableBadRequest(requestTelemetry))
