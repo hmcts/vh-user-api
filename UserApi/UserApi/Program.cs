@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System.IO;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
 namespace UserApi
@@ -14,8 +15,9 @@ namespace UserApi
         {
             return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => {
+                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
+                    webBuilder.UseIISIntegration();
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseKestrel(x => x.AddServerHeader = false);
                 });
         }
     }
