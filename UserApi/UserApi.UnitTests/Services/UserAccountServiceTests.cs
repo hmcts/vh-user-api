@@ -52,5 +52,14 @@ namespace UserApi.UnitTests.Services
             
             _identityServiceApiClient.VerifyAll();
         }
+
+        [Test]
+        public async Task should_update_user_data_in_aad()
+        {
+            _identityServiceApiClient.Setup(x => x.UpdateUserAsync(It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+            await _service.UpdateUserAsync("known.user@gmail.com");
+            _identityServiceApiClient.VerifyAll();
+        }
     }
 }

@@ -65,6 +65,11 @@ namespace Testing.Common.Helpers
         {
             return $"{ApiRoot}/username/{userName}";
         }
+
+        public string UpdateUser(string userName)
+        {
+            return $"{ApiRoot}/username/{userName}";
+        }
     }
 
     public class HealthCheckEndpoints
