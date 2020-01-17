@@ -182,5 +182,43 @@ namespace UserApi.UnitTests.Controllers
             result.Should().NotBeNull();
             result.Should().BeAssignableTo<NoContentResult>();
         }
+
+        [Test]
+        public async Task should_return_not_found_for_user_not_in_ad()
+        {
+            const string email = "unknown.user@gmail.com";
+
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult<User>(null));
+
+            var result = await _controller.UpdateUser(email);
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<NotFoundResult>();
+        }
+        [Test]
+        public async Task should_return_bad_request_for_update_user()
+        {
+            (await _controller.UpdateUser(null)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+            (await _controller.UpdateUser(string.Empty)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+            (await _controller.UpdateUser(" ")).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+        }
+        [Test]
+        public async Task should_update_the_password_for_a_user_that_exists_in_ad()
+        {
+            const string email = "known.user@gmail.com";
+            var userResponse = new User
+            {
+                DisplayName = "Sample User",
+                GivenName = "User",
+                Surname = "Sample"
+            };
+
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(userResponse));
+
+            var result = await _controller.UpdateUser(email);
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<NoContentResult>();
+        }
     }
 }
