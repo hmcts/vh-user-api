@@ -223,5 +223,34 @@ namespace UserApi.Controllers
             
             return NoContent();
         }
+
+        /// <summary>
+        ///     Updates an AAD user
+        /// </summary>
+        /// <returns>NoContent</returns>
+        [HttpPatch(Name = "UpdateUser")]
+        [SwaggerOperation(OperationId = "UpdateUser")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateUser([FromBody]string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                ModelState.AddModelError(nameof(username), "username cannot be empty");
+                return BadRequest(ModelState);
+            }
+
+            var filterText = username.Replace("'", "''");
+            var filter = $"userPrincipalName  eq '{filterText}'";
+            var profile = new UserProfileHelper(_userAccountService);
+            var userProfile = await profile.GetUserProfileAsync(filter);
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+            await _userAccountService.UpdateUserAsync(userProfile.UserName);
+            return NoContent();
+        }
     }
 }

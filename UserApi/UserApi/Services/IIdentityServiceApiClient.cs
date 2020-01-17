@@ -9,5 +9,6 @@ namespace UserApi.Services
         Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text);
         Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail);
         Task DeleteUserAsync(string username);
+        Task UpdateUserAsync(string username);
     }
 }
