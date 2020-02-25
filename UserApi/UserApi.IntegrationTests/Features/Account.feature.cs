@@ -37,8 +37,8 @@ namespace UserApi.IntegrationTests.Features
         public virtual void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Account", "\tIn order to manage to ad groups\n\tAs an api service\n\tI want to be able to retriev" +
-                    "e or return ad groups", ProgrammingLanguage.CSharp, new string[] {
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Account", "\tIn order to manage to ad groups\r\n\tAs an api service\r\n\tI want to be able to retri" +
+                    "eve or return ad groups", ProgrammingLanguage.CSharp, new string[] {
                         "VIH-3606"});
             testRunner.OnFeatureStart(featureInfo);
         }

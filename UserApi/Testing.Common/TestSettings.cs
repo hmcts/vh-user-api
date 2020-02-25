@@ -4,8 +4,6 @@ namespace Testing.Common
 {
     public class TestSettings
     {
-        public string TestClientId { get; set; }
-        public string TestClientSecret { get; set; }
         public string ExistingUserId { get; set; }
         public string ExistingUserPrincipal { get; set; }
         public string ExistingEmail { get; set; }
@@ -13,7 +11,6 @@ namespace Testing.Common
         public string ExistingUserLastname { get; set; }
         public List<Group> ExistingGroups { get; set; }
         public List<Group> NewGroups { get; set; }
-        public string ReformEmail { get; set; }
         public string Individual { get; set; }
         public string Representative { get; set; }
         public string VhOfficer { get; set; }
