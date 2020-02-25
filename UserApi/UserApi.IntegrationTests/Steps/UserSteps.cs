@@ -228,7 +228,7 @@ namespace UserApi.IntegrationTests.Steps
 
             var policy = Policy
                 .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
-                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(4, retryAttempt)),
                     (msg, time) => { Console.WriteLine($"Received {msg.Result.StatusCode} for deleting user, retrying..."); });
 
             var getResponse = await policy.ExecuteAsync
