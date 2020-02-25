@@ -12,6 +12,7 @@ namespace Testing.Common
         public List<Group> ExistingGroups { get; set; }
         public List<Group> NewGroups { get; set; }
         public string Individual { get; set; }
+        public string ReformEmail { get; set; }
         public string Representative { get; set; }
         public string VhOfficer { get; set; }
         public string CaseAdmin { get; set; }

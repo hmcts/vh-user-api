@@ -48,7 +48,7 @@ namespace UserApi.IntegrationTests.Controllers
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
             createUserModel.Username.ToLower().Should()
-                .Be($@"{createUserRequest.FirstName}.{createUserRequest.LastName}@{TestConfig.Instance.AzureAd.ReformEmail}".ToLower());
+                .Be($@"{createUserRequest.FirstName}.{createUserRequest.LastName}@{TestConfig.Instance.TestSettings.ReformEmail}".ToLower());
             createUserModel.OneTimePassword.Should().NotBeNullOrEmpty();
 
             _newUserId = createUserModel.UserId;
@@ -80,7 +80,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_case_administrator_by_id()
         {
-            var username = $"Automation01Administrator01@{TestConfig.Instance.AzureAd.ReformEmail}";
+            var username = $"Automation01Administrator01@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -103,7 +103,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_profile_by_user_principal_name()
         {
-            var username = $"Automation01Administrator01@{TestConfig.Instance.AzureAd.ReformEmail}";
+            var username = $"Automation01Administrator01@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -119,7 +119,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_profile_by_user_principal_name_not_found_with_bogus_mail()
         {
-            var username = $"i.do.not.exist@{TestConfig.Instance.AzureAd.ReformEmail}";
+            var username = $"i.do.not.exist@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -128,7 +128,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_profile_by_email()
         {
-            var email = $"Admin.Kinly@{TestConfig.Instance.AzureAd.ReformEmail}";
+            var email = $"Admin.Kinly@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -158,7 +158,7 @@ namespace UserApi.IntegrationTests.Controllers
             var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
-            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == $"Judge.Bever@{TestConfig.Instance.AzureAd.ReformEmail}");
+            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == $"Judge.Bever@{TestConfig.Instance.TestSettings.ReformEmail}");
             expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
         }
         
