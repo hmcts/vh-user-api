@@ -7,7 +7,6 @@ using Testing.Common.ActiveDirectory;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
-using Group = Microsoft.Graph.Group;
 
 namespace UserApi.IntegrationTests.Services
 {
@@ -34,7 +33,7 @@ namespace UserApi.IntegrationTests.Services
         public async Task should_generate_username_based_on_firstname_lastname()
         {
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Missing", "User");
-            nextUsername.Should().Be("missing.user@hearings.reform.hmcts.net");
+            nextUsername.Should().Be($"missing.user@{TestConfig.Instance.AzureAd.ReformEmail}");
         }
 
         [Test]
@@ -42,7 +41,7 @@ namespace UserApi.IntegrationTests.Services
         {
          
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual");
-            nextUsername.Should().Be("existing.individual@hearings.reform.hmcts.net");
+            nextUsername.Should().Be($"existing.individual@{TestConfig.Instance.AzureAd.ReformEmail}");
         }
 
         [Test]
@@ -51,7 +50,7 @@ namespace UserApi.IntegrationTests.Services
             const string firstName = "Automatically";
             const string lastName = "Created";
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
-            var recoveryEmail = $"{firstName}.{lastName}.{unique}@hearings.hmcts.net";
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.AzureAd.ReformEmail}";
             var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail);
             var username = createdAccount.Username;
             username.ToLower().Should().Contain(firstName.ToLower());
