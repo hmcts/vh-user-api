@@ -34,9 +34,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a get ad group by name request with a valid group name")]
         public void GivenIHaveAGetAdGroupByNameRequestWithAValidGroupName()
         {
-            _context.Request =
-                _context.Get(
-                    _endpoints.GetGroupByName(_context.TestSettings.ExistingGroups.First().DisplayName));
+            _context.Request = _context.Get(_endpoints.GetGroupByName(_context.TestSettings.ExistingGroups.First().DisplayName));
         }
 
         [Given(@"I have a get ad group by id request with a valid group id")]
