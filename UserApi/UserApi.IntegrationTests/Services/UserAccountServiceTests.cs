@@ -33,7 +33,7 @@ namespace UserApi.IntegrationTests.Services
         public async Task should_generate_username_based_on_firstname_lastname()
         {
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Missing", "User");
-            nextUsername.Should().Be($"missing.user@{TestConfig.Instance.AzureAd.ReformEmail}");
+            nextUsername.Should().Be($"missing.user@{TestConfig.Instance.TestSettings.ReformEmail}");
         }
 
         [Test]
@@ -41,7 +41,7 @@ namespace UserApi.IntegrationTests.Services
         {
          
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual");
-            nextUsername.Should().Be($"existing.individual@{TestConfig.Instance.AzureAd.ReformEmail}");
+            nextUsername.Should().Be($"existing.individual@{TestConfig.Instance.TestSettings.ReformEmail}");
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace UserApi.IntegrationTests.Services
             const string firstName = "Automatically";
             const string lastName = "Created";
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
-            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.AzureAd.ReformEmail}";
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.TestSettings.ReformEmail}";
             var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail);
             var username = createdAccount.Username;
             username.ToLower().Should().Contain(firstName.ToLower());
