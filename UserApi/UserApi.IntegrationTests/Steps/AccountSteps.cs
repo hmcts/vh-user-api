@@ -32,21 +32,13 @@ namespace UserApi.IntegrationTests.Steps
         public void GivenIHaveAGetAdGroupByNameRequest(Scenario scenario)
         {
             _apiTestContext.HttpMethod = HttpMethod.Get;
-            switch (scenario)
+             _apiTestContext.Uri = scenario switch
             {
-                case Scenario.Valid:
-                    _apiTestContext.Uri =
-                        _endpoints.GetGroupByName(_apiTestContext.TestSettings.ExistingGroups.First().DisplayName);
-                    break;
-                case Scenario.Nonexistent:
-                    _apiTestContext.Uri = _endpoints.GetGroupByName("Does not exist");
-                    break;
-                case Scenario.Invalid:
-                    _apiTestContext.Uri = _endpoints.GetGroupByName(" ");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
-            }
+                Scenario.Valid => _endpoints.GetGroupByName(_apiTestContext.TestSettings.ExistingGroups.First().DisplayName),
+                Scenario.Nonexistent => _endpoints.GetGroupByName("Does not exist"),
+                Scenario.Invalid => _endpoints.GetGroupByName(" "),
+                _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null)
+            };
         }
 
         [Given(@"I have a get ad group by id request with a (.*) group id")]
