@@ -10,6 +10,7 @@ using Faker;
 using FluentAssertions;
 using NUnit.Framework;
 using Polly;
+using Testing.Common;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -47,7 +48,7 @@ namespace UserApi.IntegrationTests.Controllers
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
             createUserModel.Username.ToLower().Should()
-                .Be($@"{createUserRequest.FirstName}.{createUserRequest.LastName}@hearings.reform.hmcts.net".ToLower());
+                .Be($@"{createUserRequest.FirstName}.{createUserRequest.LastName}@{TestConfig.Instance.TestSettings.ReformEmail}".ToLower());
             createUserModel.OneTimePassword.Should().NotBeNullOrEmpty();
 
             _newUserId = createUserModel.UserId;
@@ -79,7 +80,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_case_administrator_by_id()
         {
-            const string username = "Automation01Administrator01@hearings.reform.hmcts.net";
+            var username = $"Automation01Administrator01@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -102,7 +103,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_profile_by_user_principal_name()
         {
-            const string username = "Automation01Administrator01@hearings.reform.hmcts.net";
+            var username = $"Automation01Administrator01@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -118,7 +119,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_profile_by_user_principal_name_not_found_with_bogus_mail()
         {
-            const string username = "i.do.not.exist@hearings.reform.hmcts.net";
+            var username = $"i.do.not.exist@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -127,7 +128,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_profile_by_email()
         {
-            const string email = "Admin.Kinly@hearings.reform.hmcts.net";
+            var email = $"Admin.Kinly@{TestConfig.Instance.TestSettings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -157,7 +158,7 @@ namespace UserApi.IntegrationTests.Controllers
             var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
-            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == "Judge.Bever@hearings.reform.hmcts.net");
+            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == $"Judge.Bever@{TestConfig.Instance.TestSettings.ReformEmail}");
             expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
         }
         
@@ -218,15 +219,13 @@ namespace UserApi.IntegrationTests.Controllers
         public void ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_newUserId)) return;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
-                var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
-                _newUserId = null;
-            }
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
+            var result = client.SendAsync(httpRequestMessage).Result;
+            result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
+            _newUserId = null;
         }
     }
 }

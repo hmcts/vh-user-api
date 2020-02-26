@@ -34,23 +34,19 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a get ad group by name request with a valid group name")]
         public void GivenIHaveAGetAdGroupByNameRequestWithAValidGroupName()
         {
-            _context.Request =
-                _context.Get(
-                    _endpoints.GetGroupByName(_context.TestSettings.ExistingGroups.First().DisplayName));
+            _context.Request = _context.Get(_endpoints.GetGroupByName(_context.TestSettings.ExistingGroups.First().DisplayName));
         }
 
         [Given(@"I have a get ad group by id request with a valid group id")]
         public void GivenIHaveAGetAdGroupByIdRequestWithAValidGroupId()
         {
-            _context.Request =
-                _context.Get(_endpoints.GetGroupById(_context.TestSettings.ExistingGroups.First().GroupId));
+            _context.Request = _context.Get(_endpoints.GetGroupById(_context.TestSettings.ExistingGroups.First().GroupId));
         }
 
         [Given(@"I have a get ad groups for a user request for a valid user id")]
         public void GivenIHaveAGetAdGroupsForAUserRequestForAValidUserId()
         {
-            _context.Request =
-                _context.Get(_endpoints.GetGroupsForUser(_context.TestSettings.ExistingUserId));
+            _context.Request = _context.Get(_endpoints.GetGroupsForUser(_context.TestSettings.ExistingUserId));
         }
 
         [Given(@"I have an add a user to a group request for a valid user id and valid group")]
