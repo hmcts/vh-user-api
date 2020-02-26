@@ -30,14 +30,14 @@ namespace UserApi.IntegrationTests.Controllers
 
         private void GetClientAccessTokenForBookHearingApi()
         {
-            var testSettings = TestConfig.Instance.TestSettings;
+            var azureAdConfig = TestConfig.Instance.AzureAd;
 
             _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
-                testSettings.TestClientId, testSettings.TestClientSecret,
+                azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 TestConfig.Instance.AzureAd.VhUserApiResourceId);
 
             GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
-                testSettings.TestClientId, testSettings.TestClientSecret,
+                azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 "https://graph.microsoft.com");
         }
 

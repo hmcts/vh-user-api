@@ -30,7 +30,7 @@ namespace UserApi.IntegrationTests.Hooks
             var azureAdConfig = TestConfig.Instance.AzureAd;
 
             apiTestContext.BearerToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
-                apiTestContext.TestSettings.TestClientId, apiTestContext.TestSettings.TestClientSecret,
+                azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 azureAdConfig.VhUserApiResourceId);
 
             apiTestContext.GraphApiToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
