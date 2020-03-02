@@ -8,7 +8,6 @@
     "log-level": "info",
     "timeout-ms": 10000,
     "log-file": true,
-    "-test-projects": ["../UserApi.UnitTests/UserApi.UnitTests.csproj", "../UserApi.IntegrationTests/UserApi.IntegrationTests.csproj"],
     "project-file": "UserApi.csproj",
     "max-concurrent-test-runners": 4,
     "threshold-high": 80,
@@ -27,7 +26,8 @@
       "!ConfigureServicesExtensions.cs",
       "!Swagger/AuthResponsesOperationFilter.cs",
       "!Extensions/CloudRoleNameInitializer.cs",
-      "!Helper/ExceptionMiddleware.cs"
+      "!Helper/ExceptionMiddleware.cs",
+      "!Security/TokenProvider.cs"
     ]
   }
 }
