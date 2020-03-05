@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.ApplicationInsights;
@@ -11,6 +12,11 @@ using NUnit.Framework;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
 using UserApi.Services;
+using Testing.Common.Assertions;
+using UserApi.Contract.Requests;
+using FizzWare.NBuilder;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using UserApi.Security;
 
 namespace UserApi.UnitTests.Controllers
 {
@@ -18,6 +24,8 @@ namespace UserApi.UnitTests.Controllers
     {
         private AccountController _controller;
         private Mock<IUserAccountService> _userAccountService;
+        private AddUserToGroupRequest request;
+
 
         [SetUp]
         public void Setup()
@@ -25,7 +33,77 @@ namespace UserApi.UnitTests.Controllers
             _userAccountService = new Mock<IUserAccountService>();
             var config = TelemetryConfiguration.CreateDefault();
             var client = new TelemetryClient(config);
+
+            request = Builder<AddUserToGroupRequest>.CreateNew()
+               .With(x => x.GroupName = "TestGroup")
+               .With(x => x.UserId = "johndoe")
+               .Build();
+
+            _userAccountService.Setup(u => u.GetGroupByNameAsync(request.GroupName)).ReturnsAsync(new Group());
+            _userAccountService.Setup(u => u.GetUserByFilterAsync(It.IsAny<string>())).ReturnsAsync(new User());
+
             _controller = new AccountController(_userAccountService.Object, client);
+        }
+
+        [Test]
+        public async Task Should_add_user_to_group_for_given_request()
+        {
+            var filter = $"objectId  eq '{request.UserId}'";
+
+            var response = await _controller.AddUserToGroup(request);
+
+            response.Should().NotBeNull();
+            var result = (AcceptedResult)response;
+            result.StatusCode.Should().Be((int)HttpStatusCode.Accepted);
+            _userAccountService.Verify(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>()), Times.Once);
+            _userAccountService.Verify(u => u.GetUserByFilterAsync(filter), Times.Once);
+
+        }
+
+        [Test]
+        public async Task Should_return_badrequest_with_invalid_AddUserToGroupRequest()
+        {
+            request.GroupName = string.Empty;
+
+            var actionResult = (BadRequestObjectResult)await _controller.AddUserToGroup(request);
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage("GroupName", "Require a GroupName");
+        }
+
+        [Test]
+        public async Task Should_return_notfound_with_no_matching_group_by_name()
+        {
+            _userAccountService.Setup(u => u.GetGroupByNameAsync(request.GroupName)).ReturnsAsync((Group)null);
+
+            var actionResult = (NotFoundResult)await _controller.AddUserToGroup(request);
+
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
+        [Test]
+        public async Task Should_return_notfound_with_no_matching_user_by_filter()
+        {
+            _userAccountService.Setup(u => u.GetUserByFilterAsync(It.IsAny<string>())).ReturnsAsync((User)null);
+
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
+            
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage("user", "User not found");
+        }
+
+        [Test]
+        public async Task Should_return_notfound_with_UserServiceException()
+        {
+            _userAccountService.Setup(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>())).ThrowsAsync(new UserServiceException("",""));
+
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
+
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage("user", "user already exists");
         }
 
         [Test]
@@ -41,6 +119,17 @@ namespace UserApi.UnitTests.Controllers
             var actualResponse = (GroupsResponse) actionResult.Value;
             actualResponse.DisplayName.Should().BeSameAs(groupResponse.DisplayName);
             actualResponse.GroupId.Should().BeSameAs(groupResponse.GroupId);
+        }
+
+        [Test]
+        public async Task Should_return_badrequest_with_invalid_groupName()
+        {
+            var name = string.Empty;
+
+            var actionResult = (BadRequestObjectResult)await _controller.GetGroupByName(name);
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage(nameof(name), $"Please provide a valid {nameof(name)}");
         }
 
         [Test]
@@ -62,6 +151,17 @@ namespace UserApi.UnitTests.Controllers
             var actionResult = (OkObjectResult) await _controller.GetGroupById(groupId);
             var actualResponse = (GroupsResponse) actionResult.Value;
             actualResponse.DisplayName.Should().BeSameAs(groupResponse.DisplayName);
+        }
+
+        [Test]
+        public async Task Should_return_badrequest_with_invalid_groupId()
+        {
+            var groupId = string.Empty;
+
+            var actionResult = (BadRequestObjectResult)await _controller.GetGroupById(groupId);
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage(nameof(groupId), $"Please provide a valid {nameof(groupId)}");
         }
 
         [Test]
@@ -88,6 +188,29 @@ namespace UserApi.UnitTests.Controllers
             var actualResponse = (IEnumerable<GroupsResponse>) actionResult.Value;
             actualResponse.FirstOrDefault()?.DisplayName.Should()
                 .BeSameAs(groupResponseList.FirstOrDefault()?.DisplayName);
+        }
+
+        [Test]
+        public async Task Should_return_badrequest_with_invalid_userid()
+        {
+            var userId = string.Empty;
+
+            var actionResult = (BadRequestObjectResult)await _controller.GetGroupsForUser(userId);
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage(nameof(userId), $"Please provide a valid {nameof(userId)}");
+        }
+
+        [Test]
+        public async Task Should_return_notfound_when_no_matching_group_is_found()
+        {
+            const string userId = "123";             
+
+            _userAccountService.Setup(x => x.GetGroupsForUserAsync(userId)).ReturnsAsync((List<Group>)null);
+
+            var actionResult = (NotFoundResult)await _controller.GetGroupsForUser(userId);
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
         }
     }
 }
