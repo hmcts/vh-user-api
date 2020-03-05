@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using Testing.Common;
 using Testing.Common.Helpers;
+using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -34,9 +35,16 @@ namespace UserApi.UnitTests.Services
         {
             _secureHttpRequest = new Mock<ISecureHttpRequest>();
 
-            settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
-            _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
+            settings = new Settings() { IsLive = true };
+
+            var azureAdConfig = new AzureAdConfiguration() { 
+                                        ClientId = "TestClientId", 
+                                        ClientSecret = "TestSecret", 
+                                        Authority = "https://Test/Authority",
+                                        VhUserApiResourceId = "TestResourceId"
+                                        };
+            var tokenProvider = new Mock<ITokenProvider>();
+            _graphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
             _identityServiceApiClient = new Mock<IIdentityServiceApiClient>();
 
             azureAdGraphUserResponse = new AzureAdGraphUserResponse() { 

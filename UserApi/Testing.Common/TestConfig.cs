@@ -12,7 +12,7 @@ namespace Testing.Common
         {
             var configRootBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddUserSecrets("CF55F1BB-0EE3-456A-A566-70E56AC24C95");
+                .AddUserSecrets<Startup>();
 
             _configuration = configRootBuilder.Build();
 
