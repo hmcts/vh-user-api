@@ -148,7 +148,7 @@ namespace UserApi.UnitTests.Helpers
                 DisplayName = "Bob McGregor",
                 GivenName = "Bob",
                 Surname = "McGregor",
-                UserPrincipalName = "bob.mcgregor@***REMOVED***"
+                UserPrincipalName = "bob.mcgregor@hearings.test.server.net"
             };
 
             GivenFilterReturnsUserWithGroups(user, null, "External");
@@ -173,7 +173,7 @@ namespace UserApi.UnitTests.Helpers
                 DisplayName = "Bob McGregor",
                 GivenName = "Bob",
                 Surname = "McGregor",
-                UserPrincipalName = "bo'b.mcg'regor@***REMOVED***"
+                UserPrincipalName = "bo'b.mcg'regor@hearings.test.server.net"
             };
 
             GivenFilterReturnsUserWithGroups(user, null, "External");
