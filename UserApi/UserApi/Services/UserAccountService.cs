@@ -20,6 +20,7 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
         private readonly bool _isLive;
+        private readonly string reformEmail;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
 
@@ -32,6 +33,7 @@ namespace UserApi.Services
             _graphApiSettings = graphApiSettings;
             _client = client;
             _isLive = settings.IsLive;
+            reformEmail = settings.ReformEmail;
         }
 
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail)
@@ -202,7 +204,7 @@ namespace UserApi.Services
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
-            var username = new IncrementingUsername(baseUsername, "hearings.reform.hmcts.net");
+            var username = new IncrementingUsername(baseUsername, reformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
             return username.GetGivenExistingUsers(existingUsernames);
         }

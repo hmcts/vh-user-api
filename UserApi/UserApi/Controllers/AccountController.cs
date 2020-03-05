@@ -21,6 +21,7 @@ namespace UserApi.Controllers
     {
         private readonly TelemetryClient _telemetryClient;
         private readonly IUserAccountService _userAccountService;
+        private const string separator = "; ";
 
         public AccountController(IUserAccountService userAccountService, TelemetryClient telemetryClient)
         {
@@ -133,7 +134,7 @@ namespace UserApi.Controllers
 
                 var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
                 _telemetryClient.TrackTrace(new TraceTelemetry(
-                    $"AddUserToGroupRequest validation failed: {string.Join("; ", errors)}",
+                    $"AddUserToGroupRequest validation failed: {string.Join(separator, errors)}",
                     SeverityLevel.Error));
                 return BadRequest(ModelState);
             }

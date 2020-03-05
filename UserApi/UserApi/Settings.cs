@@ -8,5 +8,6 @@ namespace UserApi
         ///     display the judges list based on the environment
         /// </summary>
         public bool IsLive { get; set; }
+        public string ReformEmail { get; set; }
     }
 }

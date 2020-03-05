@@ -10,7 +10,7 @@ namespace UserApi.UnitTests.Services
     {
         private IEnumerable<string> _existingUsernames;
         private IncrementingUsername _username;
-        private const string Domain = "hearings.reform.hmcts.net";
+        private const string Domain = "hearings.test.server.net";
 
         [SetUp]
         public void Setup()

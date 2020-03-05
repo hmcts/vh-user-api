@@ -48,7 +48,7 @@ namespace UserApi.UnitTests.Controllers
             typedResult.StatusCode.Should().Be((int) HttpStatusCode.InternalServerError);
             var response = (UserApiHealthResponse) typedResult.Value;
             response.UserAccessHealth.Successful.Should().BeFalse();
-            response.UserAccessHealth.ErrorMessage.Should().NotBeNullOrWhiteSpace();
+            response.UserAccessHealth.ErrorMessage.Should().Be($"{message}: {reason} - {reason}");
         }
         
         [Test]
@@ -84,6 +84,8 @@ namespace UserApi.UnitTests.Controllers
             response.GroupAccessHealth.Successful.Should().BeTrue();
             response.GroupAccessHealth.ErrorMessage.Should().BeNullOrWhiteSpace();
             response.GroupAccessHealth.Data.Should().BeNullOrEmpty();
+
+            _userAccountService.Verify(u => u.GetGroupByNameAsync("TestGroup"), Times.Once);
 
         }
 
