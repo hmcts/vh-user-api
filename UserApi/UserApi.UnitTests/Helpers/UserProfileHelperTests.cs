@@ -106,12 +106,13 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public void should_raise_exception_if_user_lacks_video_hearing_groups()
+        public async Task should_raise_exception_if_user_lacks_video_hearing_groups()
         {
             GivenFilterReturnsUserWithGroups();
 
-            Assert.ThrowsAsync<UnauthorizedAccessException>(() => _helper.GetUserProfileAsync(Filter),
-                "Matching user is not registered with valid groups");
+           var exception = Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await _helper.GetUserProfileAsync(Filter));
+
+            exception.Message.Should().Be("Matching user is not registered with valid groups");
         }
         
         [Test]
@@ -147,7 +148,7 @@ namespace UserApi.UnitTests.Helpers
                 DisplayName = "Bob McGregor",
                 GivenName = "Bob",
                 Surname = "McGregor",
-                UserPrincipalName = "bob.mcgregor@***REMOVED***"
+                UserPrincipalName = "bob.mcgregor@hearings.test.server.net"
             };
 
             GivenFilterReturnsUserWithGroups(user, null, "External");
@@ -172,7 +173,7 @@ namespace UserApi.UnitTests.Helpers
                 DisplayName = "Bob McGregor",
                 GivenName = "Bob",
                 Surname = "McGregor",
-                UserPrincipalName = "bo'b.mcg'regor@***REMOVED***"
+                UserPrincipalName = "bo'b.mcg'regor@hearings.test.server.net"
             };
 
             GivenFilterReturnsUserWithGroups(user, null, "External");
@@ -191,7 +192,7 @@ namespace UserApi.UnitTests.Helpers
         {
             var user = new User { Id = Guid.NewGuid().ToString() };
 
-            GivenFilterReturnsUserWithGroups(user, null, groupDisplayNames);
+            GivenFilterReturnsUserWithGroups(user, "test", groupDisplayNames);
         }
 
         private void GivenFilterReturnsUserWithGroups(User user, string description = null, params string[] groupDisplayNames)
