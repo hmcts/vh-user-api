@@ -16,16 +16,18 @@ namespace UserApi.UnitTests.Services
 {
     public class GetJudgesAsyncTests: UserAccountServiceTests
     {
-        private string groupId = "Test123";
+        private readonly string groupId = "Test123";
         private GraphQueryResponse graphQueryResponse;
         private string JudgesGroup;
         private string JudgesTestGroup;
         private string accessUri;
+        private Group group;
 
         [SetUp]
         public void TestInitialize()
         {
             graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() };
+            group = new Group() { Id = groupId };
 
             JudgesGroup = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
             JudgesTestGroup = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
@@ -36,10 +38,7 @@ namespace UserApi.UnitTests.Services
 
         [Test]
         public async Task Should_return_judges_list_successfully()
-        {
-            //var graphQueryResponseEmpty = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() };
-           
-            
+        {            
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), JudgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(graphQueryResponse, HttpStatusCode.OK));
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), JudgesTestGroup))
@@ -54,8 +53,7 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_not_exclude_judges_when_setttings_is_not_live()
         {
-            //var graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() { new Microsoft.Graph.Group() { Id = groupId } } };
-            graphQueryResponse.Value.Add(new Microsoft.Graph.Group() { Id = groupId });
+            graphQueryResponse.Value.Add(group);
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), JudgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(graphQueryResponse, HttpStatusCode.OK)); 
 
@@ -79,9 +77,7 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_return_user_exception_for_other_responses()
         {
-            //var graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() { new Microsoft.Graph.Group() { Id = groupId } } };
-            graphQueryResponse.Value.Add(new Microsoft.Graph.Group() { Id = groupId });
-
+            graphQueryResponse.Value.Add(group);
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), JudgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(graphQueryResponse, HttpStatusCode.OK));
 
