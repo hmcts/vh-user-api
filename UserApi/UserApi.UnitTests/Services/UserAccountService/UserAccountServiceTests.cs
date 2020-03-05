@@ -17,7 +17,7 @@ namespace UserApi.UnitTests.Services
 {
     public class UserAccountServiceTests
     {
-        protected const string Domain = "@***REMOVED***";
+        protected const string Domain = "@hearings.test.server.net";
 
         protected Mock<ISecureHttpRequest> _secureHttpRequest;
         protected GraphApiSettings _graphApiSettings;
@@ -35,7 +35,7 @@ namespace UserApi.UnitTests.Services
         {
             _secureHttpRequest = new Mock<ISecureHttpRequest>();
 
-            settings = new Settings() { IsLive = true };
+            settings = new Settings() { IsLive = true, ReformEmail = Domain.Replace("@","") };
 
             var azureAdConfig = new AzureAdConfiguration() { 
                                         ClientId = "TestClientId", 
