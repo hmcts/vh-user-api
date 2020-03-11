@@ -28,8 +28,7 @@ namespace UserApi.Helper
             var requestBodyText = new StreamReader(requestBodyStream).ReadToEnd();
             var message =
                 $"REQUEST METHOD: {context.Request.Method}, REQUEST BODY: {requestBodyText}, REQUEST URL: {url}";
-            var headers
-                = context.Request.Headers.ToDictionary(a => a.Key, a => string.Join(";", a.Value));
+            var headers = context.Request.Headers.ToDictionary(a => a.Key, a => string.Join(";", a.Value));
             ApplicationLogger.TraceEvent(message, headers);
 
 

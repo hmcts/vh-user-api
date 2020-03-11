@@ -30,14 +30,14 @@ namespace UserApi.IntegrationTests.Services
         }
 
         [Test]
-        public async Task should_generate_username_based_on_firstname_lastname()
+        public async Task Should_generate_username_based_on_firstname_lastname()
         {
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Missing", "User");
             nextUsername.Should().Be($"missing.user@{TestConfig.Instance.Settings.ReformEmail}");
         }
 
         [Test]
-        public async Task should_get_next_available_username_for_firstname_lastname()
+        public async Task Should_get_next_available_username_for_firstname_lastname()
         {
          
             var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual");
@@ -45,7 +45,7 @@ namespace UserApi.IntegrationTests.Services
         }
 
         [Test]
-        public async Task should_create_user()
+        public async Task Should_create_user()
         {
             const string firstName = "Automatically";
             const string lastName = "Created";

@@ -6,48 +6,48 @@ namespace UserApi.IntegrationTests.Steps
 {
     public abstract class BaseSteps
     {      
-        protected async Task<HttpResponseMessage> SendGetRequestAsync(ApiTestContext apiTestContext)
+        protected async Task<HttpResponseMessage> SendGetRequestAsync(TestContext testContext)
         {
-            using (var client = apiTestContext.Server.CreateClient())
+            using (var client = testContext.Server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiTestContext.BearerToken}");
-                return await client.GetAsync(apiTestContext.Uri);
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.BearerToken}");
+                return await client.GetAsync(testContext.Uri);
             }
         }
 
-        protected async Task<HttpResponseMessage> SendPatchRequestAsync(ApiTestContext apiTestContext)
+        protected async Task<HttpResponseMessage> SendPatchRequestAsync(TestContext testContext)
         {
-            using (var client = apiTestContext.Server.CreateClient())
+            using (var client = testContext.Server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiTestContext.BearerToken}");
-                return await client.PatchAsync(apiTestContext.Uri, apiTestContext.HttpContent);
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.BearerToken}");
+                return await client.PatchAsync(testContext.Uri, testContext.HttpContent);
             }
         }
 
-        protected async Task<HttpResponseMessage> SendPostRequestAsync(ApiTestContext apiTestContext)
+        protected async Task<HttpResponseMessage> SendPostRequestAsync(TestContext testContext)
         {
-            using (var client = apiTestContext.Server.CreateClient())
+            using (var client = testContext.Server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiTestContext.BearerToken}");
-                return await client.PostAsync(apiTestContext.Uri, apiTestContext.HttpContent);
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.BearerToken}");
+                return await client.PostAsync(testContext.Uri, testContext.HttpContent);
             }
         }
 
-        protected async Task<HttpResponseMessage> SendPutRequestAsync(ApiTestContext apiTestContext)
+        protected async Task<HttpResponseMessage> SendPutRequestAsync(TestContext testContext)
         {
-            using (var client = apiTestContext.Server.CreateClient())
+            using (var client = testContext.Server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiTestContext.BearerToken}");
-                return await client.PutAsync(apiTestContext.Uri, apiTestContext.HttpContent);
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.BearerToken}");
+                return await client.PutAsync(testContext.Uri, testContext.HttpContent);
             }
         }
 
-        protected async Task<HttpResponseMessage> SendDeleteRequestAsync(ApiTestContext apiTestContext)
+        protected async Task<HttpResponseMessage> SendDeleteRequestAsync(TestContext testContext)
         {
-            using (var client = apiTestContext.Server.CreateClient())
+            using (var client = testContext.Server.CreateClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiTestContext.BearerToken}");
-                return await client.DeleteAsync(apiTestContext.Uri);
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.BearerToken}");
+                return await client.DeleteAsync(testContext.Uri);
             }
         }
     }

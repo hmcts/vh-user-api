@@ -1,30 +1,27 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
-using Testing.Common;
-using Testing.Common.Helpers;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
 using UserApi.Services.Models;
 
-namespace UserApi.UnitTests.Services
+namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class UserAccountServiceTests
     {
         protected const string Domain = "@hearings.test.server.net";
 
-        protected Mock<ISecureHttpRequest> _secureHttpRequest;
-        protected GraphApiSettings _graphApiSettings;
-        protected Mock<IIdentityServiceApiClient> _identityServiceApiClient;
-        protected UserAccountService _service;
-        protected AzureAdGraphUserResponse azureAdGraphUserResponse;
-        protected AzureAdGraphQueryResponse<AzureAdGraphUserResponse> azureAdGraphQueryResponse;
+        protected Mock<ISecureHttpRequest> SecureHttpRequest;
+        protected GraphApiSettings GraphApiSettings;
+        protected Mock<IIdentityServiceApiClient> IdentityServiceApiClient;
+        protected UserApi.Services.UserAccountService Service;
+        protected AzureAdGraphUserResponse AzureAdGraphUserResponse;
+        protected AzureAdGraphQueryResponse<AzureAdGraphUserResponse> AzureAdGraphQueryResponse;
         
         private Settings settings;
        
@@ -33,7 +30,7 @@ namespace UserApi.UnitTests.Services
         [SetUp]
         public void Setup()
         {
-            _secureHttpRequest = new Mock<ISecureHttpRequest>();
+            SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
             settings = new Settings() { IsLive = true, ReformEmail = Domain.Replace("@","") };
 
@@ -44,10 +41,10 @@ namespace UserApi.UnitTests.Services
                                         VhUserApiResourceId = "TestResourceId"
                                         };
             var tokenProvider = new Mock<ITokenProvider>();
-            _graphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
-            _identityServiceApiClient = new Mock<IIdentityServiceApiClient>();
+            GraphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
+            IdentityServiceApiClient = new Mock<IIdentityServiceApiClient>();
 
-            azureAdGraphUserResponse = new AzureAdGraphUserResponse() { 
+            AzureAdGraphUserResponse = new AzureAdGraphUserResponse() { 
                                             ObjectId = "1", 
                                             DisplayName = "T Tester", 
                                             GivenName ="Test", 
@@ -55,22 +52,22 @@ namespace UserApi.UnitTests.Services
                                             OtherMails = new List<string>(), 
                                             UserPrincipalName = "TestUser" 
                                         };
-            azureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse> { Value = new List<AzureAdGraphUserResponse> { azureAdGraphUserResponse } };
+            AzureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse> { Value = new List<AzureAdGraphUserResponse> { AzureAdGraphUserResponse } };
             
 
-            _service = new UserAccountService(_secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, settings);
+            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, settings);
         }
 
         protected string AccessUri
         {
             get
             {
-                return $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
+                return $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
             }
         }        
 
         [Test]
-        public async Task should_increment_the_username()
+        public async Task Should_increment_the_username()
         {
             var firstName = "Existing";
             var lastName = "User";
@@ -78,35 +75,35 @@ namespace UserApi.UnitTests.Services
 
             // given api returns
             var existingUsers = new[] {"existing.user", "existing.user1"};
-            _identityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
-            var nextAvailable = await _service.CheckForNextAvailableUsernameAsync(firstName, lastName);
+            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName);
             
             nextAvailable.Should().Be("existing.user2" + Domain);
-            _identityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
         } 
 
         [Test]
-        public async Task should_delete()
+        public async Task Should_delete()
         {
-            _identityServiceApiClient.Setup(x => x.DeleteUserAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.DeleteUserAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask); 
 
-            await _service.DeleteUserAsync("User");
+            await Service.DeleteUserAsync("User");
             
-            _identityServiceApiClient.Verify(i => i.DeleteUserAsync(It.IsAny<string>()), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.DeleteUserAsync(It.IsAny<string>()), Times.Once);
         }
 
         [Test]
-        public async Task should_update_user_data_in_aad()
+        public async Task Should_update_user_data_in_aad()
         {
-            _identityServiceApiClient.Setup(x => x.UpdateUserAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.UpdateUserAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask); 
 
-            await _service.UpdateUserAsync("known.user@gmail.com");
+            await Service.UpdateUserAsync("known.user@gmail.com");
 
-            _identityServiceApiClient.Verify(i => i.UpdateUserAsync(It.IsAny<string>()), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.UpdateUserAsync(It.IsAny<string>()), Times.Once);
         }
     }
 }

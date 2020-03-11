@@ -19,7 +19,7 @@ namespace UserApi.UnitTests.ValidateArguments
         }
 
         [Test]
-        public async Task should_pass_validation()
+        public async Task Should_pass_validation()
         {
             var request = BuildRequest();
 
@@ -29,7 +29,7 @@ namespace UserApi.UnitTests.ValidateArguments
         }
 
         [Test]
-        public async Task should_return_missing_userId_error()
+        public async Task Should_return_missing_userId_error()
         {
             var request = BuildRequest();
             request.UserId = null;

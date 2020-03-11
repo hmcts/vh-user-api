@@ -19,7 +19,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public void should_throw_if_given_bad_arguments()
+        public void Should_throw_if_given_bad_arguments()
         {
             var exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername(null, "domain"));
             Assert.AreEqual("usernameBase", exception.ParamName);
@@ -29,7 +29,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public void should_increment_username_even_past_two_digits()
+        public void Should_increment_username_even_past_two_digits()
         {
             // given there are several existing users, not necessarily in order
             const string username = "existing.user";
@@ -42,7 +42,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public void should_generate_the_first_available_username()
+        public void Should_generate_the_first_available_username()
         {
             // given there already exists a number of users but there's a gap in the sequence
             const string username = "existing.user";
@@ -53,7 +53,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public void should_ignore_partially_matching_usernames_when_generating_a_new_username()
+        public void Should_ignore_partially_matching_usernames_when_generating_a_new_username()
         {
             // given there are some users already with partially matching usernames
             GivenApiReturnsExistingUsers("existing.user", "existing.username1", "existing.username2", "existing.user1");
@@ -63,7 +63,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public void should_ignore_case_when_checking_next_username()
+        public void Should_ignore_case_when_checking_next_username()
         {
             // given we have users matching the username but with differing format,
             // now, this shouldn't naturally occur but in case someone adds a user manually we need to handle it gracefully

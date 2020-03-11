@@ -41,19 +41,15 @@ namespace Testing.Common.ActiveDirectory
             // sometimes the api can be slow to actually allow us to access the created instance, so retry if it fails the first time
             var result = await policy.ExecuteAsync(async () =>
             {
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    var httpRequestMessage = new HttpRequestMessage(method, url);
-                    return await client.SendAsync(httpRequestMessage);
-                }
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var httpRequestMessage = new HttpRequestMessage(method, url);
+                return await client.SendAsync(httpRequestMessage);
             });
 
             var response = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
-            {
                 throw new Exception($"Failed to execute {method} on {url}, got response {result.StatusCode}: {response}");
-            }
 
             return response;
         }

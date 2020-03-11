@@ -1,0 +1,39 @@
+﻿{
+  "UserAccounts": [
+    {
+      "Role": "Case admin",
+      "Firstname": "Automation01",
+      "Lastname": "UA_CaseAdmin01",
+      "DisplayName": "Automation01_UA_CaseAdmin01",
+      "AlternativeEmail": "g5@a.com"
+    },
+    {
+      "Role": "Individual",
+      "Firstname": "Automation01",
+      "Lastname": "UA_Individual01",
+      "DisplayName": "Automation01_UA_Individual01",
+      "AlternativeEmail": "g2@a.com"
+    },
+    {
+      "Role": "Judge",
+      "Firstname": "Automation01",
+      "Lastname": "UA_Judge01",
+      "DisplayName": "Automation01_UA_Judge01",
+      "AlternativeEmail": "g1@a.com"
+    },
+    {
+      "Role": "Representative",
+      "Firstname": "Automation01",
+      "Lastname": "UA_Representative01",
+      "DisplayName": "Automation01_UA_Representative01",
+      "AlternativeEmail": "g3@a.com"
+    },
+    {
+      "Role": "Video Hearings Officer",
+      "Firstname": "Automation01",
+      "Lastname": "UA_VideoHearingsOfficer01",
+      "DisplayName": "Automation01_UA_VideoHearingsOfficer01",
+      "AlternativeEmail": "g4@a.com"
+    }
+  ]
+}

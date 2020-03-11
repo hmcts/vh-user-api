@@ -12,42 +12,42 @@ namespace UserApi.IntegrationTests.Hooks
     public static class ApiHooks
     {
         [BeforeTestRun]
-        public static void OneTimeSetup(ApiTestContext apiTestContext)
+        public static void OneTimeSetup(TestContext testContext)
         {
             var webHostBuilder = WebHost.CreateDefaultBuilder()
                 .UseKestrel(c => c.AddServerHeader = false)
                 .UseEnvironment("Development")
                 .UseStartup<Startup>();
-            apiTestContext.Server = new TestServer(webHostBuilder);
+            testContext.Server = new TestServer(webHostBuilder);
 
-            GetClientAccessTokenForUserApi(apiTestContext);
+            GetClientAccessTokenForUserApi(testContext);
         }
 
-        private static void GetClientAccessTokenForUserApi(ApiTestContext apiTestContext)
+        private static void GetClientAccessTokenForUserApi(TestContext testContext)
         {
-            apiTestContext.TestSettings = TestConfig.Instance.TestSettings;
+            testContext.TestSettings = TestConfig.Instance.TestSettings;
 
             var azureAdConfig = TestConfig.Instance.AzureAd;
 
-            apiTestContext.BearerToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
+            testContext.BearerToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 azureAdConfig.VhUserApiResourceId);
 
-            apiTestContext.GraphApiToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
+            testContext.GraphApiToken = new TokenProvider(azureAdConfig).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 "https://graph.microsoft.com");
         }
 
         [BeforeScenario]
-        public static void BeforeApiScenario(ApiTestContext apiTestContext)
+        public static void BeforeApiScenario(TestContext testContext)
         {
-            apiTestContext.NewUserId = string.Empty;
+            testContext.Test.NewUserId = string.Empty;
         }
 
         [AfterTestRun]
-        public static void OneTimeTearDown(ApiTestContext apiTestContext)
+        public static void OneTimeTearDown(TestContext testContext)
         {
-            apiTestContext.Server.Dispose();
+            testContext.Server.Dispose();
         }
     }
 }
