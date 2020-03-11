@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Testing.Common.Helpers;
+using UserApi.Contract.Responses;
 
 namespace UserApi.IntegrationTests.Controllers
 {
@@ -18,6 +19,12 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(_healthCheckEndpoints.CheckServiceHealth());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var getResponseModel =
+                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserApiHealthResponse>(getResponse.Content
+                    .ReadAsStringAsync().Result);
+            getResponseModel.AppVersion.Should().NotBeNull();
+            getResponseModel.AppVersion.FileVersion.Should().NotBeNull();
+            getResponseModel.AppVersion.InformationVersion.Should().NotBeNull();
         }
 
         [TearDown]
