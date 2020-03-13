@@ -32,7 +32,9 @@ namespace UserApi.UnitTests.Services
         {
             var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
+            SecureHttpRequest
+                .Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
 
             var response = await Service.GetGroupByIdAsync(GroupId);
 
@@ -44,7 +46,8 @@ namespace UserApi.UnitTests.Services
         {
             const string reason = "User not authorised";
 
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByIdAsync(GroupId));

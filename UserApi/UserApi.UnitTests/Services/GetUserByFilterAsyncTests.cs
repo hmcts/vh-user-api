@@ -23,7 +23,8 @@ namespace UserApi.UnitTests.Services
         {
             AzureAdGraphQueryResponse.Value.Add(new AzureAdGraphUserResponse() { ObjectId = "2" });
 
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
 
             var response = await Service.GetUserByFilterAsync(Filter);
@@ -40,7 +41,8 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_return_null_with_no_matching_user_filter()
         {
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("NotFound", HttpStatusCode.NotFound));
 
             var response = await Service.GetUserByFilterAsync(Filter);
@@ -53,7 +55,8 @@ namespace UserApi.UnitTests.Services
         { 
             const string message = "User not authorised";
 
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(message, HttpStatusCode.Unauthorized));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetUserByFilterAsync(Filter));

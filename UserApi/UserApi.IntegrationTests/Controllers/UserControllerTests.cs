@@ -41,9 +41,10 @@ namespace UserApi.IntegrationTests.Controllers
                 await SendPostRequestAsync(_userEndpoints.CreateUser, createUserHttpRequest);
 
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content
-                    .ReadAsStringAsync().Result);
+            
+            var createUserModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content.ReadAsStringAsync().Result);
+            
             TestContext.WriteLine($"Response:{ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserModel)}");
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
@@ -56,8 +57,7 @@ namespace UserApi.IntegrationTests.Controllers
             var addExternalGroupRequest = new AddUserToGroupRequest
                 {UserId = createUserModel.UserId, GroupName = "External"};
             var addExternalGroupHttpRequest = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest),
-                Encoding.UTF8, "application/json");
+                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest), Encoding.UTF8, "application/json");
             var addExternalGroupHttpResponse =
                 await SendPatchRequestAsync(_accountEndpoints.AddUserToGroup, addExternalGroupHttpRequest);
             addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
@@ -69,9 +69,10 @@ namespace UserApi.IntegrationTests.Controllers
             const string userId = "60c7fae1-8733-4d82-b912-eece8d55d54c";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            
+            var userResponseModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content.ReadAsStringAsync().Result);
+            
             userResponseModel.UserId.Should().Be(userId);
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.DisplayName.Should().NotBeNullOrWhiteSpace();
@@ -83,9 +84,10 @@ namespace UserApi.IntegrationTests.Controllers
             var username = $"Automation01Administrator01@{TestConfig.Instance.Settings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            
+            var userResponseModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content.ReadAsStringAsync().Result);
+            
             userResponseModel.UserRole.Should().Be("CaseAdmin");
             userResponseModel.FirstName.Should().Be("Automation01");
             userResponseModel.LastName.Should().Be("Administrator01");
@@ -106,9 +108,10 @@ namespace UserApi.IntegrationTests.Controllers
             var username = $"Automation01Administrator01@{TestConfig.Instance.Settings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            
+            var userResponseModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content.ReadAsStringAsync().Result);
+            
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
@@ -131,9 +134,10 @@ namespace UserApi.IntegrationTests.Controllers
             var email = $"Admin.Kinly@{TestConfig.Instance.Settings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            
+            var userResponseModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content.ReadAsStringAsync().Result);
+            
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
@@ -155,7 +159,8 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
+            var usersForGroupModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
             var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == $"Judge.Bever@{TestConfig.Instance.Settings.ReformEmail}");

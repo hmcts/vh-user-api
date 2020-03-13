@@ -11,7 +11,6 @@ using Testing.Common.Helpers;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace UserApi.UnitTests.Services
 {
@@ -23,7 +22,7 @@ namespace UserApi.UnitTests.Services
         private string _baseUrl;
         private string _queryUrl;
         private string _defaultPassword;
-        private string userName => "bob";
+        private static string UserName => "bob";
 
         [SetUp]
         public void Setup()
@@ -40,10 +39,10 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_create_user_successfully_and_return_NewAdUserAccount()
         {
-            var username = "TestTester";
-            var firstName = "Test";
-            var lastName = "Tester";
-            var recoveryEmail = "test'tester@mail.com";
+            const string username = "TestTester";
+            const string firstName = "Test";
+            const string lastName = "Tester";
+            const string recoveryEmail = "test'tester@mail.com";
             var displayName = $"{firstName} {lastName}";
             var user = new
             {
@@ -63,7 +62,8 @@ namespace UserApi.UnitTests.Services
 
             var json = JsonConvert.SerializeObject(user);
 
-            _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(),It.IsAny<StringContent>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.PostAsync(It.IsAny<string>(),It.IsAny<StringContent>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.User(), HttpStatusCode.OK));
 
             var response = await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
@@ -76,16 +76,17 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_return_user_names_starting_with_text()
         {
-            var text = "test'user";
+            const string text = "test'user";
             var filter = $"startswith(userPrincipalName,'{text.Replace("'", "''")}')";
             _queryUrl += $"?$filter={filter}";
 
             var user = new Microsoft.Graph.User() { UserPrincipalName = "TestUser" };
             var azureAdGraphQueryResponse = new AzureAdGraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user } };
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
 
-            var response = await _client.GetUsernamesStartingWithAsync(text);
+            var response = (await _client.GetUsernamesStartingWithAsync(text)).ToList();
 
             response.Should().NotBeNull();
             var users = response.ToList();
@@ -103,19 +104,21 @@ namespace UserApi.UnitTests.Services
         [Test]
         public void should_raise_exception_on_unsuccessful_response()
         {
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("test", HttpStatusCode.Unauthorized));
 
-            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.GetUsernamesStartingWithAsync(userName));
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.GetUsernamesStartingWithAsync(UserName));
         }
         
         [Test]
         public void should_raise_IdentityServiceApiException_on_unsuccessful_response_on_delete()
         {            
-            _secureHttpRequest.Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("test", HttpStatusCode.Unauthorized));
 
-           var exception = Assert.ThrowsAsync<IdentityServiceApiException>(async () => await _client.DeleteUserAsync(userName));
+           var exception = Assert.ThrowsAsync<IdentityServiceApiException>(async () => await _client.DeleteUserAsync(UserName));
 
             exception.Should().NotBeNull();
             exception.Message.Should().Be("Failed to call API: Unauthorized\r\ntest");
@@ -124,13 +127,14 @@ namespace UserApi.UnitTests.Services
         [Test]
         public void should_be_successful_response_on_delete()
         {
-            _queryUrl += $"/{userName}";
+            _queryUrl += $"/{UserName}";
             var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
             
-            _secureHttpRequest.Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(responseMessage);
 
-            Assert.DoesNotThrowAsync(() => _client.DeleteUserAsync(userName));
+            Assert.DoesNotThrowAsync(() => _client.DeleteUserAsync(UserName));
             _secureHttpRequest.Verify(x => x.DeleteAsync(_graphApiSettings.Object.AccessToken, _queryUrl), Times.Once);
         }
 
@@ -139,7 +143,7 @@ namespace UserApi.UnitTests.Services
         {
             var user = new
             {
-                userPrincipalName = userName,
+                userPrincipalName = UserName,
                 passwordProfile = new
                 {
                     forceChangePasswordNextSignIn = true,
@@ -147,14 +151,15 @@ namespace UserApi.UnitTests.Services
                 }
             };
 
-             _queryUrl += $"/{userName}";
+             _queryUrl += $"/{UserName}";
             var json = JsonConvert.SerializeObject(user);
             var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
 
-            _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                 .ReturnsAsync(responseMessage);
 
-            Assert.DoesNotThrowAsync(() => _client.UpdateUserAsync(userName));
+            Assert.DoesNotThrowAsync(() => _client.UpdateUserAsync(UserName));
 
             _secureHttpRequest.Verify(x => x.PatchAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
         }
@@ -162,10 +167,11 @@ namespace UserApi.UnitTests.Services
         [Test]
         public void should_raise_IdentityServiceApiException_on_unsuccessful_response_on_update()
         {
-            _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+            _secureHttpRequest
+                .Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("test",HttpStatusCode.BadRequest));
 
-            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserAsync(userName));
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserAsync(UserName));
         }
     }
 }

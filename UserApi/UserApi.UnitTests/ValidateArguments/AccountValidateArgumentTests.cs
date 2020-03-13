@@ -38,7 +38,8 @@ namespace UserApi.UnitTests.ValidateArguments
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
             result.Errors.Any(x => x.ErrorMessage == AddUserToGroupRequestValidation.MissingUserIdErrorMessage)
-                .Should().BeTrue();
+                .Should()
+                .BeTrue();
         }
 
         private AddUserToGroupRequest BuildRequest()

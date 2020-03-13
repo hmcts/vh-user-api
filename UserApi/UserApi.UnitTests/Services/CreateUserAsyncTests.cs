@@ -31,15 +31,16 @@ namespace UserApi.UnitTests.Services
         public async Task Should_create_new_user_account_successfully()
         {
             var existingUsers = new[] { "existing.user", "existing.user1" };
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient
+                .Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
             Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
 
             AzureAdGraphQueryResponse.Value = new List<AzureAdGraphUserResponse>();
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
-
 
             var response = await Service.CreateUserAsync("fName", "lName", RecoveryEmail);
 
@@ -56,9 +57,7 @@ namespace UserApi.UnitTests.Services
         {
             Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
 
-
             var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail));
-
 
             response.Message.Should().Be("User with recovery email already exists");
         }

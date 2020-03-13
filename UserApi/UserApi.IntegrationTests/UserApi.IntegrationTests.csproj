@@ -35,4 +35,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Features\*.feature" />
+  </ItemGroup>
+
 </Project>

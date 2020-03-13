@@ -31,9 +31,9 @@ namespace UserApi.IntegrationTests.Controllers
             var groupName = "External";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            var groupResponseModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
+                .ReadAsStringAsync().Result);
             groupResponseModel.DisplayName.Should().Be(groupName);
             groupResponseModel.GroupId.Should().NotBeNullOrWhiteSpace();
         }
@@ -44,9 +44,9 @@ namespace UserApi.IntegrationTests.Controllers
             var groupId = "121fa058-1796-4531-a9ee-63be1d4dc630";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            var groupResponseModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
+                .ReadAsStringAsync().Result);
 
             Assert.AreEqual("External", groupResponseModel.DisplayName);
         }
@@ -66,9 +66,9 @@ namespace UserApi.IntegrationTests.Controllers
             const string userId = "9a435325-df6d-4937-9f37-baca2052dd5d";
             var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupsForUser(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupsForUserModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
-                    .ReadAsStringAsync().Result);
+            var groupsForUserModel = ApiRequestHelper
+                .DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
+                .ReadAsStringAsync().Result);
 
             const string expectedGroupName = "VirtualRoomHearingAdministrator";
             var group = groupsForUserModel.FirstOrDefault(g => g.DisplayName == expectedGroupName);

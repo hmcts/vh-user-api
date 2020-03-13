@@ -13,22 +13,22 @@ namespace UserApi.UnitTests.Services
 {
     public class AddUserToGroupAsyncTests: UserAccountServiceTests
     {
-        private Microsoft.Graph.User user;
-        private Microsoft.Graph.Group group;
-        private CustomDirectoryObject customDirectoryObject;
-        private string groupAccessUri;
+        private Microsoft.Graph.User _user;
+        private Microsoft.Graph.Group _group;
+        private CustomDirectoryObject _customDirectoryObject;
+        private string _groupAccessUri;
 
         [SetUp]
         public void TestIntialize()
         {           
-            user = new Microsoft.Graph.User() { Id = "1" };
-            group = new Microsoft.Graph.Group() { Id = "2" };
-            customDirectoryObject = new CustomDirectoryObject
+            _user = new Microsoft.Graph.User() { Id = "1" };
+            _group = new Microsoft.Graph.Group() { Id = "2" };
+            _customDirectoryObject = new CustomDirectoryObject
             {
-                ObjectDataId = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/directoryObjects/{user.Id}"
+                ObjectDataId = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/directoryObjects/{_user.Id}"
             };
 
-            groupAccessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/groups/{group.Id}/members/$ref"; 
+            _groupAccessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/groups/{_group.Id}/members/$ref"; 
         }
 
         [Test]
@@ -38,9 +38,9 @@ namespace UserApi.UnitTests.Services
             SecureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Success", HttpStatusCode.OK));
 
-            await Service.AddUserToGroupAsync(user, group);
+            await Service.AddUserToGroupAsync(_user, _group);
 
-            SecureHttpRequest.Verify(s => s.PostAsync(It.IsAny<string>(), It.Is<StringContent>(s => s.ReadAsStringAsync().Result == JsonConvert.SerializeObject(customDirectoryObject)), groupAccessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.PostAsync(It.IsAny<string>(), It.Is<StringContent>(s => s.ReadAsStringAsync().Result == JsonConvert.SerializeObject(_customDirectoryObject)), _groupAccessUri), Times.Once);
         }
 
         [Test]
@@ -50,21 +50,21 @@ namespace UserApi.UnitTests.Services
             SecureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("already exist", HttpStatusCode.NotFound));
 
-            await Service.AddUserToGroupAsync(user, group);
+            await Service.AddUserToGroupAsync(_user, _group);
 
-            SecureHttpRequest.Verify(s => s.PostAsync(It.IsAny<string>(), It.Is<StringContent>(s => s.ReadAsStringAsync().Result == JsonConvert.SerializeObject(customDirectoryObject)), groupAccessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.PostAsync(It.IsAny<string>(), It.Is<StringContent>(s => s.ReadAsStringAsync().Result == JsonConvert.SerializeObject(_customDirectoryObject)), _groupAccessUri), Times.Once);
         }
 
         [Test]
         public void should_throw_user_exception_on_other_responses()
         {
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
+            var message = $"Failed to add user {_user.Id} to group {_group.Id}";
             var reason = "Unathorized access";
 
             SecureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.AddUserToGroupAsync(user, group));
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.AddUserToGroupAsync(_user, _group));
 
             response.Should().NotBeNull();
             response.Message.Should().Be($"{message}: {reason}");

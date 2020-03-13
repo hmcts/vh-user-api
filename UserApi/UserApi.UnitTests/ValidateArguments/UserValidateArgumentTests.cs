@@ -38,7 +38,8 @@ namespace UserApi.UnitTests.ValidateArguments
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
             result.Errors.Any(x => x.ErrorMessage == CreateUserRequestValidation.InvalidEmailErrorMessage)
-                .Should().BeTrue();
+                .Should()
+                .BeTrue();
         }
 
         private CreateUserRequest BuildRequest()
