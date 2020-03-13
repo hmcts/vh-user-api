@@ -2,7 +2,7 @@
 
 namespace UserApi.AcceptanceTests.Configuration
 {
-    public class UserApiSecurityConfiguration : IAzureAdConfig
+    public class AzureAdConfig : IAzureAdConfig
     {
         public string Authority { get; set; }
         public string ClientId { get; set; }

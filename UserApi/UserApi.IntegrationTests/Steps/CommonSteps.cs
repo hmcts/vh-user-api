@@ -25,15 +25,16 @@ namespace UserApi.IntegrationTests.Steps
         public async Task WhenISendTheRequestToTheEndpoint()
         {
             _testContext.ResponseMessage = new HttpResponseMessage();
-            switch (_testContext.HttpMethod.Method)
+            _testContext.ResponseMessage = _testContext.HttpMethod.Method switch
             {
-                case "GET": _testContext.ResponseMessage = await SendGetRequestAsync(_testContext); break;
-                case "POST": _testContext.ResponseMessage = await SendPostRequestAsync(_testContext); break;
-                case "PATCH": _testContext.ResponseMessage = await SendPatchRequestAsync(_testContext); break;
-                case "PUT": _testContext.ResponseMessage = await SendPutRequestAsync(_testContext); break;
-                case "DELETE": _testContext.ResponseMessage = await SendDeleteRequestAsync(_testContext); break;
-                default: throw new ArgumentOutOfRangeException(_testContext.HttpMethod.ToString(), _testContext.HttpMethod.ToString(), null);
-            }
+                "GET" => await SendGetRequestAsync(_testContext),
+                "POST" => await SendPostRequestAsync(_testContext),
+                "PATCH" => await SendPatchRequestAsync(_testContext),
+                "PUT" => await SendPutRequestAsync(_testContext),
+                "DELETE" => await SendDeleteRequestAsync(_testContext),
+                _ => throw new ArgumentOutOfRangeException(_testContext.HttpMethod.ToString(),
+                    _testContext.HttpMethod.ToString(), null)
+            };
         }
 
         [Then(@"the response should have the status (.*) and success status (.*)")]

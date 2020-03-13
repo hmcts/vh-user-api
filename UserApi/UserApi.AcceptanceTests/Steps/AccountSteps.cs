@@ -6,7 +6,7 @@ using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
-using UserApi.AcceptanceTests.Helpers;
+using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
@@ -23,12 +23,6 @@ namespace UserApi.AcceptanceTests.Steps
         public AccountSteps(TestContext context)
         {
             _c = context;
-        }
-
-        [BeforeScenario]
-        public static async Task RemoveNewGroupIfExistsAsync(TestContext context)
-        {
-            await RemoveGroupFromUserIfExists(context);
         }
 
         [Given(@"I have a get ad group by name request with a valid group name")]
@@ -101,25 +95,6 @@ namespace UserApi.AcceptanceTests.Steps
             sw.Stop();
             userIsInTheGroup.Should().BeTrue("User has been added to the group");
             _c.Test.NewGroupId = _c.UserApiConfig.TestConfig.NewGroups.First().GroupId;
-        }
-
-        [AfterScenario]
-        public static async Task RemoveNewGroupAgainIfExists(TestContext context)
-        {
-            await RemoveGroupFromUserIfExists(context);
-            context.Test.NewGroupId = null;
-        }
-
-        private static async Task RemoveGroupFromUserIfExists(TestContext context)
-        {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(context.UserApiConfig.TestConfig.ExistingUserId,
-                context.UserApiConfig.TestConfig.NewGroups.First().DisplayName, context.GraphApiToken);
-            if (userIsInTheGroup)
-            {
-                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(context.UserApiConfig.TestConfig.ExistingUserId,
-                    context.UserApiConfig.TestConfig.NewGroups.First().GroupId, context.GraphApiToken);
-            }
-            context.Test.NewGroupId = null;
         }
     }
 }

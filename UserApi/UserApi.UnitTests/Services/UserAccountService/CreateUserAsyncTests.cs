@@ -2,12 +2,12 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Services;
 using UserApi.Services.Models;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
@@ -34,7 +34,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
-            filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
+            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
 
             AzureAdGraphQueryResponse.Value = new List<AzureAdGraphUserResponse>();
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
@@ -54,7 +54,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_return_user_already_exists_with_recovery_email()
         {
-            filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
+            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
 
 
             var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail));

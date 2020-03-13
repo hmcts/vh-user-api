@@ -61,11 +61,11 @@ namespace UserApi.Services
         {
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
+            var accessUri = $"{_graphApiSettings.GraphApiUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -86,7 +86,7 @@ namespace UserApi.Services
 
         public async Task<User> GetUserByFilterAsync(string filter)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
+            var accessUri = $"{_graphApiSettings.GraphApiUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
@@ -122,7 +122,7 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupByNameAsync(string groupName)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var accessUri = $"{_graphApiSettings.GraphApiUri}v1.0/groups?$filter=displayName eq '{groupName}'";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
@@ -138,7 +138,7 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupByIdAsync(string groupId)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
+            var accessUri = $"{_graphApiSettings.GraphApiUri}v1.0/groups/{groupId}";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
@@ -159,7 +159,7 @@ namespace UserApi.Services
 
         public async Task<List<Group>> GetGroupsForUserAsync(string userId)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
+            var accessUri = $"{_graphApiSettings.GraphApiUri}v1.0/users/{userId}/memberOf";
 
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
@@ -249,7 +249,7 @@ namespace UserApi.Services
         }
         private async Task<List<UserResponse>> GetJudgesAsync(string groupId)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$top=999";
+            var accessUri = $"{_graphApiSettings.GraphApiUri}v1.0/groups/{groupId}/members?$top=999";
 
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 

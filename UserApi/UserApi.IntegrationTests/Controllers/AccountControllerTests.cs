@@ -21,7 +21,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name_not_found_with_bogus_group_name()
         {
-            var groupName = "foo";
+            const string groupName = "foo";
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -29,7 +29,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name()
         {
-            var groupName = "External";
+            const string groupName = "External";
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
@@ -41,7 +41,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_id()
         {
-            var groupId = "121fa058-1796-4531-a9ee-63be1d4dc630";
+            const string groupId = "121fa058-1796-4531-a9ee-63be1d4dc630";
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content

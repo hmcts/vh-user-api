@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Microsoft.Graph;
 using Moq;
@@ -10,6 +9,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using UserApi.Security;
 using UserApi.Services.Models;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
@@ -28,11 +28,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() };
             _group = new Group() { Id = GroupId };
 
-            _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
-            _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
+            _judgesGroup = $"{GraphApiSettings.GraphApiUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
+            _judgesTestGroup = $"{GraphApiSettings.GraphApiUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
 
-            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}/members?$top=999";
+            _accessUri = $"{GraphApiSettings.GraphApiUri}v1.0/groups/{GroupId}/members?$top=999";
         }
 
         [Test]

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +7,8 @@ using System.Threading;
 using AcceptanceTests.Common.Api.Requests;
 using AcceptanceTests.Common.Configuration.Users;
 using TechTalk.SpecFlow;
-using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
-using UserApi.AcceptanceTests.Helpers;
+using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
@@ -84,37 +82,6 @@ namespace UserApi.AcceptanceTests.Steps
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Accepted, true);
         }
 
-        private bool PollForUserInAad()
-        {
-            _c.Request = RequestBuilder.Get(GetUserByAdUserName(_c.Test.NewUsername));
-            for (var i = 0; i < Timeout; i++)
-            {
-                _commonSteps.WhenISendTheRequestToTheEndpoint();
-                if (_c.Response.IsSuccessful)
-                {
-                    return true;
-                }
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-            }
-            return false;
-        }
-
-        private bool PollForUserGroupAdded(string userId)
-        {
-            _c.Request = RequestBuilder.Get(GetGroupsForUser(userId));
-            for (var i = 0; i < Timeout; i++)
-            {
-                _commonSteps.WhenISendTheRequestToTheEndpoint();
-                var groups = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_c.Response.Content);
-                if (groups.Any(x => x.DisplayName.Equals("External")))
-                {
-                    return true;
-                }
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-            }
-            return false;
-        }
-
         [Given(@"I have a delete user request for the new user")]
         public void GivenIHaveADeleteUserRequestForTheNewUser()
         {
@@ -173,6 +140,22 @@ namespace UserApi.AcceptanceTests.Steps
             PollForUserDeleted().Should().BeTrue("User has been successfully deleted");
         }
 
+        [Then(@"a list of ad judges should be retrieved")]
+        public void ThenAListOfAdJudgesShouldBeRetrieved()
+        {
+            var actualJudges = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_c.Response.Content);
+            actualJudges.Should().NotBeNull();
+            foreach (var user in actualJudges)
+            {
+                user.Email.Should().NotBeNullOrEmpty();
+                user.DisplayName.Should().NotBeNullOrEmpty();
+            }
+
+            var expectedJudge = UserManager.GetJudgeUser(_c.UserAccounts);
+            var actualJudge = actualJudges.First(u => u.Email.Equals(expectedJudge.Username));
+            actualJudge.DisplayName.Should().Be(expectedJudge.DisplayName);
+        }
+
         private bool PollForUserDeleted()
         {
             _c.Request = RequestBuilder.Get(GetUserByAdUserName(_c.Test.NewUsername));
@@ -183,33 +166,40 @@ namespace UserApi.AcceptanceTests.Steps
                 {
                     return true;
                 }
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+            }
+            return false;
+        }
+
+        private bool PollForUserInAad()
+        {
+            _c.Request = RequestBuilder.Get(GetUserByAdUserName(_c.Test.NewUsername));
+            for (var i = 0; i < Timeout; i++)
+            {
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                if (_c.Response.IsSuccessful)
+                {
+                    return true;
+                }
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
             return false;
         }
 
-        [Then(@"a list of ad judges should be retrieved")]
-        public void ThenAListOfAdJudgesShouldBeRetrieved()
+        private bool PollForUserGroupAdded(string userId)
         {
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_c.Response.Content);
-            model.Should().NotBeNull();
-            foreach (var user in model)
+            _c.Request = RequestBuilder.Get(GetGroupsForUser(userId));
+            for (var i = 0; i < Timeout; i++)
             {
-                user.Email.Should().NotBeNullOrEmpty();
-                user.DisplayName.Should().NotBeNullOrEmpty();
+                _commonSteps.WhenISendTheRequestToTheEndpoint();
+                var groups = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_c.Response.Content);
+                if (groups.Any(x => x.DisplayName.Equals("External")))
+                {
+                    return true;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
             }
-
-            var judge = UserManager.GetJudgeUser(_c.UserAccounts);
-            var expectedUser = model.First(u => u.Email.Equals(judge.Username));
-            expectedUser.DisplayName.Should().Be(judge.DisplayName);
-        }
-
-        [AfterScenario]
-        public async Task NewUserClearUp()
-        {
-            if (string.IsNullOrWhiteSpace(_c.Test.NewUserId)) return;
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_c.Test.NewUserId, _c.GraphApiToken);
-            _c.Test.NewUserId = null;
+            return false;
         }
     }
 }

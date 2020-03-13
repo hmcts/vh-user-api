@@ -33,7 +33,7 @@ namespace UserApi.IntegrationTests.Steps
             _testContext.HttpMethod = HttpMethod.Get;
              _testContext.Uri = scenario switch
             {
-                Scenario.Valid => GetGroupByName(_testContext.TestSettings.ExistingGroups.First().DisplayName),
+                Scenario.Valid => GetGroupByName(_testContext.UserApiConfig.TestSettings.ExistingGroups.First().DisplayName),
                 Scenario.Nonexistent => GetGroupByName("Does not exist"),
                 Scenario.Invalid => GetGroupByName(" "),
                 _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null)
@@ -49,7 +49,7 @@ namespace UserApi.IntegrationTests.Steps
             {
                 case Scenario.Valid:
                 {
-                    _testContext.Uri = GetGroupById(_testContext.TestSettings.ExistingGroups.First().GroupId);
+                    _testContext.Uri = GetGroupById(_testContext.UserApiConfig.TestSettings.ExistingGroups.First().GroupId);
                         break;
                 }
                 case Scenario.Nonexistent:
@@ -75,7 +75,7 @@ namespace UserApi.IntegrationTests.Steps
             {
                 case Scenario.Valid:
                 {
-                    _testContext.Uri = GetGroupsForUser(_testContext.TestSettings.ExistingUserId);
+                    _testContext.Uri = GetGroupsForUser(_testContext.UserApiConfig.TestSettings.ExistingUserId);
                     break;
                 }
                 case Scenario.Nonexistent:
@@ -100,8 +100,8 @@ namespace UserApi.IntegrationTests.Steps
             _testContext.Uri = AddUserToGroup;
             var addUserRequest = new AddUserToGroupRequest()
             {
-                UserId = _testContext.TestSettings.ExistingUserId,
-                GroupName = _testContext.TestSettings.NewGroups.First().DisplayName
+                UserId = _testContext.UserApiConfig.TestSettings.ExistingUserId,
+                GroupName = _testContext.UserApiConfig.TestSettings.NewGroups.First().DisplayName
             };
             switch (scenario)
             {
@@ -132,14 +132,14 @@ namespace UserApi.IntegrationTests.Steps
             _testContext.Uri = AddUserToGroup;
             var addUserRequest = new AddUserToGroupRequest()
             {
-                UserId = _testContext.TestSettings.ExistingUserId,
-                GroupName = _testContext.TestSettings.NewGroups.First().DisplayName
+                UserId = _testContext.UserApiConfig.TestSettings.ExistingUserId,
+                GroupName = _testContext.UserApiConfig.TestSettings.NewGroups.First().DisplayName
             };
             switch (scenario)
             {               
                 case Scenario.Existing:
                 {
-                    addUserRequest.GroupName = _testContext.TestSettings.ExistingGroups.First().DisplayName;
+                    addUserRequest.GroupName = _testContext.UserApiConfig.TestSettings.ExistingGroups.First().DisplayName;
                     break;
                 }
                 case Scenario.Nonexistent:
@@ -164,8 +164,8 @@ namespace UserApi.IntegrationTests.Steps
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(json);
             model.Should().NotBeNull();
-            model.DisplayName.Should().Be(_testContext.TestSettings.ExistingGroups.First().DisplayName);
-            model.GroupId.Should().Be(_testContext.TestSettings.ExistingGroups.First().GroupId);
+            model.DisplayName.Should().Be(_testContext.UserApiConfig.TestSettings.ExistingGroups.First().DisplayName);
+            model.GroupId.Should().Be(_testContext.UserApiConfig.TestSettings.ExistingGroups.First().GroupId);
         }
 
         [Then(@"a list of ad groups should be retrieved")]
@@ -184,35 +184,29 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"user should be added to the group")]
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_testContext.TestSettings.ExistingUserId,
-                _testContext.TestSettings.NewGroups.First().DisplayName, _testContext.GraphApiToken);
+            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_testContext.UserApiConfig.TestSettings.ExistingUserId,
+                _testContext.UserApiConfig.TestSettings.NewGroups.First().DisplayName, _testContext.GraphApiToken);
             userIsInTheGroup.Should().BeTrue();
-            _testContext.NewGroupId = _testContext.TestSettings.NewGroups.First().GroupId;
+            _testContext.Test.NewGroupId = _testContext.UserApiConfig.TestSettings.NewGroups.First().GroupId;
         }
 
         [AfterScenario]
-        public async Task ClearUpAsync(TestContext testContext)
+        public async Task ClearUpAsync(TestContext context)
         {
-            var newGroup = testContext.TestSettings.NewGroups.FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(_testContext.NewGroupId) || newGroup == null)
-            {
+            var newGroup = context.UserApiConfig.TestSettings.NewGroups.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(_testContext.Test.NewGroupId) || newGroup == null) 
                 return;
-            }
-
-            await RemoveGroupFromUserIfExistsAsync(testContext, newGroup);
-
-            testContext.NewGroupId = null;
+            await RemoveGroupFromUserIfExistsAsync(context, newGroup);
+            context.Test.NewGroupId = null;
         }
 
-        private static async Task RemoveGroupFromUserIfExistsAsync(TestContext testContext, Group group)
+        private static async Task RemoveGroupFromUserIfExistsAsync(TestContext context, Group group)
         {
-            var userId = testContext.TestSettings.ExistingUserId;
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(userId, group.DisplayName, testContext.GraphApiToken);
+            var userId = context.UserApiConfig.TestSettings.ExistingUserId;
+            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(userId, group.DisplayName, context.GraphApiToken);
             if (userIsInTheGroup)
-            {
-                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(userId, group.GroupId, testContext.GraphApiToken);
-            }
-            testContext.NewGroupId = null;
+                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(userId, group.GroupId, context.GraphApiToken);
+            context.Test.NewGroupId = null;
         }
     }
 }

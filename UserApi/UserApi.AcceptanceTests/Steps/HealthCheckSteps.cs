@@ -1,6 +1,6 @@
 ﻿using AcceptanceTests.Common.Api.Requests;
 using TechTalk.SpecFlow;
-using UserApi.AcceptanceTests.Helpers;
+using UserApi.AcceptanceTests.Contexts;
 using static Testing.Common.Helpers.UserApiUriFactory.HealthCheckEndpoints;
 
 namespace UserApi.AcceptanceTests.Steps

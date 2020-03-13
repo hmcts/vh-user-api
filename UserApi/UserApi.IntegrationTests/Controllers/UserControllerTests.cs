@@ -11,7 +11,7 @@ using Faker;
 using FluentAssertions;
 using NUnit.Framework;
 using Polly;
-using Testing.Common;
+using Testing.Common.Configuration;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;

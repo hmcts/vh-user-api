@@ -28,6 +28,7 @@ namespace UserApi
 
         private IConfiguration Configuration { get; }
         private AzureAdConfiguration AzureAdSettings { get; set; }
+        private VhServices VhServicesSettings { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -58,7 +59,7 @@ namespace UserApi
         }
 
 
-        private void ConfigureJsonSerialization(IServiceCollection services)
+        private static void ConfigureJsonSerialization(IServiceCollection services)
         {
             var contractResolver = new DefaultContractResolver
             {
@@ -78,7 +79,9 @@ namespace UserApi
         private void RegisterConfiguration(IServiceCollection services)
         {
             AzureAdSettings = Configuration.GetSection("AzureAd").Get<AzureAdConfiguration>();
+            VhServicesSettings = Configuration.GetSection("VhServices").Get<VhServices>();
             services.AddSingleton(AzureAdSettings);
+            services.AddSingleton(VhServicesSettings);
             services.AddSingleton(Configuration.Get<Settings>());
         }
 
@@ -98,7 +101,7 @@ namespace UserApi
             {
                 options.Authority = $"{AzureAdSettings.Authority}{AzureAdSettings.TenantId}";
                 options.TokenValidationParameters.ValidateLifetime = true;
-                options.Audience = AzureAdSettings.VhUserApiResourceId;
+                options.Audience = VhServicesSettings.UserApiResourceId;
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
             });
 

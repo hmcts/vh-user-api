@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Security;
 using UserApi.Services.Models;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
@@ -17,7 +17,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_get_group_by_given_name()
         {
-            var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{GroupName}'";
+            var accessUri = $"{GraphApiSettings.GraphApiUri}v1.0/groups?$filter=displayName eq '{GroupName}'";
             var graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group> { new Microsoft.Graph.Group()} };
 
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(RequestHelper.CreateHttpResponseMessage(graphQueryResponse,HttpStatusCode.OK));

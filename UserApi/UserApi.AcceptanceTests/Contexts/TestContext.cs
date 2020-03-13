@@ -4,7 +4,7 @@ using AcceptanceTests.Common.Configuration.Users;
 using RestSharp;
 using UserApi.AcceptanceTests.Configuration;
 
-namespace UserApi.AcceptanceTests.Helpers
+namespace UserApi.AcceptanceTests.Contexts
 {
     public class TestContext
     {

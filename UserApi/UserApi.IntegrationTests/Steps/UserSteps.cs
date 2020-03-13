@@ -47,9 +47,9 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Existing:
                 {
-                    createUserRequest.RecoveryEmail = _c.TestSettings.ExistingEmail;
-                    createUserRequest.FirstName = _c.TestSettings.ExistingUserFirstname;
-                    createUserRequest.LastName = _c.TestSettings.ExistingUserLastname;
+                    createUserRequest.RecoveryEmail = _c.UserApiConfig.TestSettings.ExistingEmail;
+                    createUserRequest.FirstName = _c.UserApiConfig.TestSettings.ExistingUserFirstname;
+                    createUserRequest.LastName = _c.UserApiConfig.TestSettings.ExistingUserLastname;
                     break;
                 }
                 case Scenario.Invalid:
@@ -109,7 +109,7 @@ namespace UserApi.IntegrationTests.Steps
             {
                 case Scenario.Existing:
                 {
-                    _c.Uri = GetUserByAdUserName(_c.TestSettings.ExistingUserPrincipal);
+                    _c.Uri = GetUserByAdUserName(_c.UserApiConfig.TestSettings.ExistingUserPrincipal);
                     break;
                 }
                 case Scenario.Nonexistent:
@@ -185,7 +185,7 @@ namespace UserApi.IntegrationTests.Steps
             {
                 case Scenario.Existing:
                 {
-                    _c.Uri = GetUserByEmail(_c.TestSettings.ExistingEmail);
+                    _c.Uri = GetUserByEmail(_c.UserApiConfig.TestSettings.ExistingEmail);
                     break;
                 }
                 case Scenario.Nonexistent:

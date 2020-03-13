@@ -23,23 +23,23 @@ namespace UserApi.UnitTests.Services.UserAccountService
         protected AzureAdGraphUserResponse AzureAdGraphUserResponse;
         protected AzureAdGraphQueryResponse<AzureAdGraphUserResponse> AzureAdGraphQueryResponse;
         
-        private Settings settings;
+        private Settings _settings;
        
-        protected string filter;
+        protected string Filter;
 
         [SetUp]
         public void Setup()
         {
             SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
-            settings = new Settings() { IsLive = true, ReformEmail = Domain.Replace("@","") };
+            _settings = new Settings() { IsLive = true, ReformEmail = Domain.Replace("@","") };
 
             var azureAdConfig = new AzureAdConfiguration() { 
                                         ClientId = "TestClientId", 
                                         ClientSecret = "TestSecret", 
-                                        Authority = "https://Test/Authority",
-                                        VhUserApiResourceId = "TestResourceId"
+                                        Authority = "https://Test/Authority"
                                         };
+
             var tokenProvider = new Mock<ITokenProvider>();
             GraphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
             IdentityServiceApiClient = new Mock<IIdentityServiceApiClient>();
@@ -55,22 +55,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
             AzureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse> { Value = new List<AzureAdGraphUserResponse> { AzureAdGraphUserResponse } };
             
 
-            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, settings);
+            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings);
         }
 
-        protected string AccessUri
-        {
-            get
-            {
-                return $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
-            }
-        }        
+        protected string AccessUri => $"{GraphApiSettings.GraphApiUriWindows}{GraphApiSettings.TenantId}/users?$filter={Filter}&api-version=1.6";
 
         [Test]
         public async Task Should_increment_the_username()
         {
-            var firstName = "Existing";
-            var lastName = "User";
+            const string firstName = "Existing";
+            const string lastName = "User";
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
 
             // given api returns

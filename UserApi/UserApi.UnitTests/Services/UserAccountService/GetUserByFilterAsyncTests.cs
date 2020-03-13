@@ -1,11 +1,11 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Security;
 using UserApi.Services.Models;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
@@ -14,7 +14,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public void TestInitialize()
         {
-            filter = "test";
+            Filter = "test";
         }
 
 
@@ -26,7 +26,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(RequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
 
-            var response = await Service.GetUserByFilterAsync(filter);
+            var response = await Service.GetUserByFilterAsync(Filter);
 
             response.Should().NotBeNull();
             response.Id.Should().Be(AzureAdGraphUserResponse.ObjectId);
@@ -43,7 +43,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(RequestHelper.CreateHttpResponseMessage("NotFound", HttpStatusCode.NotFound));
 
-            var response = await Service.GetUserByFilterAsync(filter);
+            var response = await Service.GetUserByFilterAsync(Filter);
 
             response.Should().BeNull();
         }
@@ -56,7 +56,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(RequestHelper.CreateHttpResponseMessage(message, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetUserByFilterAsync(filter));
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetUserByFilterAsync(Filter));
 
             response.Should().NotBeNull();
             response.Message.Should().Be($"Failed to search user with filter test: {message}");

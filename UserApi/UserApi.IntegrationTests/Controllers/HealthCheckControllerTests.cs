@@ -16,7 +16,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_ok_for_user_health_check()
         {
-            var getResponse = await SendGetRequestAsync(CheckServiceHealth());
+            var getResponse = await SendGetRequestAsync(CheckServiceHealth);
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 

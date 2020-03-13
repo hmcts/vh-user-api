@@ -1,6 +1,6 @@
 ﻿using AcceptanceTests.Common.Api.Healthchecks;
 using TechTalk.SpecFlow;
-using UserApi.AcceptanceTests.Helpers;
+using UserApi.AcceptanceTests.Contexts;
 
 namespace UserApi.AcceptanceTests.Hooks
 {

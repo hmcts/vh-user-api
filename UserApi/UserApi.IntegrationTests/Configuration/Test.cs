@@ -5,6 +5,8 @@ namespace UserApi.IntegrationTests.Configuration
 {
     public class Test
     {
+        public string NewGroupId { get; set; }
+
         public string NewUserId { get; set; }
         public NewUserResponse NewUser { get; set; }
         public UserRole UserRole { get; set; }

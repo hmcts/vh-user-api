@@ -31,7 +31,7 @@ namespace UserApi.Services
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _defaultPassword = settings.DefaultPassword;
-            _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
+            _baseUrl = $"{_graphApiSettings.GraphApiUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
         public async Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text)

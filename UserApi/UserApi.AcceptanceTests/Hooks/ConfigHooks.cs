@@ -6,8 +6,11 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using TechTalk.SpecFlow;
+using Testing.Common.Configuration;
 using UserApi.AcceptanceTests.Configuration;
-using UserApi.AcceptanceTests.Helpers;
+using UserApi.AcceptanceTests.Contexts;
+using UserApi.Common;
+using AzureAdConfig = UserApi.AcceptanceTests.Configuration.AzureAdConfig;
 
 namespace UserApi.AcceptanceTests.Hooks
 {
@@ -35,20 +38,19 @@ namespace UserApi.AcceptanceTests.Hooks
             RegisterTestUsers(context);
             RegisterDefaultData(context);
             RegisterHearingServices(context);
-            RunningAppsLocally(context);
             await GenerateBearerTokens(context);
         }
 
         private void RegisterAzureSecrets(TestContext context)
         {
-            context.UserApiConfig.AzureAdConfiguration = Options.Create(_configRoot.GetSection("AzureAd").Get<UserApiSecurityConfiguration>()).Value;
+            context.UserApiConfig.AzureAdConfiguration = Options.Create(_configRoot.GetSection("AzureAd").Get<AzureAdConfiguration>()).Value;
             context.UserApiConfig.AzureAdConfiguration.Authority += context.UserApiConfig.AzureAdConfiguration.TenantId;
             ConfigurationManager.VerifyConfigValuesSet(context.UserApiConfig.AzureAdConfiguration);
         }
 
         private void RegisterTestUserSecrets(TestContext context)
         {
-            context.UserApiConfig.TestConfig = Options.Create(_configRoot.GetSection("Testing").Get<UserApiTestConfig>()).Value;
+            context.UserApiConfig.TestConfig = Options.Create(_configRoot.GetSection("Testing").Get<TestSettings>()).Value;
             context.UserApiConfig.TestConfig.ReformEmail = _configRoot["ReformEmail"];
             ConfigurationManager.VerifyConfigValuesSet(context.UserApiConfig.TestConfig);
         }
@@ -60,7 +62,7 @@ namespace UserApi.AcceptanceTests.Hooks
             foreach (var user in context.UserAccounts)
             {
                 user.Key = user.Lastname;
-                user.Username = $"{user.DisplayName.Replace(" ", "")}{context.UserApiConfig.TestConfig.ReformEmail}";
+                user.Username = $"{user.DisplayName.Replace(" ", "")}@{context.UserApiConfig.TestConfig.ReformEmail}";
             }
         }
 
@@ -71,23 +73,26 @@ namespace UserApi.AcceptanceTests.Hooks
 
         private void RegisterHearingServices(TestContext context)
         {
-            context.UserApiConfig.VhServices = Options.Create(_configRoot.GetSection("VhServices").Get<UserApiVhServicesConfig>()).Value;
+            context.UserApiConfig.VhServices = Options.Create(_configRoot.GetSection("VhServices").Get<VhServicesConfig>()).Value;
             ConfigurationManager.VerifyConfigValuesSet(context.UserApiConfig.VhServices);
-        }
-
-        private static void RunningAppsLocally(TestContext context)
-        {
-            context.UserApiConfig.VhServices.RunningUserApiLocally = context.UserApiConfig.VhServices.UserApiUrl.Contains("localhost");
         }
 
         private static async Task GenerateBearerTokens(TestContext context)
         {
+            var azureConfig = new AzureAdConfig()
+            {
+                Authority = context.UserApiConfig.AzureAdConfiguration.Authority,
+                ClientId = context.UserApiConfig.AzureAdConfiguration.ClientId,
+                ClientSecret = context.UserApiConfig.AzureAdConfiguration.ClientSecret,
+                TenantId = context.UserApiConfig.AzureAdConfiguration.TenantId
+            };
+
             context.BearerToken = await ConfigurationManager.GetBearerToken(
-                context.UserApiConfig.AzureAdConfiguration, context.UserApiConfig.VhServices.UserApiResourceId);
+                azureConfig, context.UserApiConfig.VhServices.UserApiResourceId);
             context.BearerToken.Should().NotBeNullOrEmpty();
 
             context.GraphApiToken = await ConfigurationManager.GetBearerToken(
-                context.UserApiConfig.AzureAdConfiguration, context.UserApiConfig.VhServices.GraphApiUri);
+                azureConfig, context.UserApiConfig.AzureAdConfiguration.GraphApiUri);
             context.GraphApiToken.Should().NotBeNullOrEmpty();
         }
     }

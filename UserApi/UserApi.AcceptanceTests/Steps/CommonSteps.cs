@@ -3,7 +3,7 @@ using AcceptanceTests.Common.Api.Clients;
 using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using TechTalk.SpecFlow;
-using UserApi.AcceptanceTests.Helpers;
+using UserApi.AcceptanceTests.Contexts;
 
 namespace UserApi.AcceptanceTests.Steps
 {

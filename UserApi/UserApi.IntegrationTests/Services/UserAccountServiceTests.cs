@@ -2,8 +2,8 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
-using Testing.Common;
 using Testing.Common.ActiveDirectory;
+using Testing.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -21,7 +21,6 @@ namespace UserApi.IntegrationTests.Services
         public void Setup()
         {
             _secureHttpRequest = new SecureHttpRequest();
-
             var settings = TestConfig.Instance.Settings;
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);

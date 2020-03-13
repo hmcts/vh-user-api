@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Moq;
 using Newtonsoft.Json;
@@ -11,7 +10,7 @@ using NUnit.Framework;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services
 {
@@ -32,7 +31,7 @@ namespace UserApi.UnitTests.Services
             _graphApiSettings = new Mock<IGraphApiSettings>();
             var settings = new Settings() { DefaultPassword = "TestPwd" };
             _defaultPassword = settings.DefaultPassword;
-            _baseUrl = $"{_graphApiSettings.Object.GraphApiBaseUri}/v1.0/{_graphApiSettings.Object.TenantId}";
+            _baseUrl = $"{_graphApiSettings.Object.GraphApiUri}/v1.0/{_graphApiSettings.Object.TenantId}";
             _queryUrl = $"{_baseUrl}/users";
             _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, settings);
         }
@@ -40,10 +39,10 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_create_user_successfully_and_return_NewAdUserAccount()
         {
-            var username = "TestTester";
-            var firstName = "Test";
-            var lastName = "Tester";
-            var recoveryEmail = "test'tester@mail.com";
+            const string username = "TestTester";
+            const string firstName = "Test";
+            const string lastName = "Tester";
+            const string recoveryEmail = "test'tester@mail.com";
             var displayName = $"{firstName} {lastName}";
             var user = new
             {

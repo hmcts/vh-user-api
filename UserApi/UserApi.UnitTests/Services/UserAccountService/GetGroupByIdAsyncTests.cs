@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Security;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
@@ -15,7 +15,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_get_group_by_given_id()
         {
-            var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
+            var accessUri = $"{GraphApiSettings.GraphApiUri}v1.0/groups/{GroupId}";
             var group = new Microsoft.Graph.Group() { Id = GroupId };
 
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(RequestHelper.CreateHttpResponseMessage(group, HttpStatusCode.OK));
@@ -30,7 +30,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_return_null_when_no_matching_group_by_given_id()
         {
-            var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
+            var accessUri = $"{GraphApiSettings.GraphApiUri}v1.0/groups/{GroupId}";
 
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(RequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
 

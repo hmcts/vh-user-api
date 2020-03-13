@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Requests;
 using FluentAssertions;
 using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using UserApi.Security;
+using UserApi.UnitTests.Helpers;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetGroupsForUserAsyncTests: UserAccountServiceTests
     {
         private const string UserId = "userId";
-        private string AccessUri => $"{GraphApiSettings.GraphApiBaseUri}v1.0/users/{UserId}/memberOf";
+        private new string AccessUri => $"{GraphApiSettings.GraphApiUri}v1.0/users/{UserId}/memberOf";
 
         [Test]
         public async Task Should_get_group_by_given_id()

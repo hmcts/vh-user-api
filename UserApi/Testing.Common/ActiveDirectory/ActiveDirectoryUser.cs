@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Polly;
+using Testing.Common.Configuration;
 
 namespace Testing.Common.ActiveDirectory
 {

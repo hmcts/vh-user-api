@@ -13,6 +13,7 @@
         <PackageReference Include="NUnit" Version="3.12.0" />
         <PackageReference Include="Polly" Version="7.2.0" />
         <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
+        <PackageReference Include="VH.AcceptanceTests.Common" Version="1.0.91" />
     </ItemGroup>
 
     <ItemGroup>
