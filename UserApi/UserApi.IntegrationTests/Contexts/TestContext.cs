@@ -13,8 +13,6 @@ namespace UserApi.IntegrationTests.Contexts
         public string GraphApiToken { get; set; }
         public HttpContent HttpContent { get; set; }
         public HttpMethod HttpMethod { get; set; }
-        public IRestRequest Request { get; set; }
-        public IRestResponse Response { get; set; }
         public HttpResponseMessage ResponseMessage { get; set; }
         public TestServer Server { get; set; }
         public Test Test { get; set; }
