@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api.Helpers;
+using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.HealthCheckEndpoints;
 
 namespace UserApi.IntegrationTests.Controllers
