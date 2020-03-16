@@ -1,4 +1,5 @@
-﻿using TechTalk.SpecFlow;
+﻿using FluentAssertions;
+using TechTalk.SpecFlow;
 using UserApi.AcceptanceTests.Contexts;
 using static Testing.Common.Helpers.UserApiUriFactory.HealthCheckEndpoints;
 
@@ -18,6 +19,16 @@ namespace UserApi.AcceptanceTests.Steps
         public void GivenIHaveAGetHealthRequest()
         {
             _context.Request = _context.Get(CheckServiceHealth);       
+        }
+
+        [Then(@"the application version should be retrieved")]
+        public void ThenTheApplicationVersionShouldBeRetrieved()
+        {
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserApiHealthResponse>(_context.Response.Content);
+            model.Should().NotBeNull();
+            model.AppVersion.Should().NotBeNull();
+            model.AppVersion.FileVersion.Should().NotBeNull();
+            model.AppVersion.InformationVersion.Should().NotBeNull();
         }
     }
 }

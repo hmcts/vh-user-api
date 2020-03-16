@@ -1,8 +1,10 @@
-using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Net;
+using System.Reflection;
+using System.Threading.Tasks;
 using UserApi.Contract.Responses;
 using UserApi.Security;
 using UserApi.Services;
@@ -33,6 +35,7 @@ namespace UserApi.Controllers
         public async Task<IActionResult> Health()
         {
             var response = new UserApiHealthResponse();
+            response.AppVersion = GetApplicationVersion();
             try
             {
                 const string email = "checkuser@test.com";
@@ -67,6 +70,19 @@ namespace UserApi.Controllers
             }
 
             return Ok(response);
+        }
+        private ApplicationVersion GetApplicationVersion()
+        {
+            var applicationVersion = new ApplicationVersion();
+            applicationVersion.FileVersion = GetExecutingAssemblyAttribute<AssemblyFileVersionAttribute>(a => a.Version);
+            applicationVersion.InformationVersion = GetExecutingAssemblyAttribute<AssemblyInformationalVersionAttribute>(a => a.InformationalVersion);
+            return applicationVersion;
+        }
+
+        private string GetExecutingAssemblyAttribute<T>(Func<T, string> value) where T : Attribute
+        {
+            T attribute = (T)Attribute.GetCustomAttribute(Assembly.GetExecutingAssembly(), typeof(T));
+            return value.Invoke(attribute);
         }
     }
 }
