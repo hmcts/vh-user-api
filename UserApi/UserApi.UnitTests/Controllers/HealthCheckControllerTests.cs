@@ -88,5 +88,15 @@ namespace UserApi.UnitTests.Controllers
             _userAccountService.Verify(u => u.GetGroupByNameAsync("TestGroup"), Times.Once);
 
         }
+
+        [Test]
+        public async Task should_return_the_application_version_from_assembly()
+        {
+            var result = await _controller.Health();
+            var typedResult = (ObjectResult)result;
+            var response = (UserApiHealthResponse)typedResult.Value;
+            response.AppVersion.FileVersion.Should().NotBeNullOrEmpty();
+            response.AppVersion.InformationVersion.Should().NotBeNullOrEmpty();
+        }
     }
 }

@@ -17,6 +17,11 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(CheckServiceHealth);
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var getResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserApiHealthResponse>(getResponse.Content
+                    .ReadAsStringAsync().Result);
+            getResponseModel.AppVersion.Should().NotBeNull();
+            getResponseModel.AppVersion.FileVersion.Should().NotBeNull();
+            getResponseModel.AppVersion.InformationVersion.Should().NotBeNull();
         }
 
         [TearDown]

@@ -6,11 +6,12 @@ namespace UserApi.Contract.Responses
     {
         public HealthCheck UserAccessHealth { get; set; }
         public HealthCheck GroupAccessHealth { get; set; }
-
+        public ApplicationVersion AppVersion { get; set; }
         public UserApiHealthResponse()
         {
             UserAccessHealth = new HealthCheck();
             GroupAccessHealth = new HealthCheck();
+            AppVersion = new ApplicationVersion();
         }
     }
     
@@ -19,5 +20,11 @@ namespace UserApi.Contract.Responses
         public bool Successful { get; set; }
         public string ErrorMessage { get; set; }
         public IDictionary Data { get; set; }
+    }
+
+    public class ApplicationVersion
+    {
+        public string FileVersion { get; set; }
+        public string InformationVersion { get; set; }
     }
 }
