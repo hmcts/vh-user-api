@@ -34,13 +34,12 @@ Scenario Outline: Get user by AD user Id
 	Then the response should have the status OK and success status True
 	And the user details should be retrieved
 	Examples: 
-	| role               |
-	| Individual         |
-	| Representative     |
-	| VhOfficer          |
-	| CaseAdmin          |
-	| Judge              |
-	| VhOfficerCaseAdmin |
+	| role					|
+	| Individual			|
+	| Representative		|
+	| VhOfficer				|
+	| CaseAdmin				|
+	| Judge					|
 
 Scenario: User account not retrieved for a nonexistent user
 	Given I have a get user by AD user Id request for a nonexistent user with Individual

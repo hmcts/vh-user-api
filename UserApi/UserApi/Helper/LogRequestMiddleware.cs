@@ -32,7 +32,6 @@ namespace UserApi.Helper
                 = context.Request.Headers.ToDictionary(a => a.Key, a => string.Join(";", a.Value));
             ApplicationLogger.TraceEvent(message, headers);
 
-
             requestBodyStream.Seek(0, SeekOrigin.Begin);
             context.Request.Body = requestBodyStream;
 

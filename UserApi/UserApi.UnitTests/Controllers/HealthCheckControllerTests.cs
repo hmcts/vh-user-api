@@ -33,7 +33,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task should_return_server_error_when_unable_to_access_users()
+        public async Task Should_return_server_error_when_unable_to_access_users()
         {
             var email = "checkuser@test.com";
             var filter = $"otherMails/any(c:c eq '{email}')";
@@ -52,7 +52,7 @@ namespace UserApi.UnitTests.Controllers
         }
         
         [Test]
-        public async Task should_return_server_error_when_unable_to_access_groups()
+        public async Task Should_return_server_error_when_unable_to_access_groups()
         {
             var message = "GetGroupByName unauthorized access to Microsoft Graph";
             var reason = "service not available";
@@ -69,7 +69,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task should_return_ok_when_the_service_is_healthy()
+        public async Task Should_return_ok_when_the_service_is_healthy()
         {
             var result = await _controller.Health();
 

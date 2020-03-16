@@ -27,24 +27,15 @@ namespace UserApi.Helper
 
         public string TenantId => _azureAdConfiguration.TenantId;
 
-        public string AccessToken
-        {
-            get
-            {
-                return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                   _azureAdConfiguration.ClientSecret,
-                   _azureAdConfiguration.GraphApiBaseUri);
-            }
-        }
-        public string AccessTokenWindows
-        {
-            get
-            {
-                return _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
-                   _azureAdConfiguration.ClientSecret,
-                   GraphApiBaseUriWindows);
-            }
-        }
+        public string AccessToken =>
+            _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,
+                _azureAdConfiguration.GraphApiBaseUri);
+
+        public string AccessTokenWindows =>
+            _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+                _azureAdConfiguration.ClientSecret,
+                GraphApiBaseUriWindows);
 
         public string GraphApiBaseUri => _azureAdConfiguration.GraphApiBaseUri;
     }
