@@ -7,6 +7,5 @@
         public string ClientSecret { get; set; }
         public string GraphApiBaseUri { get; set; }
         public string TenantId { get; set; }
-        public string VhUserApiResourceId { get; set; }
     }
 }

@@ -1,14 +1,13 @@
-﻿using FluentAssertions;
+﻿using System.Net;
+using System.Threading.Tasks;
+using FluentAssertions;
 using Moq;
 using NUnit.Framework;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using Testing.Common.Helpers;
 using UserApi.Security;
 using UserApi.Services.Models;
 
-namespace UserApi.UnitTests.Services
+namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetUserByFilterAsyncTests: UserAccountServiceTests
     {

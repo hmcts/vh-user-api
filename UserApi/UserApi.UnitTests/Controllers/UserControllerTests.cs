@@ -340,7 +340,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task should_return_not_found_for_user_not_in_ad()
+        public async Task Should_return_not_found_for_user_not_in_ad()
         {
             const string email = "unknown.user@gmail.com";
 
@@ -352,7 +352,7 @@ namespace UserApi.UnitTests.Controllers
             result.Should().BeAssignableTo<NotFoundResult>();
         }
         [Test]
-        public async Task should_return_bad_request_for_update_user()
+        public async Task Should_return_bad_request_for_update_user()
         {
             var username = " ";            
 
@@ -365,7 +365,7 @@ namespace UserApi.UnitTests.Controllers
             ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage(nameof(username), "username cannot be empty");
         }
         [Test]
-        public async Task should_update_the_password_for_a_user_that_exists_in_ad()
+        public async Task Should_update_the_password_for_a_user_that_exists_in_ad()
         {
             const string email = "known.user'test@gmail.com";
             var filter = $"userPrincipalName  eq '{email.Replace("'", "''")}'";

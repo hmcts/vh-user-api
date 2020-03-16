@@ -4,7 +4,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using NUnit.Framework;
-using Testing.Common;
+using Testing.Common.Configuration;
 using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers
@@ -31,10 +31,11 @@ namespace UserApi.IntegrationTests.Controllers
         private void GetClientAccessTokenForBookHearingApi()
         {
             var azureAdConfig = TestConfig.Instance.AzureAd;
+            var vhServicesConfig = TestConfig.Instance.VhServices;
 
             _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
-                TestConfig.Instance.AzureAd.VhUserApiResourceId);
+                vhServicesConfig.UserApiResourceId);
 
             GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
@@ -49,47 +50,37 @@ namespace UserApi.IntegrationTests.Controllers
 
         protected async Task<HttpResponseMessage> SendGetRequestAsync(string uri)
         {
-            using (var client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
-                return await client.GetAsync(uri);
-            }
+            using var client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+            return await client.GetAsync(uri);
         }
 
         protected async Task<HttpResponseMessage> SendPostRequestAsync(string uri, HttpContent httpContent)
         {
-            using (var client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
-                return await client.PostAsync(uri, httpContent);
-            }
+            using var client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+            return await client.PostAsync(uri, httpContent);
         }
 
         protected async Task<HttpResponseMessage> SendPatchRequestAsync(string uri, StringContent httpContent)
         {
-            using (var client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
-                return await client.PatchAsync(uri, httpContent);
-            }
+            using var client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+            return await client.PatchAsync(uri, httpContent);
         }
 
         protected async Task<HttpResponseMessage> SendPutRequestAsync(string uri, StringContent httpContent)
         {
-            using (var client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
-                return await client.PutAsync(uri, httpContent);
-            }
+            using var client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+            return await client.PutAsync(uri, httpContent);
         }
 
         protected async Task<HttpResponseMessage> SendDeleteRequestAsync(string uri)
         {
-            using (var client = _server.CreateClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
-                return await client.DeleteAsync(uri);
-            }
+            using var client = _server.CreateClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+            return await client.DeleteAsync(uri);
         }
     }
 }

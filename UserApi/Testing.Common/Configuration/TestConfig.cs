@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using UserApi;
 using UserApi.Common;
 
-namespace Testing.Common
+namespace Testing.Common.Configuration
 {
     public class TestConfig
     {        
@@ -19,6 +19,9 @@ namespace Testing.Common
             AzureAd = new AzureAdConfiguration();
             _configuration.GetSection("AzureAd").Bind(AzureAd);
 
+            VhServices = new VhServices();
+            _configuration.GetSection("VhServices").Bind(VhServices);
+
             TestSettings = new TestSettings();
             _configuration.GetSection("Testing").Bind(TestSettings);
             
@@ -27,9 +30,8 @@ namespace Testing.Common
         }
         
         public AzureAdConfiguration AzureAd { get; }
-        
+        public VhServices VhServices { get; }
         public TestSettings TestSettings { get; }
-        
         public Settings Settings { get; set; }
 
         public TType GetFromSection<TType>(string sectionName)

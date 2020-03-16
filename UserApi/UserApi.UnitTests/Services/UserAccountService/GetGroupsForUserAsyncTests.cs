@@ -1,27 +1,25 @@
-﻿using FluentAssertions;
-using Microsoft.Graph;
-using Moq;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.Graph;
+using Moq;
+using NUnit.Framework;
 using Testing.Common.Helpers;
 using UserApi.Security;
 
-namespace UserApi.UnitTests.Services
+namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetGroupsForUserAsyncTests: UserAccountServiceTests
     {
-        private string userId = "userId";
-        private string accessUri => $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
+        private const string UserId = "userId";
+        private string accessUri => $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{UserId}/memberOf";
 
         [Test]
         public async Task Should_get_group_by_given_id()
-        { 
-            var group = new Group();
+        {
             var directoryObject = new DirectoryObject() { AdditionalData = new Dictionary<string, object> ()};
-            string json = @"[ 
+            const string json = @"[ 
                                 { ""@odata.type"" : ""#microsoft.graph.group"" },
                                 { ""@odata.type"" : ""#microsoft.graph.group"" },
                                 { ""@odata.type"" : ""#microsoft.graph.test"" }
@@ -31,7 +29,7 @@ namespace UserApi.UnitTests.Services
 
             _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
-            var response = await _service.GetGroupsForUserAsync(userId);
+            var response = await _service.GetGroupsForUserAsync(UserId);
 
             response.Should().NotBeNull();
             response.Count.Should().Be(2);
@@ -43,7 +41,7 @@ namespace UserApi.UnitTests.Services
         { 
             _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
 
-            var response = await _service.GetGroupsForUserAsync(userId);
+            var response = await _service.GetGroupsForUserAsync(UserId);
 
             response.Should().BeEmpty();
         }
@@ -56,10 +54,10 @@ namespace UserApi.UnitTests.Services
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await _service.GetGroupsForUserAsync(userId));
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await _service.GetGroupsForUserAsync(UserId));
 
             response.Should().NotBeNull();
-            response.Message.Should().Be($"Failed to get group for user {userId}: {reason}");
+            response.Message.Should().Be($"Failed to get group for user {UserId}: {reason}");
             response.Reason.Should().Be(reason);
         }
     }

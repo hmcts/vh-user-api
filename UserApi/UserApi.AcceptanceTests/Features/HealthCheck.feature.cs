@@ -22,7 +22,7 @@ namespace UserApi.AcceptanceTests.Features
     [NUnit.Framework.TestFixtureAttribute()]
     [NUnit.Framework.DescriptionAttribute("Healthcheck")]
     [NUnit.Framework.CategoryAttribute("VIH-3806")]
-    [NUnit.Framework.CategoryAttribute("health")]
+    [NUnit.Framework.CategoryAttribute("Health")]
     public partial class HealthcheckFeature
     {
         
@@ -30,7 +30,7 @@ namespace UserApi.AcceptanceTests.Features
         
         private string[] _featureTags = new string[] {
                 "VIH-3806",
-                "health"};
+                "Health"};
         
 #line 1 "HealthCheck.feature"
 #line hidden
@@ -42,7 +42,7 @@ namespace UserApi.AcceptanceTests.Features
             TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Healthcheck", "\tIn order to assess the status of the service\r\n\tAs an api service\r\n\tI want to be " +
                     "able to request the health of the user api", ProgrammingLanguage.CSharp, new string[] {
                         "VIH-3806",
-                        "health"});
+                        "Health"});
             testRunner.OnFeatureStart(featureInfo);
         }
         

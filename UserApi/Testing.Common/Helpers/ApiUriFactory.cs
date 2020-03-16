@@ -1,84 +1,32 @@
 namespace Testing.Common.Helpers
 {
-    public class ApiUriFactory
+    public static class UserApiUriFactory
     {
-        public ApiUriFactory()
+        public static class AccountEndpoints
         {
-            UserEndpoints = new UserEndpoints();
-            AccountEndpoints = new AccountEndpoints();
-            HealthCheckEndpoints = new HealthCheckEndpoints();
+            private const string ApiRoot = "accounts";
+            public static string AddUserToGroup = $"{ApiRoot}/user/group";
+            public static string GetGroupByName(string groupName) => $"{ApiRoot}/group/?name={groupName}";
+            public static string GetGroupById(string groupId) => $"{ApiRoot}/group/{groupId}";
+            public static string GetGroupsForUser(string userId) => $"{ApiRoot}/user/{userId}/groups";
         }
 
-        public UserEndpoints UserEndpoints { get; set; }
-        public AccountEndpoints AccountEndpoints { get; set; }
-        public HealthCheckEndpoints HealthCheckEndpoints { get; set; }
-
-    }
-
-    public class AccountEndpoints
-    {
-        private string ApiRoot => "accounts";
-        public string AddUserToGroup => $"{ApiRoot}/user/group";
-
-        public string GetGroupByName(string groupName)
+        public static class UserEndpoints
         {
-            return $"{ApiRoot}/group/?name={groupName}";
+            private const string ApiRoot = "users";
+            public static string CreateUser => $"{ApiRoot}";
+            public static string GetUserByAdUserId(string userId) => $"{ApiRoot}/{userId}";
+            public static string GetUserByAdUserName(string userName) => $"{ApiRoot}/username/{userName}";
+            public static string GetUserByEmail(string email) => $"{ApiRoot}/email/{email}";
+            public static string GetJudges() => $"{ApiRoot}/judges";
+            public static string DeleteUser(string userName) => $"{ApiRoot}/username/{userName}";
+            public static string UpdateUser(string userName) => $"{ApiRoot}/username/{userName}";
         }
 
-        public string GetGroupById(string groupId)
+        public static class HealthCheckEndpoints
         {
-            return $"{ApiRoot}/group/{groupId}";
-        }
-
-        public string GetGroupsForUser(string userId)
-        {
-            return $"{ApiRoot}/user/{userId}/groups";
-        }
-    }
-
-    public class UserEndpoints
-    {
-        private string ApiRoot => "users";
-        public string CreateUser => $"{ApiRoot}";
-
-        public string GetUserByAdUserId(string userId)
-        {
-            return $"{ApiRoot}/{userId}";
-        }
-
-        public string GetUserByAdUserName(string userName)
-        {
-            return $"{ApiRoot}/username/{userName}";
-        }
-
-        public string GetUserByEmail(string email)
-        {
-            return $"{ApiRoot}/email/{email}";
-        }
-
-        public string GetJudges()
-        {
-            return $"{ApiRoot}/judges";
-        }
-        
-        public string DeleteUser(string userName)
-        {
-            return $"{ApiRoot}/username/{userName}";
-        }
-
-        public string UpdateUser(string userName)
-        {
-            return $"{ApiRoot}/username/{userName}";
-        }
-    }
-
-    public class HealthCheckEndpoints
-    {
-        private string ApiRoot => "healthcheck";
-        
-        public string CheckServiceHealth()
-        {
-            return $"{ApiRoot}/health";
+            private const string ApiRoot = "healthcheck";
+            public static string CheckServiceHealth => $"{ApiRoot}/health";
         }
     }
 }
