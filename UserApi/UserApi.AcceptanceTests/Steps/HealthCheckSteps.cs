@@ -1,6 +1,8 @@
-﻿using FluentAssertions;
+﻿using AcceptanceTests.Common.Api.Helpers;
+using FluentAssertions;
 using TechTalk.SpecFlow;
 using UserApi.AcceptanceTests.Contexts;
+using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.HealthCheckEndpoints;
 
 namespace UserApi.AcceptanceTests.Steps
