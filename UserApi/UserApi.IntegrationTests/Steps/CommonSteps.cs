@@ -3,44 +3,44 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NUnit.Framework;
 using TechTalk.SpecFlow;
-using UserApi.IntegrationTests.Contexts;
+using TestContext = UserApi.IntegrationTests.Contexts.TestContext;
 
 namespace UserApi.IntegrationTests.Steps
 {
     [Binding]
     public sealed class CommonSteps : BaseSteps
     {
-        private readonly ApiTestContext _apiTestContext;
+        private readonly TestContext _testContext;
 
-        public CommonSteps(ApiTestContext apiTestContext)
+        public CommonSteps(TestContext testContext)
         {
-            _apiTestContext = apiTestContext;
+            _testContext = testContext;
         }
 
         [When(@"I send the request to the endpoint")]
         [When(@"I send the same request twice")]
         public async Task WhenISendTheRequestToTheEndpoint()
         {
-            _apiTestContext.ResponseMessage = new HttpResponseMessage();
-            switch (_apiTestContext.HttpMethod.Method)
+            _testContext.ResponseMessage = new HttpResponseMessage();
+            _testContext.ResponseMessage = _testContext.HttpMethod.Method switch
             {
-                case "GET": _apiTestContext.ResponseMessage = await SendGetRequestAsync(_apiTestContext); break;
-                case "POST": _apiTestContext.ResponseMessage = await SendPostRequestAsync(_apiTestContext); break;
-                case "PATCH": _apiTestContext.ResponseMessage = await SendPatchRequestAsync(_apiTestContext); break;
-                case "PUT": _apiTestContext.ResponseMessage = await SendPutRequestAsync(_apiTestContext); break;
-                case "DELETE": _apiTestContext.ResponseMessage = await SendDeleteRequestAsync(_apiTestContext); break;
-                default: throw new ArgumentOutOfRangeException(_apiTestContext.HttpMethod.ToString(), _apiTestContext.HttpMethod.ToString(), null);
-            }
+                "GET" => await SendGetRequestAsync(_testContext),
+                "POST" => await SendPostRequestAsync(_testContext),
+                "PATCH" => await SendPatchRequestAsync(_testContext),
+                "PUT" => await SendPutRequestAsync(_testContext),
+                "DELETE" => await SendDeleteRequestAsync(_testContext),
+                _ => throw new ArgumentOutOfRangeException(_testContext.HttpMethod.ToString(),
+                    _testContext.HttpMethod.ToString(), null)
+            };
         }
 
         [Then(@"the response should have the status (.*) and success status (.*)")]
         public void ThenTheResponseShouldHaveStatus(HttpStatusCode statusCode, bool isSuccess)
         {
-            _apiTestContext.ResponseMessage.StatusCode.Should().Be(statusCode);
-            _apiTestContext.ResponseMessage.IsSuccessStatusCode.Should().Be(isSuccess);
-            TestContext.WriteLine($"Status Code: {_apiTestContext.ResponseMessage.StatusCode}");
+            _testContext.ResponseMessage.StatusCode.Should().Be(statusCode);
+            _testContext.ResponseMessage.IsSuccessStatusCode.Should().Be(isSuccess);
+            NUnit.Framework.TestContext.WriteLine($"Status Code: {_testContext.ResponseMessage.StatusCode}");
         }
 
         [Then(@"the response message should read '(.*)'")]
@@ -48,7 +48,7 @@ namespace UserApi.IntegrationTests.Steps
         [Then(@"the error response message should also contain '(.*)'")]
         public void ThenTheResponseShouldContain(string errorMessage)
         {
-            _apiTestContext.ResponseMessage.Content.ReadAsStringAsync().Result.Should().Contain(errorMessage);
+            _testContext.ResponseMessage.Content.ReadAsStringAsync().Result.Should().Contain(errorMessage);
         }
     }
 }

@@ -10,11 +10,8 @@ variables:
     "AzureAd/ClientId":"$(vh-user-api-appid)",
     "AzureAd/ClientSecret":"$(vh-user-api-key)",
     "AzureAd/TenantId":"$(tenantid)",
-    "AzureAd/VhUserApiResourceId":"$(vh-user-api-identifieruris)",
     "DefaultPassword":"$(default-password)",    
     "ReformEmail": "$(reformemail)",
-    "Testing/TestClientId":"$(vh-admin-web-appid)",
-    "Testing/TestClientSecret":"$(vh-admin-web-key)",
     "Testing/NewGroups/0/GroupId": "$(testing-newgroup-0-groupid)",
     "Testing/NewGroups/0/Displayname": "$(testing-newgroup-0-displayname)",
     "Testing/ExistingUserPrincipal": "$(testing-existinguserprincipal)",
@@ -27,12 +24,7 @@ variables:
     "Testing/ExistingGroups/0/GroupId": "$(testing-existinggroups-0-groupid)",
     "Testing/ExistingGroups/0/Displayname": "$(testing-existinggroups-0-displayname)",
     "Testing/ExistingEmail": "$(testing-existingemail)",
-    "Testing/CaseAdmin": "$(testing-caseadmin-username)",
-    "Testing/Individual": "$(testing-individual-username)",
-    "Testing/Judge": "$(testing-judge-username)",
-    "Testing/Representative": "$(testing-representative-username)",
-    "Testing/VhOfficer": "$(testing-vhofficer-username)",
-    "Testing/VhOfficerCaseAdmin": "$(testing-vhofficercaseadmin-username)"
+    "VhServices/UserApiResourceId":"$(vh-user-api-identifieruris)"
     '
   dalWorkingDirectory: ''
   keyVaultName: vhcoreinfrahtdev # Used to get secrets for integration tests

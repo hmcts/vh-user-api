@@ -6,22 +6,22 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api.Helpers;
 using Faker;
 using FluentAssertions;
 using NUnit.Framework;
 using Polly;
-using Testing.Common;
-using Testing.Common.Helpers;
+using Testing.Common.Configuration;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
+using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
+using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
 namespace UserApi.IntegrationTests.Controllers
 {
     public class UserController : ControllerTestsBase
     {
-        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
-        private readonly UserEndpoints _userEndpoints = new ApiUriFactory().UserEndpoints;
         private string _newUserId;
 
         [Test]
@@ -34,17 +34,17 @@ namespace UserApi.IntegrationTests.Controllers
                 LastName = $"Automation_{Name.Last()}"
             };
             var createUserHttpRequest = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+                RequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
                 Encoding.UTF8, "application/json");
 
             var createUserResponse =
-                await SendPostRequestAsync(_userEndpoints.CreateUser, createUserHttpRequest);
+                await SendPostRequestAsync(CreateUser, createUserHttpRequest);
 
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content
+                RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content
                     .ReadAsStringAsync().Result);
-            TestContext.WriteLine($"Response:{ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserModel)}");
+            TestContext.WriteLine($"Response:{RequestHelper.SerialiseRequestToSnakeCaseJson(createUserModel)}");
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
             createUserModel.Username.ToLower().Should()
@@ -56,10 +56,10 @@ namespace UserApi.IntegrationTests.Controllers
             var addExternalGroupRequest = new AddUserToGroupRequest
                 {UserId = createUserModel.UserId, GroupName = "External"};
             var addExternalGroupHttpRequest = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest),
+                RequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest),
                 Encoding.UTF8, "application/json");
             var addExternalGroupHttpResponse =
-                await SendPatchRequestAsync(_accountEndpoints.AddUserToGroup, addExternalGroupHttpRequest);
+                await SendPatchRequestAsync(AddUserToGroup, addExternalGroupHttpRequest);
             addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
         }
 
@@ -67,10 +67,10 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_user_by_id()
         {
             const string userId = "60c7fae1-8733-4d82-b912-eece8d55d54c";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserId(userId));
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserId.Should().Be(userId);
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
@@ -81,10 +81,10 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_case_administrator_by_id()
         {
             var username = $"Automation01Administrator01@{TestConfig.Instance.Settings.ReformEmail}";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserRole.Should().Be("CaseAdmin");
             userResponseModel.FirstName.Should().Be("Automation01");
@@ -95,8 +95,8 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_by_id_not_found_with_bogus_user_id()
         {
-            var userId = "foo";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserId(userId));
+            const string userId = "foo";
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -104,10 +104,10 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_user_profile_by_user_principal_name()
         {
             var username = $"Automation01Administrator01@{TestConfig.Instance.Settings.ReformEmail}";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -120,7 +120,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_user_profile_by_user_principal_name_not_found_with_bogus_mail()
         {
             var username = $"i.do.not.exist@{TestConfig.Instance.Settings.ReformEmail}";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByAdUserName(username));
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -129,10 +129,9 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_user_profile_by_email()
         {
             var email = $"Admin.Kinly@{TestConfig.Instance.Settings.ReformEmail}";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
+            var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+            var userResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -146,16 +145,16 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_profile_by_email_not_found_with_bogus_mail()
         {
             const string email = "i.do.not.exist@nowhere.ever.com";
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetUserByEmail(email));
+            var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Test]
         public async Task Should_get_users_for_group()
         {
-            var getResponse = await SendGetRequestAsync(_userEndpoints.GetJudges());
+            var getResponse = await SendGetRequestAsync(GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var usersForGroupModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
+            var usersForGroupModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
             var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == $"Judge.Bever@{TestConfig.Instance.Settings.ReformEmail}");
@@ -168,10 +167,10 @@ namespace UserApi.IntegrationTests.Controllers
             // Create User
             var createUserResponse = await SendPostRequestAsync
             (
-                _userEndpoints.CreateUser, 
+                CreateUser, 
                 new StringContent
                 (
-                    ApiRequestHelper.SerialiseRequestToSnakeCaseJson(new CreateUserRequest
+                    RequestHelper.SerialiseRequestToSnakeCaseJson(new CreateUserRequest
                     {
                         RecoveryEmail = $"Automation_{Internet.Email()}",
                         FirstName = $"Automation_{Name.First()}",
@@ -182,7 +181,7 @@ namespace UserApi.IntegrationTests.Controllers
             );
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>
+            var createUserModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>
             (
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
@@ -191,14 +190,14 @@ namespace UserApi.IntegrationTests.Controllers
 
             var addExternalGroupHttpRequest = new StringContent
             (
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(new AddUserToGroupRequest
+                RequestHelper.SerialiseRequestToSnakeCaseJson(new AddUserToGroupRequest
                 {
                     UserId = createUserModel.UserId, GroupName = "External"
                 }),
                 Encoding.UTF8, "application/json"
             );
             
-            var addExternalGroupHttpResponse = await SendPatchRequestAsync(_accountEndpoints.AddUserToGroup, addExternalGroupHttpRequest);
+            var addExternalGroupHttpResponse = await SendPatchRequestAsync(AddUserToGroup, addExternalGroupHttpRequest);
             addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
             
             // Delete User
@@ -209,7 +208,7 @@ namespace UserApi.IntegrationTests.Controllers
            
             var getResponse = await policy.ExecuteAsync
             (
-                async () => await SendDeleteRequestAsync(_userEndpoints.DeleteUser(createUserModel.Username))
+                async () => await SendDeleteRequestAsync(DeleteUser(createUserModel.Username))
             );
             
             getResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);

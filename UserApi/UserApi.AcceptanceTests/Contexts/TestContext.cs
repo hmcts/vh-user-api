@@ -1,26 +1,25 @@
-﻿using RestSharp;
-using Testing.Common;
-using Testing.Common.Helpers;
+﻿using System.Collections.Generic;
+using AcceptanceTests.Common.Api.Helpers;
+using AcceptanceTests.Common.Configuration.Users;
+using RestSharp;
+using Testing.Common.Configuration;
 
 namespace UserApi.AcceptanceTests.Contexts
 {
     public class TestContext
     {
+        public Config Config { get; set; }
         public RestRequest Request { get; set; }
         public IRestResponse Response { get; set; }
-        public string BearerToken { get; set; }
-        public string BaseUrl { get; set; }
-        public string Json { get; set; }
-        public string NewUserId { get; set; }
-        public string NewGroupId { get; set; }
-        public string GraphApiToken { get; set; }
-        public TestSettings TestSettings { get; set; }
+        public Test Test { get; set; }
+        public UserApiTokens Tokens { get; set; }
+        public List<UserAccount> UserAccounts { get; set; }
 
         public RestClient Client()
         {
-            var client = new RestClient(BaseUrl);
+            var client = new RestClient(Config.VhServices.UserApiUrl);
             client.AddDefaultHeader("Accept", "application/json");
-            client.AddDefaultHeader("Authorization", $"Bearer {BearerToken}");
+            client.AddDefaultHeader("Authorization", $"Bearer {Tokens.UserApiBearerToken}");
             return client;
         }
 
@@ -29,7 +28,7 @@ namespace UserApi.AcceptanceTests.Contexts
         public RestRequest Post(string path, object requestBody)
         {
             var request = new RestRequest(path, Method.POST);
-            request.AddParameter("Application/json", ApiRequestHelper.SerialiseRequestToSnakeCaseJson(requestBody),
+            request.AddParameter("Application/json", RequestHelper.SerialiseRequestToSnakeCaseJson(requestBody),
                 ParameterType.RequestBody);
             return request;
         }
@@ -39,7 +38,7 @@ namespace UserApi.AcceptanceTests.Contexts
         public RestRequest Put(string path, object requestBody)
         {
             var request = new RestRequest(path, Method.PUT);
-            request.AddParameter("Application/json", ApiRequestHelper.SerialiseRequestToSnakeCaseJson(requestBody),
+            request.AddParameter("Application/json", RequestHelper.SerialiseRequestToSnakeCaseJson(requestBody),
                 ParameterType.RequestBody);
             return request;
         }
@@ -47,7 +46,7 @@ namespace UserApi.AcceptanceTests.Contexts
         public RestRequest Patch(string path, object requestBody = null)
         {
             var request = new RestRequest(path, Method.PATCH);
-            request.AddParameter("Application/json", ApiRequestHelper.SerialiseRequestToSnakeCaseJson(requestBody),
+            request.AddParameter("Application/json", RequestHelper.SerialiseRequestToSnakeCaseJson(requestBody),
                 ParameterType.RequestBody);
             return request;
         }

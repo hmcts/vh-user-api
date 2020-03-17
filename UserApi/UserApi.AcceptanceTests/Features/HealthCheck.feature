@@ -1,4 +1,4 @@
-﻿@VIH-3806 @health
+﻿@VIH-3806 @Health
 Feature: Healthcheck
 	In order to assess the status of the service
 	As an api service

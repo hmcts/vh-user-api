@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api.Helpers;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
@@ -9,14 +10,14 @@ using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
+using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 
 namespace UserApi.AcceptanceTests.Steps
 {
     [Binding]
-    public sealed class AccountSteps : BaseSteps
+    public sealed class AccountSteps
     {
         private readonly TestContext _context;
-        private readonly AccountEndpoints _endpoints = new ApiUriFactory().AccountEndpoints;
         private const int DelayInMilliseconds = 1000;
         private const int TimeoutInMilliseconds = 20000;
 
@@ -25,28 +26,22 @@ namespace UserApi.AcceptanceTests.Steps
             _context = context;
         }
 
-        [BeforeScenario]
-        public static async Task RemoveNewGroupIfExistsAsync(TestContext testContext)
-        {
-            await RemoveGroupFromUserIfExists(testContext);
-        }
-
         [Given(@"I have a get ad group by name request with a valid group name")]
         public void GivenIHaveAGetAdGroupByNameRequestWithAValidGroupName()
         {
-            _context.Request = _context.Get(_endpoints.GetGroupByName(_context.TestSettings.ExistingGroups.First().DisplayName));
+            _context.Request = _context.Get(GetGroupByName(_context.Config.TestSettings.ExistingGroups.First().DisplayName));
         }
 
         [Given(@"I have a get ad group by id request with a valid group id")]
         public void GivenIHaveAGetAdGroupByIdRequestWithAValidGroupId()
         {
-            _context.Request = _context.Get(_endpoints.GetGroupById(_context.TestSettings.ExistingGroups.First().GroupId));
+            _context.Request = _context.Get(GetGroupById(_context.Config.TestSettings.ExistingGroups.First().GroupId));
         }
 
         [Given(@"I have a get ad groups for a user request for a valid user id")]
         public void GivenIHaveAGetAdGroupsForAUserRequestForAValidUserId()
         {
-            _context.Request = _context.Get(_endpoints.GetGroupsForUser(_context.TestSettings.ExistingUserId));
+            _context.Request = _context.Get(GetGroupsForUser(_context.Config.TestSettings.ExistingUserId));
         }
 
         [Given(@"I have an add a user to a group request for a valid user id and valid group")]
@@ -54,16 +49,16 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var addUserRequest = new AddUserToGroupRequest()
             {
-                UserId = _context.TestSettings.ExistingUserId,
-                GroupName = _context.TestSettings.NewGroups.First().DisplayName
+                UserId = _context.Config.TestSettings.ExistingUserId,
+                GroupName = _context.Config.TestSettings.NewGroups.First().DisplayName
             };
-            _context.Request = _context.Patch(_endpoints.AddUserToGroup, addUserRequest);
+            _context.Request = _context.Patch(AddUserToGroup, addUserRequest);
         }
 
         [Then(@"the ad groups should be retrieved")]
         public void ThenTheAdGroupsShouldBeRetrieved()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(_context.Json);
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(_context.Response.Content);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.GroupId.Should().NotBeNullOrEmpty();
@@ -72,7 +67,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad groups should be retrieved")]
         public void ThenAListOfAdGroupsShouldBeRetrieved()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Json);
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Response.Content);
             model.Should().NotBeNull();
             foreach (var group in model)
             {
@@ -89,33 +84,14 @@ namespace UserApi.AcceptanceTests.Steps
             sw.Start();
             while (!userIsInTheGroup && sw.ElapsedMilliseconds < TimeoutInMilliseconds)
             {
-                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_context.TestSettings.ExistingUserId,
-                    _context.TestSettings.NewGroups.First().DisplayName, _context.GraphApiToken);
+                userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_context.Config.TestSettings.ExistingUserId,
+                    _context.Config.TestSettings.NewGroups.First().DisplayName, _context.Tokens.GraphApiBearerToken);
                 await Task.Delay(DelayInMilliseconds);
             }
 
             sw.Stop();
             userIsInTheGroup.Should().BeTrue("User has been added to the group");
-            _context.NewGroupId = _context.TestSettings.NewGroups.First().GroupId;
-        }
-
-        [AfterScenario]
-        public static async Task RemoveNewGroupAgainIfExists(TestContext testContext)
-        {
-            await RemoveGroupFromUserIfExists(testContext);
-            testContext.NewGroupId = null;
-        }
-
-        private static async Task RemoveGroupFromUserIfExists(TestContext testContext)
-        {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(testContext.TestSettings.ExistingUserId,
-                testContext.TestSettings.NewGroups.First().DisplayName, testContext.GraphApiToken);
-            if (userIsInTheGroup)
-            {
-                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(testContext.TestSettings.ExistingUserId,
-                    testContext.TestSettings.NewGroups.First().GroupId, testContext.GraphApiToken);
-            }
-            testContext.NewGroupId = null;
+            _context.Test.NewGroupId = _context.Config.TestSettings.NewGroups.First().GroupId;
         }
     }
 }

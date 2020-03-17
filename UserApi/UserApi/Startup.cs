@@ -28,6 +28,7 @@ namespace UserApi
 
         private IConfiguration Configuration { get; }
         private AzureAdConfiguration AzureAdSettings { get; set; }
+        private VhServices VhServices { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -78,7 +79,9 @@ namespace UserApi
         private void RegisterConfiguration(IServiceCollection services)
         {
             AzureAdSettings = Configuration.GetSection("AzureAd").Get<AzureAdConfiguration>();
+            VhServices = Configuration.GetSection("VhServices").Get<VhServices>();
             services.AddSingleton(AzureAdSettings);
+            services.AddSingleton(VhServices);
             services.AddSingleton(Configuration.Get<Settings>());
         }
 
@@ -98,7 +101,7 @@ namespace UserApi
             {
                 options.Authority = $"{AzureAdSettings.Authority}{AzureAdSettings.TenantId}";
                 options.TokenValidationParameters.ValidateLifetime = true;
-                options.Audience = AzureAdSettings.VhUserApiResourceId;
+                options.Audience = VhServices.UserApiResourceId;
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
             });
 

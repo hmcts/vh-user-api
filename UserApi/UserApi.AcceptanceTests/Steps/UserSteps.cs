@@ -1,27 +1,27 @@
 ﻿using System;
-using System.Threading.Tasks;
 using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using AcceptanceTests.Common.Api.Helpers;
+using AcceptanceTests.Common.Configuration.Users;
 using TechTalk.SpecFlow;
-using Testing.Common.ActiveDirectory;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
+using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
+using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
 namespace UserApi.AcceptanceTests.Steps
 {
     [Binding]
-    public sealed class UserSteps : BaseSteps
+    public sealed class UserSteps
     {
         private const int Timeout = 60;
         private readonly TestContext _context;
-        private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
-        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
 
         private string _newUsername;
         private readonly CommonSteps _commonSteps;
@@ -35,19 +35,19 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a new hearings reforms user account request with a valid email")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestWithAValidEmail()
         {
-            _context.Request = _context.Post(_endpoints.CreateUser, new CreateUserRequestBuilder().Build());
+            _context.Request = _context.Post(CreateUser, new CreateUserRequestBuilder().Build());
         }
 
         [Given(@"I have a get user by AD user Id request for an existing user")]
         public void GivenIHaveAGetUserByAdUserIdRequestForAnExistingUser()
         {
-            _context.Request = _context.Get(_endpoints.GetUserByAdUserId(_context.TestSettings.ExistingUserId));
+            _context.Request = _context.Get(GetUserByAdUserId(_context.Config.TestSettings.ExistingUserId));
         }
 
         [Given(@"I have a get user by user principal name request for an existing user principal name")]
         public void GivenIHaveAGetUserByUserPrincipalNameRequestForAnExistingUserPrincipalName()
         {
-            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_context.TestSettings.ExistingUserPrincipal));
+            _context.Request = _context.Get(GetUserByAdUserName(_context.Config.TestSettings.ExistingUserPrincipal));
         }
 
         [Given(@"I have a new user")]
@@ -62,10 +62,10 @@ namespace UserApi.AcceptanceTests.Steps
 
         private NewUserResponse CreateNewUser()
         {
-            _context.Request = _context.Post(_endpoints.CreateUser, new CreateUserRequestBuilder().Build());
+            _context.Request = _context.Post(CreateUser, new CreateUserRequestBuilder().Build());
             _commonSteps.WhenISendTheRequestToTheEndpoint();
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Created, true);
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Json);
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Response.Content);
             model.Username.Should().NotBeNullOrEmpty();
             return model;
         }
@@ -77,14 +77,14 @@ namespace UserApi.AcceptanceTests.Steps
                 UserId = userId,
                 GroupName = "External"
             };
-            _context.Request = _context.Patch(_accountEndpoints.AddUserToGroup, request);
+            _context.Request = _context.Patch(AddUserToGroup, request);
             _commonSteps.WhenISendTheRequestToTheEndpoint();
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Accepted, true);
         }
 
         private bool PollForUserInAad()
         {
-            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
+            _context.Request = _context.Get(GetUserByAdUserName(_newUsername));
             for (var i = 0; i < Timeout; i++)
             {
                 _commonSteps.WhenISendTheRequestToTheEndpoint();
@@ -99,11 +99,11 @@ namespace UserApi.AcceptanceTests.Steps
 
         private bool PollForUserGroupAdded(string userId)
         {
-            _context.Request = _context.Get(_accountEndpoints.GetGroupsForUser(userId));
+            _context.Request = _context.Get(GetGroupsForUser(userId));
             for (var i = 0; i < Timeout; i++)
             {
                 _commonSteps.WhenISendTheRequestToTheEndpoint();
-                var groups = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Json);
+                var groups = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Response.Content);
                 if (groups.Any(x => x.DisplayName.Equals("External")))
                 {
                     return true;
@@ -116,46 +116,46 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a delete user request for the new user")]
         public void GivenIHaveADeleteUserRequestForTheNewUser()
         {
-            _context.Request = _context.Delete(_endpoints.DeleteUser(_newUsername));
+            _context.Request = _context.Delete(DeleteUser(_newUsername));
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]
         public void GivenIHaveAGetUserProfileByEmailRequestForAnExistingEmail()
         {
-            _context.Request = _context.Get(_endpoints.GetUserByEmail(_context.TestSettings.ExistingEmail));
+            _context.Request = _context.Get(GetUserByEmail(_context.Config.TestSettings.ExistingEmail));
         }
 
         [Given(@"I have a valid AD group id and request for a list of judges")]
         public void GivenIHaveAValidAdGroupIdAndRequestForAListOfJudges()
         {
-            _context.Request = _context.Get(_endpoints.GetJudges());
+            _context.Request = _context.Get(GetJudges());
         }
 
         [Given(@"I have a new hearings reforms user account request with an existing name")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestWithAnExistingFullName()
         {
             var request = new CreateUserRequestBuilder()
-                .WithFirstname(_context.TestSettings.ExistingUserFirstname)
-                .WithLastname(_context.TestSettings.ExistingUserLastname)
+                .WithFirstname(_context.Config.TestSettings.ExistingUserFirstname)
+                .WithLastname(_context.Config.TestSettings.ExistingUserLastname)
                 .Build();
-            _context.Request = _context.Post(_endpoints.CreateUser, request);
+            _context.Request = _context.Post(CreateUser, request);
         }
 
         [Then(@"the user should be added")]
         public void ThenTheUserShouldBeAdded()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Json);
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Response.Content);
             model.Should().NotBeNull();
             model.OneTimePassword.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.Username.Should().NotBeNullOrEmpty();
-            _context.NewUserId = model.UserId;
+            _context.Test.NewUserId = model.UserId;
         }
 
         [Then(@"the user details should be retrieved")]
         public void ThenTheUserDetailsShouldBeRetrieved()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(_context.Json);
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(_context.Response.Content);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.Email.Should().NotBeNullOrEmpty();
@@ -173,7 +173,7 @@ namespace UserApi.AcceptanceTests.Steps
 
         private bool PollForUserDeleted()
         {
-            _context.Request = _context.Get(_endpoints.GetUserByAdUserName(_newUsername));
+            _context.Request = _context.Get(GetUserByAdUserName(_newUsername));
             for (var i = 0; i < Timeout; i++)
             {
                 _commonSteps.WhenISendTheRequestToTheEndpoint();
@@ -189,23 +189,17 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad judges should be retrieved")]
         public void ThenAListOfAdJudgesShouldBeRetrieved()
         {
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_context.Json);
-            model.Should().NotBeNull();
-            foreach (var user in model)
+            var actualJudges = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_context.Response.Content);
+            actualJudges.Should().NotBeNull();
+            foreach (var user in actualJudges)
             {
                 user.Email.Should().NotBeNullOrEmpty();
                 user.DisplayName.Should().NotBeNullOrEmpty();
             }
-            var expectedUser = model.First(u => u.Email.Equals(_context.TestSettings.Judge));
-            expectedUser.DisplayName.Should().Be("Automation01 Judge01");
-        }
 
-        [AfterScenario]
-        public async Task NewUserClearUp()
-        {
-            if (string.IsNullOrWhiteSpace(_context.NewUserId)) return;
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_context.NewUserId, _context.GraphApiToken);
-            _context.NewUserId = null;
+            var expectedJudge = UserManager.GetJudgeUser(_context.UserAccounts);
+            var actualJudge = actualJudges.First(u => u.Email.Equals(expectedJudge.Username));
+            actualJudge.DisplayName.Should().Be(expectedJudge.DisplayName);
         }
     }
 }

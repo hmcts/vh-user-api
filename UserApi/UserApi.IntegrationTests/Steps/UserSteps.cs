@@ -3,6 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api.Helpers;
+using AcceptanceTests.Common.Configuration.Users;
+using AcceptanceTests.Common.Model.UserRole;
 using FluentAssertions;
 using Polly;
 using TechTalk.SpecFlow;
@@ -13,29 +16,29 @@ using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
 using UserApi.Services.Models;
+using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
+using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
 namespace UserApi.IntegrationTests.Steps
 {
     [Binding]
     public sealed class UserSteps : BaseSteps
     {
-        private readonly ApiTestContext _apiTestContext;
-        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
-        private readonly UserEndpoints _endpoints = new ApiUriFactory().UserEndpoints;
+        private readonly TestContext _testContext;
         private UserRole? _userRole;
         private NewUserResponse _newUser;
 
-        public UserSteps(ApiTestContext apiTestContext)
+        public UserSteps(TestContext testContext)
         {
-            _apiTestContext = apiTestContext;
+            _testContext = testContext;
         }
 
         [Given(@"I have a new hearings reforms user account request with a (.*) email")]
         [Given(@"I have a new hearings reforms user account request with an (.*) email")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestForTheUser(Scenario scenario)
         {
-            _apiTestContext.Uri = _endpoints.CreateUser;
-            _apiTestContext.HttpMethod = HttpMethod.Post;
+            _testContext.Uri = CreateUser;
+            _testContext.HttpMethod = HttpMethod.Post;
             var createUserRequest = new CreateUserRequestBuilder().Build();
 
             switch (scenario)
@@ -46,9 +49,9 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Existing:
                 {
-                    createUserRequest.RecoveryEmail = _apiTestContext.TestSettings.ExistingEmail;
-                    createUserRequest.FirstName = _apiTestContext.TestSettings.ExistingUserFirstname;
-                    createUserRequest.LastName = _apiTestContext.TestSettings.ExistingUserLastname;
+                    createUserRequest.RecoveryEmail = _testContext.Config.TestSettings.ExistingEmail;
+                    createUserRequest.FirstName = _testContext.Config.TestSettings.ExistingUserFirstname;
+                    createUserRequest.LastName = _testContext.Config.TestSettings.ExistingUserLastname;
                     break;
                 }
                 case Scenario.Invalid:
@@ -66,8 +69,8 @@ namespace UserApi.IntegrationTests.Steps
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
 
-            _apiTestContext.HttpContent = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+            _testContext.HttpContent = new StringContent(
+                RequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
                 Encoding.UTF8, "application/json");
         }
 
@@ -76,23 +79,23 @@ namespace UserApi.IntegrationTests.Steps
         [Given(@"I have a get user by AD user Id request for an (.*) user with (.*)")]
         public void GivenIHaveAGetUserByAdUserIdRequestForTheUser(Scenario scenario, UserRole userRole)
         {
-            _apiTestContext.HttpMethod = HttpMethod.Get;
+            _testContext.HttpMethod = HttpMethod.Get;
             switch (scenario)
             {
                 case Scenario.Existing:
                 {
                     _userRole = userRole;
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(GetExistingUserIdForRole(userRole));
+                    _testContext.Uri = GetUserByAdUserId(GetExistingUserIdForRole(userRole));
                     break;
                 }
                 case Scenario.Nonexistent:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId("Does not exist");
+                    _testContext.Uri = GetUserByAdUserId("Does not exist");
                     break;
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserId(" ");
+                    _testContext.Uri = GetUserByAdUserId(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -100,45 +103,29 @@ namespace UserApi.IntegrationTests.Steps
         }
         private string GetExistingUserIdForRole(UserRole userRole)
         {
-            switch (userRole)
-            {
-                case UserRole.Individual:
-                    return _apiTestContext.TestSettings.Individual;
-                case UserRole.Representative:
-                    return _apiTestContext.TestSettings.Representative;
-                case UserRole.VhOfficer:
-                    return _apiTestContext.TestSettings.VhOfficer;
-                case UserRole.CaseAdmin:
-                    return _apiTestContext.TestSettings.CaseAdmin;
-                case UserRole.Judge:
-                    return _apiTestContext.TestSettings.Judge;
-                case UserRole.VhOfficerCaseAdmin:
-                    return _apiTestContext.TestSettings.VhOfficerCaseAdmin;
-                default:
-                    throw new ArgumentException($"Cannot determine type of user role {nameof(userRole)}");
-            }
+            return UserManager.GetUserFromRole(_testContext.UserAccounts, userRole).Username;
         }
 
         [Given(@"I have a get user by user principal name request for a (.*) user principal name")]
         [Given(@"I have a get user by user principal name request for an (.*) user principal name")]
         public void GivenIHaveAGetUserByUserPrincipalNameRequestForTheUserPrincipalName(Scenario scenario)
         {
-            _apiTestContext.HttpMethod = HttpMethod.Get;
+            _testContext.HttpMethod = HttpMethod.Get;
             switch (scenario)
             {
                 case Scenario.Existing:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserName(_apiTestContext.TestSettings.ExistingUserPrincipal);
+                    _testContext.Uri = GetUserByAdUserName(_testContext.Config.TestSettings.ExistingUserPrincipal);
                     break;
                 }
                 case Scenario.Nonexistent:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserName("Does not exist");
+                    _testContext.Uri = GetUserByAdUserName("Does not exist");
                     break;
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByAdUserName(" ");
+                    _testContext.Uri = GetUserByAdUserName(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -154,67 +141,67 @@ namespace UserApi.IntegrationTests.Steps
 
         private async Task<NewUserResponse> CreateTheNewUser()
         {
-            _apiTestContext.Uri = _endpoints.CreateUser;
-            _apiTestContext.HttpMethod = HttpMethod.Post;
+            _testContext.Uri = CreateUser;
+            _testContext.HttpMethod = HttpMethod.Post;
             var createUserRequest = new CreateUserRequestBuilder().Build();
-            _apiTestContext.HttpContent = new StringContent(
-                ApiRequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+            _testContext.HttpContent = new StringContent(
+                RequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
                 Encoding.UTF8, "application/json");
-            _apiTestContext.ResponseMessage = await SendPostRequestAsync(_apiTestContext);
-            _apiTestContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
-            var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
-            return ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
+            _testContext.ResponseMessage = await SendPostRequestAsync(_testContext);
+            _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
+            var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
+            return RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
         }
 
         private async Task AddUserToExternalGroup(string userId)
         {
-            _apiTestContext.HttpMethod = HttpMethod.Patch;
-            _apiTestContext.Uri = _accountEndpoints.AddUserToGroup;
+            _testContext.HttpMethod = HttpMethod.Patch;
+            _testContext.Uri = AddUserToGroup;
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = userId,
                 GroupName = "External"
             };
-            var jsonBody = ApiRequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
-            _apiTestContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-            _apiTestContext.ResponseMessage = await SendPatchRequestAsync(_apiTestContext);
-            _apiTestContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Accepted);
+            var jsonBody = RequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            _testContext.ResponseMessage = await SendPatchRequestAsync(_testContext);
+            _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Accepted);
         }
 
         [Given(@"I have a delete user request for the new user")]
         public void GivenIHaveADeleteUserRequestForTheNewUser()
         {
-            _apiTestContext.HttpMethod = HttpMethod.Delete;
-            _apiTestContext.Uri = _endpoints.DeleteUser(_newUser.Username);
+            _testContext.HttpMethod = HttpMethod.Delete;
+            _testContext.Uri = DeleteUser(_newUser.Username);
         }
 
         [Given(@"I have a delete user request for a nonexistent user")]
         public void GivenIHaveADeleteUserRequest()
         {
-            _apiTestContext.HttpMethod = HttpMethod.Delete;
-            _apiTestContext.Uri = _endpoints.DeleteUser("Does not exist");
+            _testContext.HttpMethod = HttpMethod.Delete;
+            _testContext.Uri = DeleteUser("Does not exist");
         }
 
         [Given(@"I have a get user profile by email request for a (.*) email")]
         [Given(@"I have a get user profile by email request for an (.*) email")]
         public void GivenIHaveAGetUserProfileByEmailRequestForTheEmail(Scenario scenario)
         {
-            _apiTestContext.HttpMethod = HttpMethod.Get;
+            _testContext.HttpMethod = HttpMethod.Get;
             switch (scenario)
             {
                 case Scenario.Existing:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByEmail(_apiTestContext.TestSettings.ExistingEmail);
+                    _testContext.Uri = GetUserByEmail(_testContext.Config.TestSettings.ExistingEmail);
                     break;
                 }
                 case Scenario.Nonexistent:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByEmail("Does not exist");
+                    _testContext.Uri = GetUserByEmail("Does not exist");
                     break;
                 }
                 case Scenario.Invalid:
                 {
-                    _apiTestContext.Uri = _endpoints.GetUserByEmail(" ");
+                    _testContext.Uri = GetUserByEmail(" ");
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
@@ -224,7 +211,7 @@ namespace UserApi.IntegrationTests.Steps
         [When(@"I send the delete request to the endpoint with polling")]
         public async Task WhenISendTheDeleteRequestToTheEndpointWithPolling()
         {
-            _apiTestContext.ResponseMessage = new HttpResponseMessage();
+            _testContext.ResponseMessage = new HttpResponseMessage();
 
             var policy = Policy
                 .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
@@ -233,30 +220,30 @@ namespace UserApi.IntegrationTests.Steps
 
             var getResponse = await policy.ExecuteAsync
             (
-                async () => await SendDeleteRequestAsync(_apiTestContext)
+                async () => await SendDeleteRequestAsync(_testContext)
             );
 
             getResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            _apiTestContext.ResponseMessage = getResponse;
+            _testContext.ResponseMessage = getResponse;
         }
 
         [Then(@"the user should be added")]
         public async Task ThenTheUserShouldBeAdded()
         {
-            var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
+            var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
             model.Should().NotBeNull();
             model.OneTimePassword.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.Username.Should().NotBeNullOrEmpty();
-            _apiTestContext.NewUserId = model.UserId;
+            _testContext.Test.NewUserId = model.UserId;
         }
 
         [Then(@"the user details should be retrieved")]
         public async Task ThenTheUserDetailsShouldBeRetrieved()
         {
-            var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
+            var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
@@ -266,30 +253,26 @@ namespace UserApi.IntegrationTests.Steps
             if(_userRole != null)
             {
                 if(_userRole == UserRole.Individual || _userRole == UserRole.Representative)
-                {
                     model.Email.Should().NotBeNullOrEmpty();
-                }
 
-                model.UserRole.Should().Be(_userRole == UserRole.VhOfficerCaseAdmin
-                    ? UserRole.VhOfficer.ToString()
-                    : _userRole.ToString());
+                model.UserRole.Should().Be(_userRole.ToString());
             }
         }
 
         [Then(@"the response should be empty")]
         public async Task ThenTheResponseShouldBeEmpty()
         {
-            var json = await _apiTestContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
+            var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
+            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
             model.Should().BeNull();
         }
 
         [AfterScenario]
         public async Task ClearUp()
         {
-            if (string.IsNullOrWhiteSpace(_apiTestContext.NewUserId)) return;
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_apiTestContext.NewUserId, _apiTestContext.GraphApiToken);
-            _apiTestContext.NewUserId = null;
+            if (string.IsNullOrWhiteSpace(_testContext.Test.NewUserId)) return;
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_testContext.Test.NewUserId, _testContext.Tokens.GraphApiBearerToken);
+            _testContext.Test.NewUserId = null;
         }
     }
 }
