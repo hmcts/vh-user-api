@@ -1,15 +1,15 @@
-﻿using FluentAssertions;
+﻿using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using FluentAssertions;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Testing.Common.Helpers;
 using UserApi.Security;
 using UserApi.Services.Models;
 
-namespace UserApi.UnitTests.Services
+namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class AddUserToGroupAsyncTests: UserAccountServiceTests
     {
@@ -32,7 +32,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public async Task should_add_user_to_group_successfully()
+        public async Task Should_add_user_to_group_successfully()
         {
 
             _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
@@ -44,7 +44,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public async Task should_verify_if_user_already_exists()
+        public async Task Should_verify_if_user_already_exists()
         {
 
             _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
@@ -56,7 +56,7 @@ namespace UserApi.UnitTests.Services
         }
 
         [Test]
-        public void should_throw_user_exception_on_other_responses()
+        public void Should_throw_user_exception_on_other_responses()
         {
             var message = $"Failed to add user {user.Id} to group {group.Id}";
             var reason = "Unathorized access";

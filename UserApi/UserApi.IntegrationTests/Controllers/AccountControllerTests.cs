@@ -5,23 +5,24 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api.Helpers;
 using FluentAssertions;
 using NUnit.Framework;
 using Testing.Common.Helpers;
 using UserApi.Contract.Responses;
+using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 
 namespace UserApi.IntegrationTests.Controllers
 {
     public class AccountController : ControllerTestsBase
     {
-        private readonly AccountEndpoints _accountEndpoints = new ApiUriFactory().AccountEndpoints;
         private string _newUserId;
 
         [Test]
         public async Task Should_get_group_by_name_not_found_with_bogus_group_name()
         {
             var groupName = "foo";
-            var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupByName(groupName));
+            var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -29,10 +30,9 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_group_by_name()
         {
             var groupName = "External";
-            var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupByName(groupName));
+            var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
+            var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
             groupResponseModel.DisplayName.Should().Be(groupName);
             groupResponseModel.GroupId.Should().NotBeNullOrWhiteSpace();
@@ -42,10 +42,9 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_group_by_id()
         {
             var groupId = "121fa058-1796-4531-a9ee-63be1d4dc630";
-            var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupById(groupId));
+            var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupResponseModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
+            var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
             Assert.AreEqual("External", groupResponseModel.DisplayName);
@@ -55,7 +54,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_group_by_id_not_found_with_bogus_id()
         {
             var groupId = Guid.Empty.ToString();
-            var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupById(groupId));
+            var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -64,10 +63,9 @@ namespace UserApi.IntegrationTests.Controllers
         {
             // user id for Automation01Administrator01
             const string userId = "9a435325-df6d-4937-9f37-baca2052dd5d";
-            var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupsForUser(userId));
+            var getResponse = await SendGetRequestAsync(GetGroupsForUser(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupsForUserModel =
-                ApiRequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
+            var groupsForUserModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
             const string expectedGroupName = "VirtualRoomHearingAdministrator";
@@ -79,7 +77,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_groups_for_user_not_found_with_bogus_user_id()
         {
             var userId = Guid.Empty.ToString();
-            var getResponse = await SendGetRequestAsync(_accountEndpoints.GetGroupsForUser(userId));
+            var getResponse = await SendGetRequestAsync(GetGroupsForUser(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -87,15 +85,13 @@ namespace UserApi.IntegrationTests.Controllers
         public void ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_newUserId)) return;
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
-                    $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
-                var result = client.SendAsync(httpRequestMessage).Result;
-                result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
-                _newUserId = null;
-            }
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
+            var result = client.SendAsync(httpRequestMessage).Result;
+            result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
+            _newUserId = null;
         }
     }
 }

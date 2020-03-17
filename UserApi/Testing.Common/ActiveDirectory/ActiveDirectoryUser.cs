@@ -4,12 +4,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Polly;
+using Testing.Common.Configuration;
 
 namespace Testing.Common.ActiveDirectory
 {
     public static class ActiveDirectoryUser
     {
-        private static string ApiBaseUrl => $"https://graph.microsoft.com/v1.0/{TestConfig.Instance.AzureAd.TenantId}";
+        private static string ApiBaseUrl => $"{TestConfig.Instance.AzureAd.GraphApiBaseUri}v1.0/{TestConfig.Instance.AzureAd.TenantId}";
 
         public static async Task<bool> IsUserInAGroupAsync(string user, string groupName, string token)
         {
@@ -41,12 +42,10 @@ namespace Testing.Common.ActiveDirectory
             // sometimes the api can be slow to actually allow us to access the created instance, so retry if it fails the first time
             var result = await policy.ExecuteAsync(async () =>
             {
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    var httpRequestMessage = new HttpRequestMessage(method, url);
-                    return await client.SendAsync(httpRequestMessage);
-                }
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var httpRequestMessage = new HttpRequestMessage(method, url);
+                return await client.SendAsync(httpRequestMessage);
             });
 
             var response = await result.Content.ReadAsStringAsync();

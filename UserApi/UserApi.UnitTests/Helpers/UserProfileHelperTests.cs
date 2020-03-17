@@ -26,7 +26,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_case_admin_for_user_with_money_claims_group()
+        public async Task Should_return_case_admin_for_user_with_money_claims_group()
         {
             GivenFilterReturnsUserWithCaseTypeGroups("Civil Money Claims");
             
@@ -36,7 +36,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_case_admin_for_user_with_financial_remedy_group()
+        public async Task Should_return_case_admin_for_user_with_financial_remedy_group()
         {
             GivenFilterReturnsUserWithCaseTypeGroups("Financial Remedy");
             
@@ -46,7 +46,7 @@ namespace UserApi.UnitTests.Helpers
         }
 
         [Test]
-        public async Task should_return_case_admin_for_user_with_generic_generic_group()
+        public async Task Should_return_case_admin_for_user_with_generic_generic_group()
         {
             GivenFilterReturnsUserWithCaseTypeGroups("Generic");
 
@@ -56,7 +56,7 @@ namespace UserApi.UnitTests.Helpers
         }
 
         [Test]
-        public async Task should_return_judge_for_user_with_internal_and_virtualroomjudge()
+        public async Task Should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomJudge");
             
@@ -66,7 +66,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
+        public async Task Should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator");
             
@@ -76,7 +76,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
+        public async Task Should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator", "Financial Remedy");
             
@@ -86,7 +86,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
+        public async Task Should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
             GivenFilterReturnsUserWithGroups("VirtualRoomProfessionalUser");
             
@@ -96,7 +96,7 @@ namespace UserApi.UnitTests.Helpers
         }
 
         [Test]
-        public async Task should_return_individual_for_user_with_external_group()
+        public async Task Should_return_individual_for_user_with_external_group()
         {
             GivenFilterReturnsUserWithGroups("External");
             
@@ -106,7 +106,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_raise_exception_if_user_lacks_video_hearing_groups()
+        public async Task Should_raise_exception_if_user_lacks_video_hearing_groups()
         {
             GivenFilterReturnsUserWithGroups();
 
@@ -116,7 +116,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_null_for_no_user_found()
+        public async Task Should_return_null_for_no_user_found()
         {
             _accountService.Setup(x => x.GetUserByFilterAsync(Filter)).ReturnsAsync((User) null);
             
@@ -126,7 +126,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_case_types_for_case_admin()
+        public async Task Should_return_case_types_for_case_admin()
         {
             GivenFilterReturnsUserWithCaseTypeGroups("Civil Money Claims", "Financial Remedy", "Generic");
             
@@ -139,7 +139,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_user_data()
+        public async Task Should_return_user_data()
         {
             var user = new User
             {
@@ -164,7 +164,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task should_return_user_data_when_email_has_quotes()
+        public async Task Should_return_user_data_when_email_has_quotes()
         {
             var user = new User
             {
