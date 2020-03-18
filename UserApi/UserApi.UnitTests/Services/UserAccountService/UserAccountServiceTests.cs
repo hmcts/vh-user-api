@@ -1,14 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Graph;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
@@ -45,7 +46,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 ClientId = "TestClientId",
                 ClientSecret = "TestSecret",
                 Authority = "https://Test/Authority",
-                VhUserApiResourceId = "TestResourceId"
             };
             var tokenProvider = new Mock<ITokenProvider>();
             _graphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
@@ -86,7 +86,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         }
 
         protected string AccessUri => $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
-        }
+        
 
         [Test]
         public async Task Should_increment_the_username()
@@ -136,7 +136,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             var testJudges = new List<UserResponse> { new UserResponse { Email = "test@aa.aa" } };
 
-            var result = judgesList.Except(testJudges, UserAccountService.CompareJudgeById).ToList();
+            var result = judgesList.Except(testJudges, UserApi.Services.UserAccountService.CompareJudgeById).ToList();
 
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("aa@aa.aa", result[0].Email);
