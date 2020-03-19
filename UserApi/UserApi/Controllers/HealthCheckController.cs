@@ -73,9 +73,12 @@ namespace UserApi.Controllers
         }
         private ApplicationVersion GetApplicationVersion()
         {
-            var applicationVersion = new ApplicationVersion();
-            applicationVersion.FileVersion = GetExecutingAssemblyAttribute<AssemblyFileVersionAttribute>(a => a.Version);
-            applicationVersion.InformationVersion = GetExecutingAssemblyAttribute<AssemblyInformationalVersionAttribute>(a => a.InformationalVersion);
+            var applicationVersion = new ApplicationVersion()
+            {
+                FileVersion = GetExecutingAssemblyAttribute<AssemblyFileVersionAttribute>(a => a.Version),
+                InformationVersion = GetExecutingAssemblyAttribute<AssemblyInformationalVersionAttribute>(a => a.InformationalVersion)
+            };
+
             return applicationVersion;
         }
 
