@@ -34,43 +34,48 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Health()
         {
+            const bool SUCCESS = true;
+            const bool UNSUCCESS = false;
+
             var response = new UserApiHealthResponse();
             response.AppVersion = GetApplicationVersion();
             try
             {
-                const string email = "checkuser@test.com";
                 //Check if user profile end point is accessible
-                var filter = $"otherMails/any(c:c eq '{email}')";
+                const string filter = "otherMails/any(c:c eq 'checkuser@test.com')";
                 await _userAccountService.GetUserByFilterAsync(filter);
-                response.UserAccessHealth.Successful = true;
+                response.UserAccessHealth.Successful = SUCCESS;
             }
             catch (UserServiceException e)
             {
-                response.UserAccessHealth.Successful = false;
+                response.UserAccessHealth.Successful = UNSUCCESS;
                 response.UserAccessHealth.Data = e.Data;
-                response.UserAccessHealth.ErrorMessage = $"{e.Message} - {e.Reason}";
+                response.UserAccessHealth.ErrorMessage = e.Message;
             }
-
+           
             try
             {
                 //Check if group by name end point is accessible
-                await _userAccountService.GetGroupByNameAsync("TestGroup");
-                response.GroupAccessHealth.Successful = true;
+                const string group = "TestGroup";
+                await _userAccountService.GetGroupByNameAsync(group);
+                response.GroupAccessHealth.Successful = SUCCESS;
             }
             catch (UserServiceException e)
             {
-                response.GroupAccessHealth.Successful = false;
+                response.GroupAccessHealth.Successful = UNSUCCESS;
                 response.GroupAccessHealth.Data = e.Data;
-                response.GroupAccessHealth.ErrorMessage = $"{e.Message} - {e.Reason}";
+                response.GroupAccessHealth.ErrorMessage = e.Message;
             }
 
-            if (!response.GroupAccessHealth.Successful || !response.UserAccessHealth.Successful)
+
+            if (response.GroupAccessHealth.Successful && response.UserAccessHealth.Successful)
             {
-                return StatusCode((int) HttpStatusCode.InternalServerError, response);
+                return Ok(response);
             }
 
-            return Ok(response);
+            return StatusCode((int)HttpStatusCode.InternalServerError, response);
         }
+
         private ApplicationVersion GetApplicationVersion()
         {
             var applicationVersion = new ApplicationVersion();
