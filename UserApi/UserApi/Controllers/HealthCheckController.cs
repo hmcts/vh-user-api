@@ -78,6 +78,7 @@ namespace UserApi.Controllers
                 FileVersion = GetExecutingAssemblyAttribute<AssemblyFileVersionAttribute>(a => a.Version),
                 InformationVersion = GetExecutingAssemblyAttribute<AssemblyInformationalVersionAttribute>(a => a.InformationalVersion)
             };
+
             return applicationVersion;
         }
 
