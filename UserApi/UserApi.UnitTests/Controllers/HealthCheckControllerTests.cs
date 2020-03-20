@@ -26,7 +26,7 @@ namespace UserApi.UnitTests.Controllers
             _userAccountService
                 .Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
                 .ReturnsAsync(new User());
-            
+
             _userAccountService
                 .Setup(x => x.GetGroupByNameAsync(It.IsAny<string>()))
                 .ReturnsAsync(new Group());
@@ -44,10 +44,10 @@ namespace UserApi.UnitTests.Controllers
                 .ThrowsAsync(new UserServiceException(message, reason));
 
             var result = await _controller.Health();
-            
-            var typedResult = (ObjectResult) result;
-            typedResult.StatusCode.Should().Be((int) HttpStatusCode.InternalServerError);
-            var response = (UserApiHealthResponse) typedResult.Value;
+
+            var typedResult = (ObjectResult)result;
+            typedResult.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
+            var response = (UserApiHealthResponse)typedResult.Value;
             response.UserAccessHealth.Successful.Should().BeFalse();
             response.UserAccessHealth.ErrorMessage.Should().NotBeNullOrEmpty();
             response.UserAccessHealth.ErrorMessage.Should().Be($"{message}: {reason}");
@@ -55,8 +55,10 @@ namespace UserApi.UnitTests.Controllers
             response.GroupAccessHealth.Successful.Should().BeTrue();
             response.GroupAccessHealth.ErrorMessage.Should().BeNullOrWhiteSpace();
             response.GroupAccessHealth.Data.Should().BeNullOrEmpty();
+
+            response.HelthCheckSuccessful.Should().BeFalse();
         }
-        
+
         [Test]
         public async Task Should_return_server_error_when_unable_to_access_groups()
         {
@@ -67,10 +69,10 @@ namespace UserApi.UnitTests.Controllers
                 .ThrowsAsync(new UserServiceException(message, reason));
 
             var result = await _controller.Health();
-            
-            var typedResult = (ObjectResult) result;
-            typedResult.StatusCode.Should().Be((int) HttpStatusCode.InternalServerError);
-            var response = (UserApiHealthResponse) typedResult.Value;
+
+            var typedResult = (ObjectResult)result;
+            typedResult.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
+            var response = (UserApiHealthResponse)typedResult.Value;
 
             response.UserAccessHealth.Successful.Should().BeTrue();
             response.UserAccessHealth.ErrorMessage.Should().BeNullOrEmpty();
@@ -79,6 +81,8 @@ namespace UserApi.UnitTests.Controllers
             response.GroupAccessHealth.Successful.Should().BeFalse();
             response.GroupAccessHealth.ErrorMessage.Should().NotBeNullOrEmpty();
             response.GroupAccessHealth.ErrorMessage.Should().Be($"{message}: {reason}");
+
+            response.HelthCheckSuccessful.Should().BeFalse();
         }
 
         [Test]
@@ -86,17 +90,19 @@ namespace UserApi.UnitTests.Controllers
         {
             var result = await _controller.Health();
 
-            var typedResult = (ObjectResult) result;
-            typedResult.StatusCode.Should().Be((int) HttpStatusCode.OK);
-            
-            var response = (UserApiHealthResponse) typedResult.Value;
+            var typedResult = (ObjectResult)result;
+            typedResult.StatusCode.Should().Be((int)HttpStatusCode.OK);
+
+            var response = (UserApiHealthResponse)typedResult.Value;
             response.UserAccessHealth.Successful.Should().BeTrue();
             response.UserAccessHealth.ErrorMessage.Should().BeNullOrWhiteSpace();
             response.UserAccessHealth.Data.Should().BeNullOrEmpty();
-            
+
             response.GroupAccessHealth.Successful.Should().BeTrue();
             response.GroupAccessHealth.ErrorMessage.Should().BeNullOrWhiteSpace();
             response.GroupAccessHealth.Data.Should().BeNullOrEmpty();
+
+            response.HelthCheckSuccessful.Should().BeTrue();
 
             _userAccountService.Verify(u => u.GetGroupByNameAsync("TestGroup"), Times.Once);
             _userAccountService.Verify(u => u.GetUserByFilterAsync(It.IsAny<string>()), Times.Once);
@@ -119,7 +125,7 @@ namespace UserApi.UnitTests.Controllers
         {
             var email = "checkuser@test.com";
             var filter = $"otherMails/any(c:c eq '{email}')";
-            var message = string.Empty; 
+            var message = string.Empty;
             var reason = string.Empty;
             _userAccountService
                .Setup(x => x.GetGroupByNameAsync(It.IsAny<string>()))
@@ -141,7 +147,8 @@ namespace UserApi.UnitTests.Controllers
             response.GroupAccessHealth.ErrorMessage.Should().NotBeNullOrWhiteSpace();
             response.GroupAccessHealth.ErrorMessage.Should().Be($"{message}: {reason}");
 
-        }
+            response.HelthCheckSuccessful.Should().BeFalse();
 
+        }
     }
 }

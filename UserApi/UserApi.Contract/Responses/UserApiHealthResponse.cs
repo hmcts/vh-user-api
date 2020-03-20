@@ -13,6 +13,8 @@ namespace UserApi.Contract.Responses
             GroupAccessHealth = new HealthCheck();
             AppVersion = new ApplicationVersion();
         }
+
+        public bool HelthCheckSuccessful => UserAccessHealth.Successful && GroupAccessHealth.Successful;
     }
     
     public class HealthCheck
