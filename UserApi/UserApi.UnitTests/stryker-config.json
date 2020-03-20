@@ -29,8 +29,8 @@
       "!Helper/ExceptionMiddleware.cs",
       "!Helper/LogRequestMiddleware.cs",
       "!Helper/SecureHttpRequest.cs",
-      "!Security/TokenProvider.cs",
-      "!**/AssemblyInfo.cs"
+      "!Security/TokenProvider.cs"
+
     ]
   }
 }

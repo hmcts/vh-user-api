@@ -67,8 +67,7 @@ namespace UserApi.Controllers
                 response.GroupAccessHealth.ErrorMessage = e.Message;
             }
 
-
-            if (response.GroupAccessHealth.Successful && response.UserAccessHealth.Successful)
+            if (response.HelthCheckSuccessful)
             {
                 return Ok(response);
             }
