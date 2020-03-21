@@ -30,6 +30,7 @@
       "!Helper/LogRequestMiddleware.cs",
       "!Helper/SecureHttpRequest.cs",
       "!Security/TokenProvider.cs"
+
     ]
   }
 }

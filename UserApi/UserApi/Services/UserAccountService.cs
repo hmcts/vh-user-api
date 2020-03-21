@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
+using System;
 
 namespace UserApi.Services
 {
@@ -24,7 +25,7 @@ namespace UserApi.Services
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
 
-        private static readonly Compare<UserResponse> CompareJudgeById =
+        public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings)
@@ -93,21 +94,23 @@ namespace UserApi.Services
             {
                 var queryResponse = await responseMessage.Content
                     .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
-                if (!queryResponse.Value.Any())
+                if (queryResponse.Value != null && queryResponse.Value.Any())
+                {
+                    var adUser = queryResponse.Value[0];
+                    return new User
+                    {
+                        Id = adUser.ObjectId,
+                        DisplayName = adUser.DisplayName,
+                        UserPrincipalName = adUser.UserPrincipalName,
+                        GivenName = adUser.GivenName,
+                        Surname = adUser.Surname,
+                        Mail = adUser.OtherMails?.FirstOrDefault()
+                    };
+                }
+                else
                 {
                     return null;
                 }
-
-                var adUser = queryResponse.Value.First();
-                return new User
-                {
-                    Id = adUser.ObjectId,
-                    DisplayName = adUser.DisplayName,
-                    UserPrincipalName = adUser.UserPrincipalName,
-                    GivenName = adUser.GivenName,
-                    Surname = adUser.Surname,
-                    Mail = adUser.OtherMails?.FirstOrDefault()
-                };
             }
 
             if (responseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -153,7 +156,7 @@ namespace UserApi.Services
 
             var message = $"Failed to get group by id {groupId}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
-                
+
             throw new UserServiceException(message, reason);
         }
 
@@ -175,7 +178,7 @@ namespace UserApi.Services
                     var type = itemProperties.FirstOrDefault(x => x.Name == OdataType);
 
                     // If #microsoft.graph.directoryRole ignore the group mappings
-                    if (type.Value.ToString() == GraphGroupType)
+                    if (type != null && type.Value.ToString() == GraphGroupType)
                     {
                         var group = JsonConvert.DeserializeObject<Group>(item.ToString());
                         groups.Add(group);
@@ -212,7 +215,7 @@ namespace UserApi.Services
         private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername)
         {
             var users = await _client.GetUsernamesStartingWithAsync(baseUsername);
-            return users.OrderBy(username => username);
+            return users;
         }
 
         public async Task<List<UserResponse>> GetJudgesAsync()
@@ -223,7 +226,7 @@ namespace UserApi.Services
                 judges = await ExcludeTestJudgesAsync(judges);
             }
 
-            return judges.OrderBy(x=>x.DisplayName).ToList();
+            return judges.OrderBy(x => x.DisplayName).ToList();
         }
         private async Task<List<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
