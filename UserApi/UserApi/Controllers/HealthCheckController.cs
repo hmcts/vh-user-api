@@ -89,7 +89,7 @@ namespace UserApi.Controllers
         private string GetExecutingAssemblyAttribute<T>(Func<T, string> value) where T : Attribute
         {
             T attribute = (T)Attribute.GetCustomAttribute(Assembly.GetExecutingAssembly(), typeof(T));
-            return value.Invoke(attribute);
+            return attribute == null ? null : value.Invoke(attribute);
         }
     }
 }
