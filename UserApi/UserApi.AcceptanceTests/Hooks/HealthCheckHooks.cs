@@ -1,5 +1,7 @@
 ﻿using AcceptanceTests.Common.Api.Healthchecks;
+using System.Net;
 using TechTalk.SpecFlow;
+using Testing.Common.Helper;
 using UserApi.AcceptanceTests.Contexts;
 
 namespace UserApi.AcceptanceTests.Hooks
@@ -14,7 +16,7 @@ namespace UserApi.AcceptanceTests.Hooks
         }
         private static void CheckUserApiHealth(string apiUrl, string bearerToken)
         {
-            HealthcheckManager.CheckHealthOfUserApi(apiUrl, bearerToken);
+            HealthcheckManager.CheckHealthOfUserApi(apiUrl, bearerToken, (WebProxy)Zap.WebProxy);
         }
     }
 }

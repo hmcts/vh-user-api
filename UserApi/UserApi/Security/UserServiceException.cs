@@ -11,5 +11,6 @@ namespace UserApi.Security
         }
 
         public string Reason { get; set; }
+
     }
 }
