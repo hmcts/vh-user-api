@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml;
 using Testing.Common.Configuration;
 
 namespace Testing.Common.Helper
@@ -31,9 +32,9 @@ namespace Testing.Common.Helper
                                                             .Build()
                                                             .GetSection("ZapConfiguration")
                                                             .Get<ZapConfiguration>();
-         
+                 
 
-        private static readonly ClientApi Api = new ClientApi(ZapConfiguration.ApiAddress, ZapConfiguration.ApiPort, ZapConfiguration.ApiKey);
+        private static readonly ClientApi Api = new ClientApi(ZapConfiguration.ApiAddress, ZapConfiguration.ApiPort, GetApiKey(ZapConfiguration.ApiConfigPath));
 
         public static IWebProxy WebProxy => ZapConfiguration.ZapScan ? new WebProxy($"http://{ZapConfiguration.ApiAddress}:{ZapConfiguration.ApiPort}", false) : null;
 
@@ -80,6 +81,18 @@ namespace Testing.Common.Helper
             }
         }
 
+        private static string GetApiKey(string configFile)
+        {
+            var doc = new XmlDocument();
+            doc.Load(configFile);
+
+            var node = doc.GetElementsByTagName("key");
+
+            if (node.Count > 0 && node[0] != null )
+                return node[0].InnerText;
+
+            throw new Exception($"Unable to resolve api key from {configFile}");
+        }
         private static void Build()
         {
             var processStartInfo = CreateProcess("dotnet", $"publish --configuration {Configuration}", $"{WorkingDirectory}\\{ZapConfiguration.SolutionFolderName}");
