@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Testing.Common.Configuration;
@@ -56,6 +57,11 @@ namespace Testing.Common.Helper
             {
                 throw new Exception($"Zap startup failed after trying for '{TestTimeout}' ");
             }
+            else
+            {
+                Api.pscan.setEnabled("true");
+                Api.pscan.enableAllScanners();
+            }
 
             var started = WaitForService().Result;
 
@@ -71,6 +77,7 @@ namespace Testing.Common.Helper
 
             try
             {
+                PollPassiveScanCompletion();
                 reportFileName = $"{reportFileName}-Tests-Security-{DateTime.Now.ToString("dd-MMM-yyyy-hh-mm-ss")}";
                 WriteHtmlReport(reportFileName);
                 WriteXmlReport(reportFileName);
@@ -78,6 +85,17 @@ namespace Testing.Common.Helper
             finally
             {
                 StopContainers();
+            }
+        }
+
+        private static void PollPassiveScanCompletion()
+        {
+            while (true)
+            {
+                Thread.Sleep(1000);
+                var response = (ApiResponseElement) Api.pscan.recordsToScan();
+                if (response != null && response.Value == "0")
+                    break;
             }
         }
 
@@ -104,7 +122,7 @@ namespace Testing.Common.Helper
         { 
             var processStartInfo = CreateProcess(DockerCompose, $"{DockerArguments} up -d --build");
 
-            RunProcess(processStartInfo, true);
+            RunProcess(processStartInfo);
         }
         private static ProcessStartInfo CreateProcess(string fileName, string arguments, string workingDirectory = null)
         {
@@ -120,17 +138,13 @@ namespace Testing.Common.Helper
         {
             var processStartInfo = CreateProcess(DockerCompose, $"{DockerArguments} down --rmi local");            
 
-            RunProcess(processStartInfo, true);
+            RunProcess(processStartInfo);
         }
 
-        private static void RunProcess(ProcessStartInfo processStartInfo, bool addEnvironmentVariables = false)
+        private static void RunProcess(ProcessStartInfo processStartInfo)
         {
-            if(addEnvironmentVariables)
-            {
-                processStartInfo.Environment["TAG"] = Tag;
-                processStartInfo.Environment["CONFIGURATION"] = Configuration;
-                processStartInfo.Environment["COMPUTERNAME"] = Environment.MachineName;
-            }
+           
+            processStartInfo.Environment["CONFIGURATION"] = Configuration;
 
             var process = Process.Start(processStartInfo);
 
@@ -174,7 +188,7 @@ namespace Testing.Common.Helper
                     }
                 }
                 catch
-                { 
+                {
 
                 }
 
