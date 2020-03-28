@@ -20,6 +20,6 @@ services:
     image: sspublicsbox.azurecr.io/secops/zaproxy
     container_name: zapapi
     volumes:
-      - /run/desktop/mnt/host/c/zaproxy/xml/config.xml:/home/zap/.ZAP/config.xml
+      - ./UserApi.AcceptanceTests/zapapi-config.xml:/home/zap/.ZAP/config.xml
     ports:
       - "8080:8080"

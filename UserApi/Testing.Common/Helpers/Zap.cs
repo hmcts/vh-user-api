@@ -16,8 +16,6 @@ namespace Testing.Common.Helper
     public static class Zap
     {
         private const string Configuration = "Release";
-        
-        private const string Tag = "test";
 
         private const string DockerCompose = "docker-compose";
 
