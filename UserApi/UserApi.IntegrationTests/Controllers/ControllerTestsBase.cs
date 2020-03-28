@@ -1,12 +1,12 @@
 using System.Net.Http;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using Testing.Common.Configuration;
-using Testing.Common.Helper;
 using UserApi.Common;
 using UserApi.Security;
 

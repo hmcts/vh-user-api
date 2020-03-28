@@ -1,7 +1,7 @@
-﻿using AcceptanceTests.Common.Api.Healthchecks;
+﻿using AcceptanceTests.Common.Api;
+using AcceptanceTests.Common.Api.Healthchecks;
 using System.Net;
 using TechTalk.SpecFlow;
-using Testing.Common.Helper;
 using UserApi.AcceptanceTests.Contexts;
 
 namespace UserApi.AcceptanceTests.Hooks

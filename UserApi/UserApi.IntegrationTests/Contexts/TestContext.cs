@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
+using AcceptanceTests.Common.Api;
 using AcceptanceTests.Common.Configuration.Users;
 using Microsoft.AspNetCore.TestHost;
 using Testing.Common.Configuration;
-using Testing.Common.Helper;
 
 namespace UserApi.IntegrationTests.Contexts
 {

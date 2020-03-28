@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using AcceptanceTests.Common.Api;
 using AcceptanceTests.Common.Api.Helpers;
 using AcceptanceTests.Common.Configuration.Users;
 using RestSharp;
 using Testing.Common.Configuration;
-using Testing.Common.Helper;
 
 namespace UserApi.AcceptanceTests.Contexts
 {

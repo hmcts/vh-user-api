@@ -1,6 +1,6 @@
+using AcceptanceTests.Common.Api;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
-using Testing.Common.Helper;
 using UserApi.Common;
 
 namespace UserApi.IntegrationTests
