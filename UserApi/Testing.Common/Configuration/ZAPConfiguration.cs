@@ -6,6 +6,7 @@ namespace Testing.Common.Configuration
         public int ApiPort { get; set; }
         public string ApiConfigPath { get; set; }
         public bool ZapScan { get; set; }
+        public bool ActiveScan { get; set; }
         public string ServiceName { get; set; }
         public string SolutionFolderName { get; set; }
     }

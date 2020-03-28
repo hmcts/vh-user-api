@@ -1,12 +1,19 @@
+using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
-using System;
 using Testing.Common.Helper;
+using UserApi.Common;
 
 namespace UserApi.AcceptanceTests
 {
     [SetUpFixture]
     public class TestSetupFixture
     {
+        private VhServices VhServices => new ConfigurationBuilder()
+                                                            .AddJsonFile("appsettings.json")
+                                                            .Build()
+                                                            .GetSection("VhServices")
+                                                            .Get<VhServices>();
+
         [OneTimeSetUp]
         public void ZapStart()
         {
@@ -16,7 +23,7 @@ namespace UserApi.AcceptanceTests
         [OneTimeTearDown]
         public void ZapReport()
         {
-            Zap.ReportAndShutDown("UserApi-Acceptance");
+            Zap.ReportAndShutDown("UserApi-Acceptance", VhServices.UserApiUrl);
         }
     }
 }

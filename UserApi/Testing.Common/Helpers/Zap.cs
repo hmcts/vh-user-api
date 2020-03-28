@@ -29,7 +29,6 @@ namespace Testing.Common.Helper
 
         private static ZapConfiguration ZapConfiguration => new ConfigurationBuilder()
                                                             .AddJsonFile("appsettings.json")
-                                                            .AddUserSecrets("CF55F1BB-0EE3-456A-A566-70E56AC24C95")
                                                             .Build()
                                                             .GetSection("ZapConfiguration")
                                                             .Get<ZapConfiguration>();
@@ -43,6 +42,7 @@ namespace Testing.Common.Helper
 
         private static string WorkingDirectory => Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Directory.GetCurrentDirectory()))));
 
+        private static bool setToken = false;
 
         public static void Start()
         {
@@ -61,6 +61,8 @@ namespace Testing.Common.Helper
             {
                 Api.pscan.setEnabled("true");
                 Api.pscan.enableAllScanners();
+                Api.core.setMode("attack");
+                Api.ascan.enableAllScanners("");
             }
 
             var started = WaitForService().Result;
@@ -71,16 +73,37 @@ namespace Testing.Common.Helper
             }
         }
 
-        public static void ReportAndShutDown(string reportFileName)
+        public static void SetAuthToken(string bearerToken)
+        {
+            if(!setToken)
+            {
+                var ruleDescription = "Auth";
+                Api.replacer.removeRule(ruleDescription);
+                Api.replacer.addRule(ruleDescription, "true", "REQ_HEADER", "false", "Authorization", $"Bearer {bearerToken}", "");
+
+                setToken = true;
+            }
+        }
+
+        public static void ReportAndShutDown(string reportFileName, string scanUrl)
         {
             if (!ZapConfiguration.ZapScan) return;
 
             try
             {
                 PollPassiveScanCompletion();
-                reportFileName = $"{reportFileName}-Tests-Security-{DateTime.Now.ToString("dd-MMM-yyyy-hh-mm-ss")}";
-                WriteHtmlReport(reportFileName);
-                WriteXmlReport(reportFileName);
+
+                if(!string.IsNullOrEmpty(scanUrl) && ZapConfiguration.ActiveScan)
+                {
+                    Scan(scanUrl);
+                }
+
+                if (!string.IsNullOrEmpty(reportFileName))
+                {
+                    reportFileName = $"{reportFileName}-Tests-Security-{DateTime.Now.ToString("dd-MMM-yyyy-hh-mm-ss")}";
+                    WriteHtmlReport(reportFileName);
+                    WriteXmlReport(reportFileName);
+                }
             }
             finally
             {
@@ -88,6 +111,63 @@ namespace Testing.Common.Helper
             }
         }
 
+        public static void Scan(string target)
+        {
+            StartSpidering(target);
+            ActiveScan(target);
+        }
+
+        private static void StartSpidering(string target)
+        {
+            try
+            {
+                
+                var response = (ApiResponseElement)Api.spider.scan(target, "", "", "", "");
+                string scanid = response.Value;
+
+                int progress;
+                while (true)
+                {
+                    Thread.Sleep(2000);
+                    var resp = (ApiResponseElement)Api.spider.status(scanid);
+                    progress = Convert.ToInt32(resp.Value);
+                    if (progress >= 100)
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        private static void ActiveScan(string url)
+        {
+            try
+            {
+                var response = (ApiResponseElement)Api.ascan.scan(url, "true", "", "", "", "", "");
+                string scanid = response.Value;
+               
+                int progress;
+                while (true)
+                {
+                    Thread.Sleep(2000);
+                    var resp = (ApiResponseElement)Api.ascan.status(scanid);
+                    progress = Convert.ToInt32(resp.Value);
+                    if (progress >= 100)
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;                
+            }
+        }
+        
         private static void PollPassiveScanCompletion()
         {
             while (true)
@@ -142,8 +222,7 @@ namespace Testing.Common.Helper
         }
 
         private static void RunProcess(ProcessStartInfo processStartInfo)
-        {
-           
+        {           
             processStartInfo.Environment["CONFIGURATION"] = Configuration;
 
             var process = Process.Start(processStartInfo);
