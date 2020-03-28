@@ -34,9 +34,9 @@ namespace Testing.Common.Helper
 
         private static readonly ClientApi Api = new ClientApi(ZapConfiguration.ApiAddress, ZapConfiguration.ApiPort, GetApiKey(ZapConfiguration.ApiConfigPath));
 
-        public static IWebProxy WebProxy => ZapConfiguration.ZapScan ? new WebProxy($"http://{ZapConfiguration.ApiAddress}:{ZapConfiguration.ApiPort}", false) : null;
+        public static IWebProxy WebProxy => (ZapConfiguration.ZapScan || ZapConfiguration.SetUpProxy) ? new WebProxy($"http://{ZapConfiguration.ApiAddress}:{ZapConfiguration.ApiPort}", false) : null;
 
-        public static bool SetupProxy => ZapConfiguration.ZapScan;
+        public static bool SetupProxy => ZapConfiguration.SetUpProxy;
 
         private static string WorkingDirectory => Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Directory.GetCurrentDirectory()))));
 
@@ -73,7 +73,9 @@ namespace Testing.Common.Helper
 
         public static void SetAuthToken(string bearerToken)
         {
-            if(!setToken)
+            if (!ZapConfiguration.ZapScan) return;
+
+            if (!setToken)
             {
                 var ruleDescription = "Auth";
                 Api.replacer.removeRule(ruleDescription);
