@@ -131,26 +131,12 @@ namespace Testing.Common.Helper
         private static void StartSpidering(string target)
         {
             try
-            {
-                
-                var response = (ApiResponseElement)Api.spider.scan(target, "", "", "", "");
-                string scanid = response.Value;
-
-                int progress;
-                while (true)
-                {
-                    Thread.Sleep(2000);
-                    var resp = (ApiResponseElement)Api.spider.status(scanid);
-                    progress = Convert.ToInt32(resp.Value);
-                    if (progress >= 100)
-                    {
-                        break;
-                    }
-                }
+            { 
+                PollScanStatus(Api.spider.scan(target, "", "true", "", ""), "spider");
             }
             catch (Exception e)
             {
-                throw e;
+                throw new Exception($"Error on running spider scan at '{target}' : {e.Message}");
             }
         }
 
@@ -158,24 +144,28 @@ namespace Testing.Common.Helper
         {
             try
             {
-                var response = (ApiResponseElement)Api.ascan.scan(url, "true", "", "", "", "", "");
-                string scanid = response.Value;
-               
-                int progress;
-                while (true)
-                {
-                    Thread.Sleep(2000);
-                    var resp = (ApiResponseElement)Api.ascan.status(scanid);
-                    progress = Convert.ToInt32(resp.Value);
-                    if (progress >= 100)
-                    {
-                        break;
-                    }
-                }
+                PollScanStatus(Api.ascan.scan(url, "true", "", "", "", "", ""), "active");               
             }
             catch (Exception e)
             {
-                throw e;                
+                throw new Exception($"Error on running active scan at '{url}' : {e.Message}");
+            }
+        }
+
+        private static void PollScanStatus(IApiResponse response,string type)
+        {
+            var scanid = ((ApiResponseElement)response).Value;
+
+            int progress;
+            while (true)
+            {
+                Thread.Sleep(2000);
+                var resp = (ApiResponseElement)(type == "spider" ? Api.spider.status(scanid) : Api.ascan.status(scanid));
+                progress = Convert.ToInt32(resp.Value);
+                if (progress >= 100)
+                {
+                    break;
+                }
             }
         }
         
