@@ -78,7 +78,18 @@ namespace Testing.Common.Helper
             if (!setToken)
             {
                 var ruleDescription = "Auth";
-                Api.replacer.removeRule(ruleDescription);
+                var replacers = (ApiResponseList)Api.replacer.rules();
+                if(replacers != null && replacers.List.Count > 0)
+                {
+                    foreach(var replacer in replacers.List)
+                    {
+                        if(((ApiResponseSet)replacer).Dictionary["description"] == ruleDescription)
+                        {
+                            Api.replacer.removeRule(ruleDescription);
+                            break;
+                        }
+                    }
+                }
                 Api.replacer.addRule(ruleDescription, "true", "REQ_HEADER", "false", "Authorization", $"Bearer {bearerToken}", "");
 
                 setToken = true;
