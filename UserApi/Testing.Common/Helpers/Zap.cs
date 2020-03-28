@@ -36,7 +36,7 @@ namespace Testing.Common.Helper
 
         public static IWebProxy WebProxy => (ZapConfiguration.ZapScan || ZapConfiguration.SetUpProxy) ? new WebProxy($"http://{ZapConfiguration.ApiAddress}:{ZapConfiguration.ApiPort}", false) : null;
 
-        public static bool SetupProxy => ZapConfiguration.SetUpProxy;
+        public static bool SetupProxy => (ZapConfiguration.ZapScan || ZapConfiguration.SetUpProxy);
 
         private static string WorkingDirectory => Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Directory.GetCurrentDirectory()))));
 
