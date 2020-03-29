@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.271
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29911.98
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{36F51DD8-423D-4FE7-AAC0-BB77E8B11A92}"
 EndProject
@@ -22,12 +22,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Testing.Common", "Testing.Common\Testing.Common.csproj", "{5FAF75E0-D32B-4C7C-83D3-B74CBE5CCD44}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{F2504C4C-2DEE-44CB-87BE-5BB08B6EA870}"
-ProjectSection(SolutionItems) = preProject
-	..\azure-pipelines.yml = ..\azure-pipelines.yml
-	..\CODEOWNERS = ..\CODEOWNERS
-	..\LICENSE = ..\LICENSE
-	..\README.md = ..\README.md
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		..\azure-pipelines.yml = ..\azure-pipelines.yml
+		..\CODEOWNERS = ..\CODEOWNERS
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C9A206DD-786B-4998-B783-D83029F0B9BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +69,10 @@ Global
 		{5FAF75E0-D32B-4C7C-83D3-B74CBE5CCD44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FAF75E0-D32B-4C7C-83D3-B74CBE5CCD44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FAF75E0-D32B-4C7C-83D3-B74CBE5CCD44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9A206DD-786B-4998-B783-D83029F0B9BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9A206DD-786B-4998-B783-D83029F0B9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9A206DD-786B-4998-B783-D83029F0B9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9A206DD-786B-4998-B783-D83029F0B9BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

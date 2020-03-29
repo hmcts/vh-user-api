@@ -1,20 +1,24 @@
-ARG SDK_VERSION=latest
-ARG RUNTIME_VERSION=latest
+#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:${RUNTIME_VERSION} AS base
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
+EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/core/sdk:${SDK_VERSION} AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
+COPY ["UserApi/UserApi.csproj", "UserApi/"]
+COPY ["UserApi.Common/UserApi.Common.csproj", "UserApi.Common/"]
+COPY ["UserApi.Contract/UserApi.Contract.csproj", "UserApi.Contract/"]
+RUN dotnet restore "UserApi/UserApi.csproj"
 COPY . .
-RUN dotnet restore UserApi
-RUN dotnet build UserApi -c Release -o /app/build
+WORKDIR "/src/UserApi"
+RUN dotnet build "UserApi.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish UserApi -c Release -o /app/publish
+RUN dotnet publish "UserApi.csproj" -c Release -o /app/publish
 
 FROM base AS final
+WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "UserApi.dll"]

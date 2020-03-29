@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
+using AcceptanceTests.Common.Api;
 using AcceptanceTests.Common.Configuration.Users;
 using Microsoft.AspNetCore.TestHost;
 using Testing.Common.Configuration;
@@ -16,6 +17,32 @@ namespace UserApi.IntegrationTests.Contexts
         public Test Test { get; set; }
         public UserApiTokens Tokens { get; set; }
         public string Uri { get; set; }
-        public List<UserAccount> UserAccounts { get; set; }
+        public List<UserAccount> UserAccounts { get; set; }        
+        public string RequestUrl => Config.VhServices.UserApiUrl + Uri;
+
+        public HttpClient CreateClient()
+        {
+            HttpClient client;
+            if (Zap.SetupProxy)
+            {
+                var handler = new HttpClientHandler
+                {
+                    Proxy = Zap.WebProxy,
+                    UseProxy = true,
+                };
+
+                client = new HttpClient(handler)
+                {
+                    BaseAddress = new System.Uri(Config.VhServices.UserApiUrl)
+                };
+            }
+            else
+            {
+                client = Server.CreateClient();
+            }
+
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {Tokens.UserApiBearerToken}");
+            return client;
+        }
     }
 }
