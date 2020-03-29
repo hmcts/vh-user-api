@@ -7,9 +7,9 @@
   <ItemGroup>
     <PackageReference Include="coverlet.msbuild" Version="2.8.0" />
     <PackageReference Include="Faker.NETCore" Version="1.0.2" />
-    <PackageReference Include="FluentAssertions" Version="5.10.2" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Moq" Version="4.13.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
@@ -22,10 +22,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SpecFlow" Version="3.1.86" />
-    <PackageReference Include="SpecFlow.NUnit" Version="3.1.86" />
+    <PackageReference Include="SpecFlow" Version="3.1.89" />
+    <PackageReference Include="SpecFlow.NUnit" Version="3.1.89" />
     <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.1.86" />
-    <PackageReference Include="VH.AcceptanceTests.Common" Version="1.0.93" />
+    <PackageReference Include="VH.AcceptanceTests.Common" Version="1.0.112" />
   </ItemGroup>
 
   <ItemGroup>

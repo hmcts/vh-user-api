@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AcceptanceTests.Common.Api;
 using AcceptanceTests.Common.Configuration;
 using AcceptanceTests.Common.Configuration.Users;
 using FluentAssertions;
@@ -93,6 +94,8 @@ namespace UserApi.AcceptanceTests.Hooks
             context.Tokens.UserApiBearerToken = await ConfigurationManager.GetBearerToken(
                 azureConfig, context.Config.VhServices.UserApiResourceId);
             context.Tokens.UserApiBearerToken.Should().NotBeNullOrEmpty();
+
+            Zap.SetAuthToken(context.Tokens.UserApiBearerToken);
 
             context.Tokens.GraphApiBearerToken = await ConfigurationManager.GetBearerToken(
                 azureConfig, context.Config.AzureAdConfiguration.GraphApiBaseUri);

@@ -8,36 +8,31 @@ namespace UserApi.IntegrationTests.Steps
     {      
         protected async Task<HttpResponseMessage> SendGetRequestAsync(TestContext testContext)
         {
-            using var client = testContext.Server.CreateClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.Tokens.UserApiBearerToken}");
+            using var client = testContext.CreateClient();
             return await client.GetAsync(testContext.Uri);
         }
 
         protected async Task<HttpResponseMessage> SendPatchRequestAsync(TestContext testContext)
         {
-            using var client = testContext.Server.CreateClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.Tokens.UserApiBearerToken}");
+            using var client = testContext.CreateClient();
             return await client.PatchAsync(testContext.Uri, testContext.HttpContent);
         }
 
         protected async Task<HttpResponseMessage> SendPostRequestAsync(TestContext testContext)
         {
-            using var client = testContext.Server.CreateClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.Tokens.UserApiBearerToken}");
+            using var client = testContext.CreateClient();
             return await client.PostAsync(testContext.Uri, testContext.HttpContent);
         }
 
         protected async Task<HttpResponseMessage> SendPutRequestAsync(TestContext testContext)
         {
-            using var client = testContext.Server.CreateClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.Tokens.UserApiBearerToken}");
+            using var client = testContext.CreateClient();
             return await client.PutAsync(testContext.Uri, testContext.HttpContent);
         }
 
         protected async Task<HttpResponseMessage> SendDeleteRequestAsync(TestContext testContext)
         {
-            using var client = testContext.Server.CreateClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {testContext.Tokens.UserApiBearerToken}");
+            using var client = testContext.CreateClient();
             return await client.DeleteAsync(testContext.Uri);
         }
     }
