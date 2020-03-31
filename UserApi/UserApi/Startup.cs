@@ -16,6 +16,7 @@ using Newtonsoft.Json.Serialization;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Validations;
+using OwaspHeaders.Core.Extensions;
 
 namespace UserApi
 {
@@ -138,7 +139,7 @@ namespace UserApi
             app.UseCors("CorsPolicy");
 
             app.UseEndpoints(endpoints => { endpoints.MapDefaultControllerRoute(); });
-            
+            app.UseSecureHeadersMiddleware(SecureHeadersMiddlewareExtensions.BuildDefaultConfiguration());
             app.UseMiddleware<LogRequestMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
         }
