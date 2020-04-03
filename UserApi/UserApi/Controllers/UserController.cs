@@ -187,7 +187,11 @@ namespace UserApi.Controllers
         public async Task<IActionResult> GetJudges()
         {
             var adJudges = await _userAccountService.GetJudgesAsync();
-            if (adJudges == null || !adJudges.Any()) return Ok(new List<UserResponse>());
+
+            if (adJudges == null || !adJudges.Any())
+            {
+                return Ok(new List<UserResponse>());
+            }
 
             return Ok(adJudges);
         }
