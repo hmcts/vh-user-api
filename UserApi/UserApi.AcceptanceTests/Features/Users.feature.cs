@@ -371,6 +371,9 @@ this.ScenarioInitialize(scenarioInfo);
 #line 48
  testRunner.And("a list of ad judges should be retrieved", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
+#line 49
+ testRunner.And("the list of ad judges should not contain performance test users", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
             }
             this.ScenarioCleanup();
         }

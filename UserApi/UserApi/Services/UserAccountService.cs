@@ -9,7 +9,6 @@ using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
-using System;
 
 namespace UserApi.Services
 {
@@ -21,9 +20,10 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
         private readonly bool _isLive;
-        private readonly string reformEmail;
+        private readonly string _reformEmail;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
+        private const string PerformanceTestUserFirstName = "TP";
 
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
@@ -34,7 +34,7 @@ namespace UserApi.Services
             _graphApiSettings = graphApiSettings;
             _client = client;
             _isLive = settings.IsLive;
-            reformEmail = settings.ReformEmail;
+            _reformEmail = settings.ReformEmail;
         }
 
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail)
@@ -207,7 +207,7 @@ namespace UserApi.Services
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
-            var username = new IncrementingUsername(baseUsername, reformEmail);
+            var username = new IncrementingUsername(baseUsername, _reformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
             return username.GetGivenExistingUsers(existingUsernames);
         }
@@ -218,9 +218,11 @@ namespace UserApi.Services
             return users;
         }
 
-        public async Task<List<UserResponse>> GetJudgesAsync()
+        public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
         {
             var judges = await GetJudgesByGroupNameAsync(JudgesGroup);
+            judges = ExcludePerformanceTestUsersAsync(judges);
+            
             if (_isLive)
             {
                 judges = await ExcludeTestJudgesAsync(judges);
@@ -228,28 +230,40 @@ namespace UserApi.Services
 
             return judges.OrderBy(x => x.DisplayName).ToList();
         }
-        private async Task<List<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
+        
+        private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
             var groupData = await GetGroupByNameAsync(groupName);
+            
             if (groupData == null)
             {
                 return new List<UserResponse>();
             }
 
             var response = await GetJudgesAsync(groupData.Id);
+            
             return response.Select(x => new UserResponse
             {
                 FirstName = x.FirstName,
                 LastName = x.LastName,
                 Email = x.Email,
                 DisplayName = x.DisplayName
-            }).ToList();
+            });
         }
-        private async Task<List<UserResponse>> ExcludeTestJudgesAsync(List<UserResponse> judgesList)
+        
+        private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
             var testJudges = await GetJudgesByGroupNameAsync(JudgesTestGroup);
-            return judgesList.Except(testJudges, CompareJudgeById).ToList();
+            
+            return judgesList.Except(testJudges, CompareJudgeById);
         }
+        
+        private static IEnumerable<UserResponse> ExcludePerformanceTestUsersAsync(IEnumerable<UserResponse> judgesList)
+        {
+            return judgesList
+                .Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
+        }
+        
         private async Task<List<UserResponse>> GetJudgesAsync(string groupId)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$top=999";
@@ -260,6 +274,7 @@ namespace UserApi.Services
             {
                 var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
                 var response = JsonConvert.DeserializeObject<List<User>>(queryResponse.AdditionalData["value"].ToString());
+                
                 return response.Select(x => new UserResponse
                 {
                     FirstName = x.GivenName,
