@@ -66,7 +66,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             _service = new UserApi.Services.UserAccountService(_secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, new Settings() { IsLive = false });
 
-            var response = await _service.GetJudgesAsync();
+            var response = (await _service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(2);
             response.First().DisplayName.Should().Be("T Test");

@@ -201,5 +201,13 @@ namespace UserApi.AcceptanceTests.Steps
             var actualJudge = actualJudges.First(u => u.Email.Equals(expectedJudge.Username));
             actualJudge.DisplayName.Should().Be(expectedJudge.DisplayName);
         }
+        
+        [Then(@"the list of ad judges should not contain performance test users")]
+        public void TheListOfAdJudgesShouldNotContainPerformanceTestUsers()
+        {
+            var actualJudges = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_context.Response.Content);
+            actualJudges.Should().NotBeNull();
+            actualJudges.Any(x => x.FirstName == "TP").Should().BeFalse();
+        }
     }
 }
