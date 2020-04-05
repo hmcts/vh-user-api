@@ -228,7 +228,7 @@ namespace UserApi.Services
                 judges = await ExcludeTestJudgesAsync(judges);
             }
 
-            return judges.OrderBy(x => x.DisplayName).ToList();
+            return judges.OrderBy(x => x.DisplayName);
         }
         
         private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
@@ -237,7 +237,7 @@ namespace UserApi.Services
             
             if (groupData == null)
             {
-                return new List<UserResponse>();
+                return Enumerable.Empty<UserResponse>();
             }
 
             var response = await GetJudgesAsync(groupData.Id);
@@ -264,34 +264,46 @@ namespace UserApi.Services
                 .Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
         }
         
-        private async Task<List<UserResponse>> GetJudgesAsync(string groupId)
+        private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)
         {
+            var users = new List<UserResponse>();
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$top=999";
 
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
+            while (true)
             {
-                var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
-                var response = JsonConvert.DeserializeObject<List<User>>(queryResponse.AdditionalData["value"].ToString());
-                
-                return response.Select(x => new UserResponse
+                var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return Enumerable.Empty<UserResponse>();
+                    }
+
+                    var message = $"Failed to get users for group {groupId}";
+                    var reason = await responseMessage.Content.ReadAsStringAsync();
+                    
+                    throw new UserServiceException(message, reason);
+                }
+
+                var directoryObject = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
+                var response = JsonConvert.DeserializeObject<List<User>>(directoryObject.AdditionalData["value"].ToString());
+
+                users.AddRange(response.Select(x => new UserResponse
                 {
                     FirstName = x.GivenName,
                     LastName = x.Surname,
                     DisplayName = x.DisplayName,
                     Email = x.UserPrincipalName
-                }).ToList();
-            }
+                }));
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
+                if (!directoryObject.AdditionalData.ContainsKey("@odata.nextLink"))
+                {
+                    return users;
+                }
 
-            var message = $"Failed to get users for group {groupId}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
+                accessUri = directoryObject.AdditionalData["@odata.nextLink"].ToString();
+            }
         }
 
         public async Task UpdateUserAsync(string username)
