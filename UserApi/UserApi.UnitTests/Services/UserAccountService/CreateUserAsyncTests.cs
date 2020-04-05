@@ -52,7 +52,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         }
 
         [Test]
-        public async Task Should_return_user_already_exists_with_recovery_email()
+        public void Should_return_user_already_exists_with_recovery_email()
         {
             filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
 
