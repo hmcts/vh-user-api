@@ -28,7 +28,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         }
 
         [Test]
-        public async Task Should_return_user_exception_for_other_responses()
+        public void Should_return_user_exception_for_other_responses()
         {
             var reason = "User not authorised";
 

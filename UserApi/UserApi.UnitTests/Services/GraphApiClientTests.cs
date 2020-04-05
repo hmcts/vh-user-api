@@ -110,7 +110,7 @@ namespace UserApi.UnitTests.Services
         }
         
         [Test]
-        public async Task Should_raise_IdentityServiceApiException_on_unsuccessful_response_on_delete()
+        public void Should_raise_IdentityServiceApiException_on_unsuccessful_response_on_delete()
         {            
             _secureHttpRequest.Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("test", HttpStatusCode.Unauthorized));

@@ -47,9 +47,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         }
 
         [Test]
-        public async Task Should_return_user_exception_for_other_responses()
+        public void Should_return_user_exception_for_other_responses()
         {
-            var reason = "User not authorised";
+            const string reason = "User not authorised";
 
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));

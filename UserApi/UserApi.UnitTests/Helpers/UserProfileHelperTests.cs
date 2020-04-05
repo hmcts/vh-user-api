@@ -106,7 +106,7 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public async Task Should_raise_exception_if_user_lacks_video_hearing_groups()
+        public void Should_raise_exception_if_user_lacks_video_hearing_groups()
         {
             GivenFilterReturnsUserWithGroups();
 
