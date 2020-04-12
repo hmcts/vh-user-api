@@ -1,19 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ProjectGuid>A10CE89C-8AE0-43DE-BF73-7D459A95E3CB</ProjectGuid>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <DocumentationFile>
     </DocumentationFile>
     <UserSecretsId>CF55F1BB-0EE3-456A-A566-70E56AC24C95</UserSecretsId>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.1" />
     <PackageReference Include="MicroElements.Swashbuckle.FluentValidation" Version="3.0.0-rc.4" />
@@ -31,12 +37,12 @@
     <PackageReference Include="Microsoft.Graph" Version="1.21.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.5" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
     <ProjectReference Include="..\UserApi.Contract\UserApi.Contract.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Content Update="appsettings.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
