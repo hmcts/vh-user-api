@@ -327,4 +327,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-/UserApi/UserApi/AssemblyInfo.cs
+AssemblyInfo.cs
+
+**/[Ss]tryker[Oo]utput
