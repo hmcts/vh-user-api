@@ -9,7 +9,7 @@
     "timeout-ms": 10000,
     "log-file": true,
     "project-file": "UserApi.csproj",
-    "max-concurrent-test-runners": 4,
+    "max-concurrent-test-runners": 6,
     "threshold-high": 80,
     "threshold-low": 70,
     "threshold-break": 40,
@@ -30,7 +30,6 @@
       "!Helper/LogRequestMiddleware.cs",
       "!Helper/SecureHttpRequest.cs",
       "!Security/TokenProvider.cs"
-
     ]
   }
 }
