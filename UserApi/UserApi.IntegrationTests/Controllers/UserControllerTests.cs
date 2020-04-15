@@ -66,7 +66,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_by_id()
         {
-            const string userId = "***REMOVED***";
+            const string userId = "60c7fae1-8733-4d82-b912-eece8d55d54c";
             var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =

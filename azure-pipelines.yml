@@ -116,8 +116,18 @@ trigger:
     - master
     - release/*
     - hotfix/*
+  paths:
+    include:
+    - UserApi/*
+    - azure-pipelines.yml
 pr:
-  - master
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - UserApi/*
+    - azure-pipelines.yml
 
 resources:
   repositories:
