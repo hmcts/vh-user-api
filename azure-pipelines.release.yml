@@ -7,7 +7,7 @@ parameters:
 - name: environment
   displayName: Environment
   type: string
-  default: ''
+  default: Sandbox
   values:
   - Preview
   - Dev
@@ -53,11 +53,12 @@ resources:
 extends:
   template: templates/vh-release.yml@templates
   parameters:
-    ${{ ne(Build.Reason, 'BuildCompletion') }}:
+    ${{ if ne(variables['Build.Reason'], 'BuildCompletion') }}:
       environments:
         - ${{ parameters.environment }}
+        - Dev
       deploymentBranch: ${{ parameters.deploymentBranch }}
-    ${{ eq(Build.Reason, 'BuildCompletion') }}:
+    ${{ if eq(variables['Build.Reason'], 'BuildCompletion') }}:
       deploymentBranch: $(resources.pipeline.CI.sourceBranch)
     releaseParameters:
       runZapTests: ${{ parameters.RunZap }}
