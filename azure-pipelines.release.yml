@@ -56,7 +56,6 @@ extends:
     ${{ if ne(variables['Build.Reason'], 'BuildCompletion') }}:
       environments:
         - ${{ parameters.environment }}
-        - Dev
       deploymentBranch: ${{ parameters.deploymentBranch }}
     ${{ if eq(variables['Build.Reason'], 'BuildCompletion') }}:
       deploymentBranch: $(resources.pipeline.CI.sourceBranch)
