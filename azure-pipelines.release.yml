@@ -48,7 +48,6 @@ resources:
           - master
           - hotfix/*
           - release/*
-          - feature/newpipeline
 
 extends:
   template: templates/vh-release.yml@templates
