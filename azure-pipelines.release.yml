@@ -52,11 +52,11 @@ resources:
 extends:
   template: templates/vh-release.yml@templates
   parameters:
-    ${{ if ne(variables['Build.Reason'], 'BuildCompletion') }}:
+    ${{ if ne(variables['Build.Reason'], 'ResourceTrigger') }}:
       environments:
         - ${{ parameters.environment }}
       deploymentBranch: ${{ parameters.deploymentBranch }}
-    ${{ if eq(variables['Build.Reason'], 'BuildCompletion') }}:
+    ${{ if eq(variables['Build.Reason'], 'ResourceTrigger') }}:
       deploymentBranch: $(resources.pipeline.CI.sourceBranch)
     releaseParameters:
       runZapTests: ${{ parameters.RunZap }}
