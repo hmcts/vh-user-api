@@ -932,11 +932,6 @@
         "resolved": "5.0.0",
         "contentHash": "c5JVjuVAm4f7E9Vj+v09Z9s2ZsqFDjBpcsyS3M9xRo0bEdm/LVZSzLxxNvfvAwRiiE8nwe1h2G4OwiwlzFKXlA=="
       },
-      "OWASPZAPDotNetAPI": {
-        "type": "Transitive",
-        "resolved": "2.8.0",
-        "contentHash": "SktRF3tEqt8SCMZmYPj9W6AMmm7Jf/XUvmd8y6gtwslIjVMR6Mp8UtWOyZ8rSitQsZzq+XolAt2okCZ1pETOlg=="
-      },
       "Polly": {
         "type": "Transitive",
         "resolved": "7.2.0",
@@ -2530,7 +2525,6 @@
           "NBuilder": "6.1.0",
           "NUnit": "3.11.0",
           "Newtonsoft.Json": "12.0.3",
-          "OWASPZAPDotNetAPI": "2.8.0",
           "Polly": "7.2.0",
           "Polly.Extensions.Http": "3.0.0",
           "UserApi": "1.0.0",

@@ -107,9 +107,9 @@
       },
       "SpecFlow": {
         "type": "Direct",
-        "requested": "[3.1.95, )",
-        "resolved": "3.1.95",
-        "contentHash": "42bJeestLTCTKFe4VUFeQIP8uaXY3RfHX8zr07MIuv0MCW2PRamXWnzSGMt4sMcjoOuq3ihT7Uk7aHjxGDHtJg==",
+        "requested": "[3.1.97, )",
+        "resolved": "3.1.97",
+        "contentHash": "8nRsXBSjvtbSmZHw5tqnJcfwgNaygsRKFhbP+ipZXu+5suzUibTI16sG3wNLgGza6LKpZlxPef8fRxqtmZZJaA==",
         "dependencies": {
           "BoDi": "1.4.1",
           "Cucumber.Messages": "[6.0.1, 7.0.0)",
@@ -122,12 +122,12 @@
       },
       "SpecFlow.NUnit": {
         "type": "Direct",
-        "requested": "[3.1.95, )",
-        "resolved": "3.1.95",
-        "contentHash": "rvvbl3vvWgLzTmpDb/L+rkJ/ACygXuA7Nxcw4noNjj1tYFmJbS0ct/qSQPh/vFp1C+MHOUDoaRqynig20r6m3w==",
+        "requested": "[3.1.97, )",
+        "resolved": "3.1.97",
+        "contentHash": "BzY9W55Hi4PbD0XOfML7mZh601ITWOwOg0ydo/ZR5CSh668xXezTcrl7/I8SCLjdaMPqZGXN08qdKTnLcv1aAA==",
         "dependencies": {
           "NUnit": "3.11.0",
-          "SpecFlow": "[3.1.95]"
+          "SpecFlow": "[3.1.97]"
         }
       },
       "SpecFlow.Tools.MsBuild.Generation": {
@@ -141,9 +141,9 @@
       },
       "VH.AcceptanceTests.Common": {
         "type": "Direct",
-        "requested": "[1.0.137, )",
-        "resolved": "1.0.137",
-        "contentHash": "7qr4wwc5g2sXXkHIIbKobNpHMNSnCEkl3CzCDcb+xKSycJqbAEiEgwMnpubfdERlhZp8zDjgVOLOPmYc8aDWRQ==",
+        "requested": "[1.0.154, )",
+        "resolved": "1.0.154",
+        "contentHash": "gbB3vTRS4i5ALk3N7Os47lhr0m3qfRbg50HLbnBeEdBzoKD0RAKrlVUPl9rGFVjmsfe3Ns+fTNuLyr6DoeJccw==",
         "dependencies": {
           "Appium.WebDriver": "4.1.1",
           "DotNetSeleniumExtras.WaitHelpers": "3.11.0",
@@ -158,14 +158,14 @@
           "Microsoft.Extensions.Options": "3.1.3",
           "Microsoft.IdentityModel.Clients.ActiveDirectory": "5.2.7",
           "Newtonsoft.Json": "12.0.3",
-          "OWASPZAPDotNetAPI": "2.8.0",
           "Polly": "7.2.0",
           "Protractor": "0.13.0",
           "RestSharp": "106.10.1",
           "Selenium.Support": "3.141.0",
           "Selenium.WebDriver": "3.141.0",
-          "SpecFlow": "3.1.95",
-          "SpecFlow.NUnit": "3.1.95",
+          "SpecFlow": "3.1.97",
+          "SpecFlow.NUnit": "3.1.97",
+          "System.Collections": "4.3.0",
           "System.Configuration.ConfigurationManager": "4.7.0"
         }
       },
@@ -1186,11 +1186,6 @@
         "type": "Transitive",
         "resolved": "5.0.0",
         "contentHash": "c5JVjuVAm4f7E9Vj+v09Z9s2ZsqFDjBpcsyS3M9xRo0bEdm/LVZSzLxxNvfvAwRiiE8nwe1h2G4OwiwlzFKXlA=="
-      },
-      "OWASPZAPDotNetAPI": {
-        "type": "Transitive",
-        "resolved": "2.8.0",
-        "contentHash": "SktRF3tEqt8SCMZmYPj9W6AMmm7Jf/XUvmd8y6gtwslIjVMR6Mp8UtWOyZ8rSitQsZzq+XolAt2okCZ1pETOlg=="
       },
       "Polly": {
         "type": "Transitive",
@@ -2855,7 +2850,6 @@
           "NBuilder": "6.1.0",
           "NUnit": "3.11.0",
           "Newtonsoft.Json": "12.0.3",
-          "OWASPZAPDotNetAPI": "2.8.0",
           "Polly": "7.2.0",
           "Polly.Extensions.Http": "3.0.0",
           "UserApi": "1.0.0",
