@@ -29,10 +29,7 @@ variables:
 - group: vh-domains-and-urls
 - group: vh-apps-settings-generic
 - group: vh-user-api
-- ${{ if eq(variables['Build.Reason'], 'ResourceTrigger') }}:
-  - group: vh-preview
-- ${{ if eq(variables['Build.Reason'], 'Manual') }}:
-  - group: vh-${{parameters.environment }}
+- group: vh-preprod
 
 trigger: none
 pr: none
