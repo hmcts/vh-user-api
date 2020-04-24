@@ -28,6 +28,8 @@ parameters:
 variables:
 - group: vh-domains-and-urls
 - group: vh-apps-settings-generic
+- group: vh-user-api
+- group: vh-preview
 
 trigger: none
 pr: none
@@ -66,8 +68,6 @@ extends:
       devOpsResource: vh_user_api
       appName: vh-user-api-$(environment)
       resourceGroup: vh-user-api-$(environment)
-      variables:
-        - group: vh-user-api
       appSettings:
         - name: ApplicationInsights:InstrumentationKey
           value: vh-core-infra-AppInsightsKey
