@@ -29,7 +29,7 @@ variables:
 - group: vh-domains-and-urls
 - group: vh-apps-settings-generic
 - group: vh-user-api
-- group: vh-preprod
+- group: vh-preview
 
 trigger: none
 pr: none
