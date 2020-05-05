@@ -9,7 +9,6 @@ using FluentAssertions;
 using TechTalk.SpecFlow;
 using Testing.Common;
 using Testing.Common.ActiveDirectory;
-using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
