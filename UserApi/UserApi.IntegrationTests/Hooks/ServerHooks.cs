@@ -9,7 +9,7 @@ namespace UserApi.IntegrationTests.Hooks
         [AfterTestRun]
         public static void TearDownServer(TestContext testContext)
         {
-            testContext.Server.Dispose();
+            testContext.Server?.Dispose();
         }
     }
 }

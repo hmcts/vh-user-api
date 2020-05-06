@@ -20,7 +20,7 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class UserSteps
     {
-        private const int Timeout = 60;
+        private const int Timeout = 90;
         private readonly TestContext _context;
 
         private string _newUsername;

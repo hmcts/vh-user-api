@@ -24,7 +24,10 @@ namespace UserApi.AcceptanceTests.Hooks
             context.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(context.Response.Content);
             var actualGroups = model.Select(@group => new Group() { GroupId = @group.GroupId, DisplayName = @group.DisplayName }).ToList();
-            context.Config.TestSettings.ExistingGroups.Should().BeEquivalentTo(actualGroups, opts => opts.WithoutStrictOrdering());
+            foreach (var expectedGroup in context.Config.TestSettings.ExistingGroups)
+            {
+                actualGroups.Any(x => x.DisplayName.Equals(expectedGroup.DisplayName)).Should().BeTrue();
+            }
         }
 
         [BeforeScenario(Order = (int)HooksSequence.RemoveGroupsHooks)]
