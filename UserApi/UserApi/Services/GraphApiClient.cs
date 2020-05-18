@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -85,6 +86,10 @@ namespace UserApi.Services
         {
             var queryUrl = $"{_baseUrl}/users/{username}";
             var response = await _secureHttpRequest.DeleteAsync(_graphApiSettings.AccessToken, queryUrl);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new UserDoesNotExistException(username);
+            }
             await AssertResponseIsSuccessful(response);
         }
 
