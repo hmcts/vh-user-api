@@ -150,15 +150,16 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task Should_get_users_for_group()
+        public async Task should_get_judges()
         {
             var getResponse = await SendGetRequestAsync(GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var usersForGroupModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
-            var expectedJudgeUser = usersForGroupModel.FirstOrDefault(u => u.Email == $"Judge.Bever@{TestConfig.Instance.Settings.ReformEmail}");
-            expectedJudgeUser.DisplayName.Should().Be("Judge Bever");
+            var testAccount = usersForGroupModel.First(u => u.Email == $"Automation01_AW_Clerk01@{TestConfig.Instance.Settings.ReformEmail}");
+            testAccount.Email.Should().NotBeNullOrWhiteSpace();
+            testAccount.DisplayName.Should().NotBeNullOrWhiteSpace();
         }
         
         [Test]
