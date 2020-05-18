@@ -207,15 +207,16 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> DeleteUser(string username)
         {
-            if (string.IsNullOrWhiteSpace(username))
+            try
             {
-                ModelState.AddModelError(nameof(username), "username cannot be empty");
-                
-                return BadRequest(ModelState);
+                await _userAccountService.DeleteUserAsync(username);
+
             }
-            
-            await _userAccountService.DeleteUserAsync(username);
-            
+            catch (UserDoesNotExistException)
+            {
+                return NotFound();
+            }
+
             return NoContent();
         }
 
