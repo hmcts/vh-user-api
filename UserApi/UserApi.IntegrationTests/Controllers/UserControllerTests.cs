@@ -201,17 +201,8 @@ namespace UserApi.IntegrationTests.Controllers
             addExternalGroupHttpResponse.IsSuccessStatusCode.Should().BeTrue();
             
             // Delete User
-            var policy = Policy
-                .HandleResult<HttpResponseMessage>(r => r.StatusCode == HttpStatusCode.NotFound)
-                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                    (msg, time) => { Console.WriteLine($"Received {msg.Result.StatusCode} for deleting user, retrying..."); });
-           
-            var getResponse = await policy.ExecuteAsync
-            (
-                async () => await SendDeleteRequestAsync(DeleteUser(createUserModel.Username))
-            );
-            
-            getResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var result = await SendDeleteRequestAsync(DeleteUser(createUserModel.Username));
+            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
         [TearDown]
