@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -26,14 +25,15 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public void TestInitialize()
         {
-            _graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() };
+            _graphQueryResponse = new GraphQueryResponse() { Value = new List<Group>() };
             _group = new Group() { Id = _groupId };
 
             _judgesGroup = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
             _judgesTestGroup = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
 
-            _accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members?$top=999";
+            _accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?" +
+                         "$select=id,userPrincipalName,displayName,givenName,surname&$top=999";
         }
 
         [Test]
