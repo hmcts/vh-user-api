@@ -13,6 +13,7 @@ using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Assertions;
+using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
@@ -24,8 +25,9 @@ namespace UserApi.UnitTests.Controllers
     {
         private UserController _controller;
         private Mock<IUserAccountService> _userAccountService;
-        private CreateUserRequest request;
-        private NewAdUserAccount newAdUserAccount;
+        private CreateUserRequest _request;
+        private NewAdUserAccount _newAdUserAccount;
+        private Mock<ICache> _cache;
 
         [SetUp]
         public void Setup()
@@ -37,29 +39,30 @@ namespace UserApi.UnitTests.Controllers
             var config = TelemetryConfiguration.CreateDefault();
             var client = new TelemetryClient(config);
 
-            request = Builder<CreateUserRequest>.CreateNew()
+            _request = Builder<CreateUserRequest>.CreateNew()
                 .With(x => x.FirstName = "John")
                 .With(x => x.LastName = "doe")
                 .With(x => x.RecoveryEmail = "john.doe@hmcts.net")
                 .Build();
-            newAdUserAccount = new NewAdUserAccount { UserId = "TestUserId", Username = "TestUserName", OneTimePassword = "TestPassword" };
-            _userAccountService.Setup(u => u.CreateUserAsync(request.FirstName, request.LastName, request.RecoveryEmail)).ReturnsAsync(newAdUserAccount);
-
-            _controller = new UserController(_userAccountService.Object, client);
+            _newAdUserAccount = new NewAdUserAccount { UserId = "TestUserId", Username = "TestUserName", OneTimePassword = "TestPassword" };
+            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail)).ReturnsAsync(_newAdUserAccount);
+            _cache = new Mock<ICache>();
+            
+            _controller = new UserController(_userAccountService.Object, client, _cache.Object);
         }
 
         [Test]
         public async Task Should_create_user_and_return_NewUserResponse_for_given_request()
         {
-            var actionResult = (CreatedAtRouteResult)await _controller.CreateUser(request);
+            var actionResult = (CreatedAtRouteResult)await _controller.CreateUser(_request);
 
             actionResult.Should().NotBeNull();
             actionResult.RouteName.Should().Be("GetUserByAdUserId");
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Created);
             var response = (NewUserResponse)actionResult.Value;
-            response.UserId.Should().Be(newAdUserAccount.UserId);
-            response.Username.Should().Be(newAdUserAccount.Username);
-            response.OneTimePassword.Should().Be(newAdUserAccount.OneTimePassword);
+            response.UserId.Should().Be(_newAdUserAccount.UserId);
+            response.Username.Should().Be(_newAdUserAccount.Username);
+            response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
         }
 
         [Test]
@@ -76,9 +79,9 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_ConflictObjectResult_with_UserExistsException()
         {
-            _userAccountService.Setup(u => u.CreateUserAsync(request.FirstName, request.LastName, request.RecoveryEmail)).ThrowsAsync(new UserExistsException("User exists","TestUser"));
+            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail)).ThrowsAsync(new UserExistsException("User exists","TestUser"));
 
-            var actionResult = (ConflictObjectResult)await _controller.CreateUser(request);
+            var actionResult = (ConflictObjectResult)await _controller.CreateUser(_request);
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
@@ -276,7 +279,10 @@ namespace UserApi.UnitTests.Controllers
                 new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" }
             };
 
-            _userAccountService.Setup(x => x.GetJudgesAsync()).Returns(Task.FromResult(response.AsEnumerable()));
+            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
+                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
+                .ReturnsAsync(response.AsEnumerable());
+
             var actionResult = (OkObjectResult)await _controller.GetJudges();
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(2);
@@ -286,9 +292,10 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_empty_user_response_without_judges()
         {
-            var response = (List<UserResponse>)null;
-
-            _userAccountService.Setup(x => x.GetJudgesAsync()).Returns(Task.FromResult(response.AsEnumerable()));
+            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
+                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
+                .ReturnsAsync((IEnumerable<UserResponse>) null);
+            
             var actionResult = (OkObjectResult)await _controller.GetJudges();
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(0);

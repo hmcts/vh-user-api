@@ -8,6 +8,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -23,13 +24,15 @@ namespace UserApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly TelemetryClient _telemetryClient;
+        private readonly ICache _distributedCache;
         private readonly IUserAccountService _userAccountService;
-        private const string separator = "; ";
+        private const string Separator = "; ";
 
-        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient)
+        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
+            _distributedCache = distributedCache;
         }
 
         /// <summary>
@@ -51,7 +54,7 @@ namespace UserApi.Controllers
 
                 var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
                 _telemetryClient.TrackTrace(new TraceTelemetry(
-                    $"CreateUserRequest validation failed: {string.Join(separator, errors)}",
+                    $"CreateUserRequest validation failed: {string.Join(Separator, errors)}",
                     SeverityLevel.Error));
                 return BadRequest(ModelState);
             }
@@ -186,7 +189,7 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetJudges()
         {
-            var adJudges = await _userAccountService.GetJudgesAsync();
+            var adJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetJudgesAsync());
 
             if (adJudges == null || !adJudges.Any())
             {
