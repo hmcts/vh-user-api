@@ -260,8 +260,7 @@ namespace UserApi.Services
         
         private static IEnumerable<UserResponse> ExcludePerformanceTestUsersAsync(IEnumerable<UserResponse> judgesList)
         {
-            return judgesList
-                .Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
+            return judgesList.Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
         }
         
         private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)

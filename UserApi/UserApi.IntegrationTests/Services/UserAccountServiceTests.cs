@@ -62,7 +62,7 @@ namespace UserApi.IntegrationTests.Services
         [Test]
         public void should_throw_exception_when_attempting_to_delete_nonexistent_user()
         {
-            var username = "does.notexist@anywhere.com";
+            const string username = "does.notexist@anywhere.com";
             var result = Assert.ThrowsAsync<UserDoesNotExistException>(() => _service.DeleteUserAsync(username));
             result.Username.Should().Be(username);
         }

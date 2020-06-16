@@ -22,24 +22,22 @@ namespace UserApi.UnitTests.Services.UserAccountService
     {
         protected const string Domain = "@hearings.test.server.net";
 
-        protected Mock<ISecureHttpRequest> _secureHttpRequest;
-        protected GraphApiSettings _graphApiSettings;
-        protected Mock<IIdentityServiceApiClient> _identityServiceApiClient;
-        protected UserApi.Services.UserAccountService _service;
-        protected AzureAdGraphUserResponse azureAdGraphUserResponse;
-        protected AzureAdGraphQueryResponse<AzureAdGraphUserResponse> azureAdGraphQueryResponse;
-
-        private Settings settings;
-
-        protected string filter;
-        protected DirectoryObject _directoryObject;
+        protected Mock<ISecureHttpRequest> SecureHttpRequest;
+        protected GraphApiSettings GraphApiSettings;
+        protected Mock<IIdentityServiceApiClient> IdentityServiceApiClient;
+        protected UserApi.Services.UserAccountService Service;
+        protected AzureAdGraphUserResponse AzureAdGraphUserResponse;
+        protected AzureAdGraphQueryResponse<AzureAdGraphUserResponse> AzureAdGraphQueryResponse;
+        private Settings _settings;
+        protected string Filter;
+        protected DirectoryObject DirectoryObject;
 
         [SetUp]
         public void Setup()
         {
-            _secureHttpRequest = new Mock<ISecureHttpRequest>();
+            SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
-            settings = new Settings() { IsLive = true, ReformEmail = Domain.Replace("@", "") };
+            _settings = new Settings { IsLive = true, ReformEmail = Domain.Replace("@", "") };
 
             var azureAdConfig = new AzureAdConfiguration()
             {
@@ -48,10 +46,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 Authority = "https://Test/Authority",
             };
             var tokenProvider = new Mock<ITokenProvider>();
-            _graphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
-            _identityServiceApiClient = new Mock<IIdentityServiceApiClient>();
+            GraphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
+            IdentityServiceApiClient = new Mock<IIdentityServiceApiClient>();
 
-            azureAdGraphUserResponse = new AzureAdGraphUserResponse()
+            AzureAdGraphUserResponse = new AzureAdGraphUserResponse()
             {
                 ObjectId = "1",
                 DisplayName = "T Tester",
@@ -60,7 +58,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 OtherMails = new List<string>(),
                 UserPrincipalName = "TestUser"
             };
-            azureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse> { Value = new List<AzureAdGraphUserResponse> { azureAdGraphUserResponse } };
+            AzureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse> { Value = new List<AzureAdGraphUserResponse> { AzureAdGraphUserResponse } };
 
             var additionalData = new Dictionary<string, object>();
 
@@ -75,17 +73,17 @@ namespace UserApi.UnitTests.Services.UserAccountService
             };
 
             additionalData.Add("value", new List<JObject> { jobject });
-            _directoryObject = new DirectoryObject
+            DirectoryObject = new DirectoryObject
             {
                 Id = "1",
                 AdditionalData = additionalData,
                 ODataType = "@odata.type"
             };
 
-            _service = new UserApi.Services.UserAccountService(_secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, settings);
+            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings);
         }
 
-        protected string AccessUri => $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
+        protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={Filter}&api-version=1.6";
         
 
         [Test]
@@ -97,35 +95,35 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             // given api returns
             var existingUsers = new[] { "existing.user", "existing.user1" };
-            _identityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
-            var nextAvailable = await _service.CheckForNextAvailableUsernameAsync(firstName, lastName);
+            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName);
 
             nextAvailable.Should().Be("existing.user2" + Domain);
-            _identityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
         }
 
         [Test]
         public async Task Should_delete()
         {
-            _identityServiceApiClient.Setup(x => x.DeleteUserAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.DeleteUserAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
-            await _service.DeleteUserAsync("User");
+            await Service.DeleteUserAsync("User");
 
-            _identityServiceApiClient.Verify(i => i.DeleteUserAsync(It.IsAny<string>()), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.DeleteUserAsync(It.IsAny<string>()), Times.Once);
         }
 
         [Test]
         public async Task Should_update_user_data_in_aad()
         {
-            _identityServiceApiClient.Setup(x => x.UpdateUserAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.UpdateUserAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
-            await _service.UpdateUserAsync("known.user@gmail.com");
+            await Service.UpdateUserAsync("known.user@gmail.com");
 
-            _identityServiceApiClient.Verify(i => i.UpdateUserAsync(It.IsAny<string>()), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.UpdateUserAsync(It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -147,15 +145,15 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_filter_users()
         {
-            var serialised = JsonConvert.SerializeObject(azureAdGraphQueryResponse);
+            var serialised = JsonConvert.SerializeObject(AzureAdGraphQueryResponse);
             var response = new HttpResponseMessage();
             response.StatusCode = HttpStatusCode.OK;
             response.Content = new StringContent(serialised);
             response.Content.Headers.Clear();
             response.Content.Headers.Add("Content-Type", "application/json");
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
 
-            var result = await _service.GetUserByFilterAsync("user@test.aa");
+            var result = await Service.GetUserByFilterAsync("user@test.aa");
 
             Assert.IsNotNull(result);
             Assert.AreEqual("1", result.Id);
@@ -168,16 +166,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_filter_users_and_return_null_if_no_users()
         {
-            azureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse>();
-            var serialised = JsonConvert.SerializeObject(azureAdGraphQueryResponse);
+            AzureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse>();
+            var serialised = JsonConvert.SerializeObject(AzureAdGraphQueryResponse);
             var response = new HttpResponseMessage();
             response.StatusCode = HttpStatusCode.OK;
             response.Content = new StringContent(serialised);
             response.Content.Headers.Clear();
             response.Content.Headers.Add("Content-Type", "application/json");
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
 
-            var result = await _service.GetUserByFilterAsync("user@test.aa");
+            var result = await Service.GetUserByFilterAsync("user@test.aa");
 
             Assert.IsNull(result);
         }
@@ -185,15 +183,15 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_get_group_for_user()
         {
-            var serialised = JsonConvert.SerializeObject(_directoryObject);
+            var serialised = JsonConvert.SerializeObject(DirectoryObject);
             var response = new HttpResponseMessage();
             response.StatusCode = HttpStatusCode.OK;
             response.Content = new StringContent(serialised);
             response.Content.Headers.Clear();
             response.Content.Headers.Add("Content-Type", "application/json");
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
 
-            var result = await _service.GetGroupsForUserAsync("user@test.aa");
+            var result = await Service.GetGroupsForUserAsync("user@test.aa");
 
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.Count);
@@ -222,9 +220,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
             response.Content = new StringContent(serialised);
             response.Content.Headers.Clear();
             response.Content.Headers.Add("Content-Type", "application/json");
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(response);
 
-            var result = await _service.GetGroupsForUserAsync("user@test.aa");
+            var result = await Service.GetGroupsForUserAsync("user@test.aa");
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count);
@@ -233,9 +231,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_check_for_next_available_user_name_with_no_prefix()
         {
-            _identityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(new List<string> { "adam.green" });
-            var result = await _service.CheckForNextAvailableUsernameAsync("Adam","Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Adam","Green");
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }
@@ -243,9 +241,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_check_for_next_available_user_name_find_with_prefix()
         {
-            _identityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(new List<string> { "adam.green2@hearings.test.server.net", "adam.green@hearings.test.server.net", "adam.green1@hearings.test.server.net" });
-            var result = await _service.CheckForNextAvailableUsernameAsync("Adam", "Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green");
 
             Assert.IsTrue(result.Contains("adam.green3@hearings.test.server.net"));
         }
@@ -253,9 +251,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_check_for_next_available_user_name_find_null()
         {
-            _identityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(new List<string> ());
-            var result = await _service.CheckForNextAvailableUsernameAsync("Adam", "Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green");
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }

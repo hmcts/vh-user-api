@@ -19,11 +19,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public new void Setup()
         {
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
 
             _newAdUserAccount = new NewAdUserAccount { Username = "TestUser", UserId = "TestUserId", OneTimePassword = "OTPwd" };
-            _identityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
+            IdentityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(_newAdUserAccount); 
         }
 
@@ -31,33 +31,33 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_create_new_user_account_successfully()
         {
             var existingUsers = new[] { "existing.user", "existing.user1" };
-            _identityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
-            filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
+            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
 
-            azureAdGraphQueryResponse.Value = new List<AzureAdGraphUserResponse>();
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
+            AzureAdGraphQueryResponse.Value = new List<AzureAdGraphUserResponse>();
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
 
 
-            var response = await _service.CreateUserAsync("fName", "lName", RecoveryEmail);
+            var response = await Service.CreateUserAsync("fName", "lName", RecoveryEmail);
 
             response.Should().NotBeNull();
             response.Username.Should().Be(_newAdUserAccount.Username);
             response.UserId.Should().Be(_newAdUserAccount.UserId);
             response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
-            _secureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Once);
-            _identityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail), Times.Once);
         }
 
         [Test]
         public void Should_return_user_already_exists_with_recovery_email()
         {
-            filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
+            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
 
 
-            var response = Assert.ThrowsAsync<UserExistsException>(async () => await _service.CreateUserAsync("fName", "lName", RecoveryEmail));
+            var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail));
 
 
             response.Message.Should().Be("User with recovery email already exists");
