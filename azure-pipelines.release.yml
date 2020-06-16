@@ -88,7 +88,7 @@ extends:
           value: $(defaultPassword)
         - name: ReformEmail
           value: $(reformemail)
-        - name: ConnectionStrings:Redis
+        - name: ConnectionStrings:RedisCache
           value: redis-connection-str
           secret: true
         - name: IsLive
