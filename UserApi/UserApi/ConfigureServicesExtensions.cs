@@ -5,6 +5,8 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
+using UserApi.Caching;
+using UserApi.Common;
 using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
@@ -17,15 +19,19 @@ namespace UserApi
     {
         public static IServiceCollection AddCustomTypes(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddMemoryCache();
-
             serviceCollection.AddScoped<ITokenProvider, TokenProvider>();
             serviceCollection.AddScoped<IIdentityServiceApiClient, GraphApiClient>();
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
+            serviceCollection.AddScoped<ICache, GenericDistributedCache>();
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
+            
+            var container = serviceCollection.BuildServiceProvider();
+            var connectionStrings = container.GetService<ConnectionStrings>();
+            
+            serviceCollection.AddStackExchangeRedisCache(options => { options.Configuration = connectionStrings.RedisCache; });
 
             return serviceCollection;
         }

@@ -10,7 +10,6 @@ using AcceptanceTests.Common.Api.Helpers;
 using Faker;
 using FluentAssertions;
 using NUnit.Framework;
-using Polly;
 using Testing.Common.Configuration;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;

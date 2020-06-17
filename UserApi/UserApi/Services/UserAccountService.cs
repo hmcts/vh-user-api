@@ -260,14 +260,14 @@ namespace UserApi.Services
         
         private static IEnumerable<UserResponse> ExcludePerformanceTestUsersAsync(IEnumerable<UserResponse> judgesList)
         {
-            return judgesList
-                .Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
+            return judgesList.Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
         }
         
         private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)
         {
             var users = new List<UserResponse>();
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$top=999";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?" +
+                            "$select=id,userPrincipalName,displayName,givenName,surname&$top=999";
 
             while (true)
             {

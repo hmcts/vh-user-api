@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -26,26 +25,27 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public void TestInitialize()
         {
-            _graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group>() };
+            _graphQueryResponse = new GraphQueryResponse() { Value = new List<Group>() };
             _group = new Group() { Id = _groupId };
 
-            _judgesGroup = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
-            _judgesTestGroup = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
+            _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
+            _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
 
-            _accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members?$top=999";
+            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?" +
+                         "$select=id,userPrincipalName,displayName,givenName,surname&$top=999";
         }
 
         [Test]
         public async Task Should_return_judges_list_successfully()
         {            
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesTestGroup))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesTestGroup))
                             .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
              
             
-            var response = await _service.GetJudgesAsync();
+            var response = await Service.GetJudgesAsync();
 
             response.Should().NotBeNull();
         }
@@ -55,7 +55,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             _graphQueryResponse.Value.Add(_group);
             
-            _secureHttpRequest
+            SecureHttpRequest
                 .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
 
@@ -69,24 +69,105 @@ namespace UserApi.UnitTests.Services.UserAccountService
             
             directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
 
-            _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, _accessUri))
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
-            _service = new UserApi.Services.UserAccountService
+            Service = new UserApi.Services.UserAccountService
             (
-                _secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, new Settings
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false
                 }
             );
 
-            var response = (await _service.GetJudgesAsync()).ToList();
+            var response = (await Service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(2);
             response.First().DisplayName.Should().Be("T Test");
             response.Last().DisplayName.Should().Be("T Tester");
             
-            _secureHttpRequest.Verify(s => s.GetAsync(_graphApiSettings.AccessToken, _accessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
+        }
+        
+        [Test]
+        public async Task Should_exclude_TP_test_judges()
+        {
+            _graphQueryResponse.Value.Add(_group);
+            
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
+
+            var users = new List<User> 
+            { 
+                new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "TP", Surname = "Test TP" },
+                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
+                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
+            };
+            
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+
+            Service = new UserApi.Services.UserAccountService
+            (
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
+                {
+                    IsLive = false
+                }
+            );
+
+            var response = (await Service.GetJudgesAsync()).ToList();
+
+            response.Count.Should().Be(2);
+            response.First().DisplayName.Should().Be("T Test");
+            response.Last().DisplayName.Should().Be("T Tester");
+            
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
+        }
+        
+        [Test]
+        public async Task Should_exclude_judges_when_no_firstname_set()
+        {
+            _graphQueryResponse.Value.Add(_group);
+            
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
+
+            var users = new List<User> 
+            { 
+                new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "TP", Surname = "Test TP" },
+                new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "", Surname = "Test TP" },
+                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
+                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
+            };
+            
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+
+            Service = new UserApi.Services.UserAccountService
+            (
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
+                {
+                    IsLive = false
+                }
+            );
+
+            var response = (await Service.GetJudgesAsync()).ToList();
+
+            response.Count.Should().Be(2);
+            response.First().DisplayName.Should().Be("T Test");
+            response.Last().DisplayName.Should().Be("T Tester");
+            
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
         
         [Test]
@@ -94,7 +175,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             _graphQueryResponse.Value.Add(_group);
             
-            _secureHttpRequest
+            SecureHttpRequest
                 .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
 
@@ -117,25 +198,25 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var directoryObject2 = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
             directoryObject2.AdditionalData.Add("value", JsonConvert.SerializeObject(users2));
 
-            _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, _accessUri))
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject1, HttpStatusCode.OK));
-            _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, "someLinkToNextPage"))
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, "someLinkToNextPage"))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject2, HttpStatusCode.OK));
 
-            _service = new UserApi.Services.UserAccountService
+            Service = new UserApi.Services.UserAccountService
             (
-                _secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, new Settings
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false
                 }
             );
 
-            var response = (await _service.GetJudgesAsync()).ToList();
+            var response = (await Service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(4);
             
-            _secureHttpRequest.Verify(s => s.GetAsync(_graphApiSettings.AccessToken, _accessUri), Times.Once);
-            _secureHttpRequest.Verify(s => s.GetAsync(_graphApiSettings.AccessToken, "someLinkToNextPage"), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, "someLinkToNextPage"), Times.Once);
         }
 
         [Test]
@@ -143,41 +224,41 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             _graphQueryResponse.Value.Add(_group);
             
-            _secureHttpRequest
+            SecureHttpRequest
                 .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
 
-            _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, _accessUri))
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(string.Empty, HttpStatusCode.NotFound));
 
-            _service = new UserApi.Services.UserAccountService
+            Service = new UserApi.Services.UserAccountService
             (
-                _secureHttpRequest.Object, _graphApiSettings, _identityServiceApiClient.Object, new Settings
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false
                 }
             );
 
-            var response = await _service.GetJudgesAsync();
+            var response = await Service.GetJudgesAsync();
 
             response.Should().BeEmpty();
             
-            _secureHttpRequest.Verify(s => s.GetAsync(_graphApiSettings.AccessToken, _accessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
         
         [Test]
         public void Should_return_user_exception_for_other_responses()
         {
             _graphQueryResponse.Value.Add(_group);
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
 
             const string reason = "User not authorised";
 
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await _service.GetJudgesAsync());
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetJudgesAsync());
 
             response.Should().NotBeNull();
             response.Message.Should().Be($"Failed to get users for group {_groupId}: {reason}");

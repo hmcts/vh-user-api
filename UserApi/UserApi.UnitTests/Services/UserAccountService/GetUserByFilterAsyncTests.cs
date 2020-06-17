@@ -14,36 +14,36 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public void TestInitialize()
         {
-            filter = "test";
+            Filter = "test";
         }
 
 
         [Test]
         public async Task Should_return_user_by_given_filter()
         {
-            azureAdGraphQueryResponse.Value.Add(new AzureAdGraphUserResponse() { ObjectId = "2" });
+            AzureAdGraphQueryResponse.Value.Add(new AzureAdGraphUserResponse() { ObjectId = "2" });
 
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
 
-            var response = await _service.GetUserByFilterAsync(filter);
+            var response = await Service.GetUserByFilterAsync(Filter);
 
             response.Should().NotBeNull();
-            response.Id.Should().Be(azureAdGraphUserResponse.ObjectId);
-            response.DisplayName.Should().Be(azureAdGraphUserResponse.DisplayName);
-            response.GivenName.Should().Be(azureAdGraphUserResponse.GivenName);
-            response.Surname.Should().Be(azureAdGraphUserResponse.Surname);
+            response.Id.Should().Be(AzureAdGraphUserResponse.ObjectId);
+            response.DisplayName.Should().Be(AzureAdGraphUserResponse.DisplayName);
+            response.GivenName.Should().Be(AzureAdGraphUserResponse.GivenName);
+            response.Surname.Should().Be(AzureAdGraphUserResponse.Surname);
             response.Mail.Should().BeNull();
-            response.UserPrincipalName.Should().Be(azureAdGraphUserResponse.UserPrincipalName);
+            response.UserPrincipalName.Should().Be(AzureAdGraphUserResponse.UserPrincipalName);
         }
         
         [Test]
         public async Task Should_return_null_with_no_matching_user_filter()
         {
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("NotFound", HttpStatusCode.NotFound));
 
-            var response = await _service.GetUserByFilterAsync(filter);
+            var response = await Service.GetUserByFilterAsync(Filter);
 
             response.Should().BeNull();
         }
@@ -53,10 +53,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
         { 
             const string message = "User not authorised";
 
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(message, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await _service.GetUserByFilterAsync(filter));
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetUserByFilterAsync(Filter));
 
             response.Should().NotBeNull();
             response.Message.Should().Be($"Failed to search user with filter test: {message}");

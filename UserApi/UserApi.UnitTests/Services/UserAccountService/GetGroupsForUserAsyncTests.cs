@@ -13,7 +13,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
     public class GetGroupsForUserAsyncTests: UserAccountServiceTests
     {
         private const string UserId = "userId";
-        private string accessUri => $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{UserId}/memberOf";
+        private string accessUri => $"{GraphApiSettings.GraphApiBaseUri}v1.0/users/{UserId}/memberOf";
 
         [Test]
         public async Task Should_get_group_by_given_id()
@@ -27,21 +27,21 @@ namespace UserApi.UnitTests.Services.UserAccountService
             
             directoryObject.AdditionalData.Add("value", json);
 
-            _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
-            var response = await _service.GetGroupsForUserAsync(UserId);
+            var response = await Service.GetGroupsForUserAsync(UserId);
 
             response.Should().NotBeNull();
             response.Count.Should().Be(2);
-            _secureHttpRequest.Verify(s => s.GetAsync(_graphApiSettings.AccessToken, accessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri), Times.Once);
         }
 
         [Test]
         public async Task Should_return_empty_when_no_matching_group_by_given_userid()
         { 
-            _secureHttpRequest.Setup(s => s.GetAsync(_graphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
 
-            var response = await _service.GetGroupsForUserAsync(UserId);
+            var response = await Service.GetGroupsForUserAsync(UserId);
 
             response.Should().BeEmpty();
         }
@@ -51,10 +51,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             const string reason = "User not authorised";
 
-            _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await _service.GetGroupsForUserAsync(UserId));
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupsForUserAsync(UserId));
 
             response.Should().NotBeNull();
             response.Message.Should().Be($"Failed to get group for user {UserId}: {reason}");
