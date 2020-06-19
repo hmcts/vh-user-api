@@ -24,12 +24,22 @@ parameters:
   type: boolean
   default: false
 
+- name: prodEnvs
+  displayName: Environments Using Prod Subscription
+  type: object
+  default:
+    - Prod
+    - Preprod
+ 
 # Set variables once
 variables:
 - group: vh-domains-and-urls
 - group: vh-apps-settings-generic
 - group: vh-user-api
-- group: vh-preview
+- ${{ if containsValue(parameters.prodEnvs, parameters.environment) }}:
+  - group: vh-prod
+- ${{ if not(containsValue(parameters.prodEnvs, parameters.environment)) }}:
+  - group: vh-preview
 
 trigger: none
 pr: none
