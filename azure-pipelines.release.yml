@@ -51,6 +51,15 @@ resources:
       name: hmcts/azure-devops-templates
       ref: refs/heads/master
       endpoint: hmcts (1)
+  pipelines:
+  - pipeline: CI
+    source: hmcts.vh-user-api
+    trigger:
+      enabled: true
+      branches:
+        - master
+        - hotfix/*
+        - release/*
 
 extends:
   template: templates/vh-release.yml@templates
