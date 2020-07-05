@@ -1,7 +1,48 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+parameters:
+- name: deploymentBranch
+  displayName: Branch to Deploy
+  type: string
+  default: refs/heads/master
+
+- name: environment
+  displayName: Environment
+  type: string
+  default: Sandbox
+  values:
+  - Preview
+  - Dev
+  - AAT
+  - Sandbox
+  - Test1
+  - Test2
+  - Demo
+  - Preprod
+  - Prod
+
+- name: RunZap
+  displayName: Execute ZAP Tests
+  type: boolean
+  default: false
+
+- name: prodEnvs
+  displayName: Environments Using Prod Subscription
+  type: object
+  default:
+    - Prod
+    - Preprod
+ 
+# Set variables once
+variables:
+- group: vh-domains-and-urls
+- group: vh-apps-settings-generic
+- group: vh-user-api
+- ${{ if containsValue(parameters.prodEnvs, parameters.environment) }}:
+  - group: vh-prod
+- ${{ if not(containsValue(parameters.prodEnvs, parameters.environment)) }}:
+  - group: vh-preview
+
+trigger: none
+pr: none
 
 resources:
   repositories:
@@ -20,14 +61,92 @@ resources:
         - hotfix/*
         - release/*
 
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+extends:
+  template: templates/vh-release.yml@templates
+  parameters:
+    ${{ if ne(variables['Build.Reason'], 'ResourceTrigger') }}:
+      environments:
+        - ${{ parameters.environment }}
+      deploymentBranch: ${{ parameters.deploymentBranch }}
+    ${{ if eq(variables['Build.Reason'], 'ResourceTrigger') }}:
+      deploymentBranch: $(resources.pipeline.CI.sourceBranch)
+    releaseParameters:
+      runZapTests: ${{ parameters.RunZap }}
+      subscription: $(env_Subscription)
+      secrets_KeyVault: $(env_Secret_KeyVault)
+      secrets_Subscription: $(env_Secret_Subscription)
+      devOpsResource: vh_user_api
+      appName: vh-user-api-$(environment)
+      resourceGroup: vh-user-api-$(environment)
+      appSettings:
+        - name: ApplicationInsights:InstrumentationKey
+          value: vh-core-infra-AppInsightsKey
+          secret: true
+        - name: AzureAd:ClientId
+          value: vh-user-api-appid
+          secret: true
+        - name: AzureAd:ClientSecret
+          value: vh-user-api-key
+          secret: true
+        - name: AzureAd:TenantId
+          value: tenantid
+          secret: true
+        - name: VhServices:UserApiResourceId
+          value: vh-user-api-identifieruris
+          secret: true
+        - name: DefaultPassword
+          value: $(defaultPassword)
+        - name: ReformEmail
+          value: $(reformemail)
+        - name: ConnectionStrings:RedisCache
+          value: redis-connection-str
+          secret: true
+        - name: IsLive
+          slot:
+            deployment:
+              value: false
+            active:
+              value: true
+      acceptanceTestSettings:
+        - name: VhServices:UserApiUrl
+          value: $(user_api_url_staging)
+        - name: AzureAd:ClientId
+          value: vh-user-api-appid
+          secret: true
+        - name: AzureAd:ClientSecret
+          value: vh-user-api-key
+          secret: true
+        - name: AzureAd:TenantId
+          value: tenantid
+          secret: true
+        - name: VhServices:UserApiResourceId
+          value: vh-user-api-identifieruris
+          secret: true
+        - name: DefaultPassword
+          value: $(defaultPassword)
+        - name: Testing:ExistingGroups:0:Displayname
+          value: $(testing-existinggroups-0-displayname)
+        - name: Testing:ExistingGroups:0:GroupId
+          value: $(testing-existinggroups-0-groupid)
+        - name: Testing:ExistingGroups:1:Displayname
+          value: $(testing-existinggroups-1-displayname)
+        - name: Testing:ExistingGroups:1:GroupId
+          value: $(testing-existinggroups-1-groupid)
+        - name: Testing:ExistingUserDisplayname
+          value: $(testing-existinguserdisplayname)
+        - name: Testing:ExistingUserFirstname
+          value: $(testing-existinguserfirstname)
+        - name: Testing:ExistingUserId
+          value: $(testing-existinguserid)
+        - name: Testing:ExistingUserLastname
+          value: $(testing-existinguserlastname)
+        - name: Testing:ExistingUserPrincipal
+          value: $(testing-existinguserprincipal)
+        - name: Testing:ExistingEmail
+          value: $(testing-existingemail)
+        - name: Testing:NewGroups:0:Displayname
+          value: $(testing-newgroup-0-displayname)
+        - name: Testing:NewGroups:0:GroupId
+          value: $(testing-newgroup-0-groupid)
+        - name: ReformEmail
+          value: $(reformemail)
