@@ -41,9 +41,6 @@ variables:
 - ${{ if not(containsValue(parameters.prodEnvs, parameters.environment)) }}:
   - group: vh-preview
 
-trigger: none
-pr: none
-
 resources:
   repositories:
     - repository: templates
