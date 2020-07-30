@@ -330,3 +330,6 @@ ASALocalRun/
 AssemblyInfo.cs
 
 **/[Ss]tryker[Oo]utput
+
+# Local environment settings files
+/UserApi/UserApi.AcceptanceTests/Configuration/Environments
