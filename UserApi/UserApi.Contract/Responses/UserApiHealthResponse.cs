@@ -7,14 +7,17 @@ namespace UserApi.Contract.Responses
         public HealthCheck UserAccessHealth { get; set; }
         public HealthCheck GroupAccessHealth { get; set; }
         public ApplicationVersion AppVersion { get; set; }
+        public HealthCheck DistributedCacheHealth { get; set; }
+        
         public UserApiHealthResponse()
         {
             UserAccessHealth = new HealthCheck();
             GroupAccessHealth = new HealthCheck();
             AppVersion = new ApplicationVersion();
+            DistributedCacheHealth = new HealthCheck();
         }
 
-        public bool HelthCheckSuccessful => UserAccessHealth.Successful && GroupAccessHealth.Successful;
+        public bool HealthCheckSuccessful => UserAccessHealth.Successful && GroupAccessHealth.Successful && DistributedCacheHealth.Successful;
     }
     
     public class HealthCheck

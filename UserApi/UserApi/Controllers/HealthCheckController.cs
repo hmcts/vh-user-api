@@ -5,6 +5,8 @@ using System;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using UserApi.Caching;
 using UserApi.Contract.Responses;
 using UserApi.Security;
 using UserApi.Services;
@@ -18,10 +20,12 @@ namespace UserApi.Controllers
     public class HealthCheckController : ControllerBase
     {
         private readonly IUserAccountService _userAccountService;
+        private readonly ICache _distributedCache;
 
-        public HealthCheckController(IUserAccountService userAccountService)
+        public HealthCheckController(IUserAccountService userAccountService, ICache distributedCache)
         {
             _userAccountService = userAccountService;
+            _distributedCache = distributedCache;
         }
 
         /// <summary>
@@ -67,12 +71,19 @@ namespace UserApi.Controllers
                 response.GroupAccessHealth.ErrorMessage = e.Message;
             }
 
-            if (response.HelthCheckSuccessful)
+            try
             {
-                return Ok(response);
+                await _distributedCache.GetOrAddAsync(() => Task.FromResult(JObject.FromObject(new object()).ToString()));
+                response.DistributedCacheHealth.Successful = true;
+            }
+            catch (Exception ex)
+            {
+                response.DistributedCacheHealth.Successful = false;
+                response.DistributedCacheHealth.Data = ex.Data;
+                response.DistributedCacheHealth.ErrorMessage = ex.Message;
             }
 
-            return StatusCode((int)HttpStatusCode.InternalServerError, response);
+            return response.HealthCheckSuccessful ? Ok(response) : StatusCode((int)HttpStatusCode.InternalServerError, response);
         }
 
         private ApplicationVersion GetApplicationVersion()
