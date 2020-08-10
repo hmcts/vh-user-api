@@ -17,7 +17,14 @@ namespace UserApi.Caching
 
         public async Task<T> GetOrAddAsync<T>(Func<Task<T>> factory)
         {
-            var cacheItem = await _distributedCache.GetAsync(factory.ToString());
+            var key = factory.ToString();
+
+            return await GetOrAddAsync(key, factory);
+        }
+
+        public async Task<T> GetOrAddAsync<T>(string key, Func<Task<T>> factory)
+        {
+            var cacheItem = await _distributedCache.GetAsync(key);
 
             if (cacheItem != null && cacheItem.Length != 0)
             {
@@ -25,11 +32,17 @@ namespace UserApi.Caching
             }
 
             var result = await factory();
-            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
-            
-            await _distributedCache.SetAsync(factory.ToString(), bytes, new DistributedCacheEntryOptions
+
+            if (result == null)
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                return default;
+            }
+            
+            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
+
+            await _distributedCache.SetAsync(key, bytes, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(3)
             });
 
             return result;

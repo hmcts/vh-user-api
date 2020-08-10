@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using UserApi.Caching;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
@@ -31,6 +32,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         private Settings _settings;
         protected string Filter;
         protected DirectoryObject DirectoryObject;
+        protected Mock<ICache> DistributedCache;
 
         [SetUp]
         public void Setup()
@@ -79,8 +81,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 AdditionalData = additionalData,
                 ODataType = "@odata.type"
             };
+            
+            DistributedCache = new Mock<ICache>();
 
-            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings);
+            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings, DistributedCache.Object);
         }
 
         protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={Filter}&api-version=1.6";

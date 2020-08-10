@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UserApi.Caching;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -19,20 +20,24 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
+        private readonly ICache _distributedCache;
         private readonly bool _isLive;
         private readonly string _reformEmail;
         private const string JudgesGroup = "VirtualRoomJudge";
         private const string JudgesTestGroup = "TestAccount";
         private const string PerformanceTestUserFirstName = "TP";
+        private const string UserGroupCacheKey = "cachekey.ad.group";
 
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, Settings settings)
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, 
+            Settings settings, ICache distributedCache)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
+            _distributedCache = distributedCache;
             _isLive = settings.IsLive;
             _reformEmail = settings.ReformEmail;
         }
@@ -124,6 +129,13 @@ namespace UserApi.Services
         }
 
         public async Task<Group> GetGroupByNameAsync(string groupName)
+        {
+            var group = await _distributedCache.GetOrAddAsync($"{UserGroupCacheKey}.{groupName}", () => GetGraphAdGroupAsync(groupName));
+
+            return group;
+        }
+
+        private async Task<Group> GetGraphAdGroupAsync(string groupName)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
