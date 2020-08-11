@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Configuration;
+using UserApi.Caching;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -16,6 +18,7 @@ namespace UserApi.IntegrationTests.Services
         private GraphApiSettings _graphApiSettings;
         private SecureHttpRequest _secureHttpRequest;
         private GraphApiClient _identityServiceApiClient;
+        private Mock<ICache> _distributedCache;
 
         [SetUp]
         public void Setup()
@@ -26,7 +29,8 @@ namespace UserApi.IntegrationTests.Services
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, settings);
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings);
+            _distributedCache = new Mock<ICache>();
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _distributedCache.Object);
         }
 
         [Test]

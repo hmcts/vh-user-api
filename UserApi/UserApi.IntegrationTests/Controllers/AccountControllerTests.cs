@@ -21,7 +21,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name_not_found_with_bogus_group_name()
         {
-            var groupName = "foo";
+            var groupName = Guid.NewGuid().ToString();
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }

@@ -8,6 +8,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+**/*.livesharp.config
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -333,3 +335,4 @@ AssemblyInfo.cs
 
 # Local environment settings files
 /UserApi/UserApi.AcceptanceTests/Configuration/Environments
+livesharp.config

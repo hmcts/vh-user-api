@@ -75,12 +75,26 @@ namespace UserApi.UnitTests.Caching
             const string objectToCache = "some object value";
             
             Func<Task<string>> factory = () => Task.FromResult(objectToCache);
-            _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None)).ReturnsAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(objectToCache)));
+            _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None))
+                .ReturnsAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(objectToCache)));
 
             var result = await _genericDistributedCache.GetOrAddAsync(factory);
 
             result.Should().NotBeNull();
             result.Should().Be(objectToCache);
+        }
+
+        [Test]
+        public async Task GetOrAddAsync_return_default_value_when_factory_returns_null()
+        {
+            const string objectToCache = "some object value";
+
+            Func<Task<string>> factory = () => Task.FromResult((string)null);
+            _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None)).ReturnsAsync(new byte[] { });
+
+            var result = await _genericDistributedCache.GetOrAddAsync(factory);
+
+            result.Should().BeNull();
         }
     }
 }

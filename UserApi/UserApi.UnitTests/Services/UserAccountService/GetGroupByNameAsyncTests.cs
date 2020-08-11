@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Helpers;
 using UserApi.Security;
-using UserApi.Services.Models;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
@@ -17,14 +17,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_get_group_by_given_name()
         {
-            var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{GroupName}'";
-            var graphQueryResponse = new GraphQueryResponse() { Value = new List<Microsoft.Graph.Group> { new Microsoft.Graph.Group()} };
-
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(graphQueryResponse,HttpStatusCode.OK));
-
+            var expectedGroup = new Group{ Id = GroupName, DisplayName = GroupName};
+            DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
+                .Callback( (string key, Func<Task<Group>> factory) =>  factory())
+                .ReturnsAsync(expectedGroup);
+            
             var response = await Service.GetGroupByNameAsync(GroupName);
 
             response.Should().NotBeNull();
+            response.Id.Should().Be(expectedGroup.Id);
+            response.DisplayName.Should().Be(expectedGroup.DisplayName);
         }
 
         [Test]
@@ -32,8 +34,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             var reason = "User not authorised";
 
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
+            var expectedGroup = new Group {Id = GroupName, DisplayName = GroupName};
+            DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
+                .Callback((string key, Func<Task<Group>> factory) => factory())
+                .ThrowsAsync(new UserServiceException($"Failed to get group by name {GroupName}", reason));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByNameAsync(GroupName));
 
