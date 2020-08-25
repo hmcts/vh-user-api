@@ -42,7 +42,7 @@ namespace UserApi.Services
             _reformEmail = settings.ReformEmail;
         }
 
-        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser = false)
         {
             var recoveryEmailText = recoveryEmail.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
@@ -55,7 +55,7 @@ namespace UserApi.Services
 
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
+            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
         }
 
         public async Task DeleteUserAsync(string username)

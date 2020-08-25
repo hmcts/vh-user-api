@@ -3,6 +3,7 @@ namespace UserApi
     public class Settings
     {
         public string DefaultPassword { get; set; }
+        public string TestUserPassword { get; set; }
         /// <summary>
         ///     Flag to determine if we are running in production environment,
         ///     display the judges list based on the environment

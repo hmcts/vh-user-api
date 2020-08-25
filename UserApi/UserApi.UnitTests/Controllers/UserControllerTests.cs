@@ -45,7 +45,7 @@ namespace UserApi.UnitTests.Controllers
                 .With(x => x.RecoveryEmail = "john.doe@hmcts.net")
                 .Build();
             _newAdUserAccount = new NewAdUserAccount { UserId = "TestUserId", Username = "TestUserName", OneTimePassword = "TestPassword" };
-            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail)).ReturnsAsync(_newAdUserAccount);
+            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ReturnsAsync(_newAdUserAccount);
             _cache = new Mock<ICache>();
             
             _controller = new UserController(_userAccountService.Object, client, _cache.Object);
@@ -79,7 +79,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_ConflictObjectResult_with_UserExistsException()
         {
-            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail)).ThrowsAsync(new UserExistsException("User exists","TestUser"));
+            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ThrowsAsync(new UserExistsException("User exists","TestUser"));
 
             var actionResult = (ConflictObjectResult)await _controller.CreateUser(_request);
 

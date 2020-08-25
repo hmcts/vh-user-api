@@ -24,7 +24,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             _newAdUserAccount = new NewAdUserAccount { Username = "TestUser", UserId = "TestUserId", OneTimePassword = "OTPwd" };
             IdentityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(_newAdUserAccount); 
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(_newAdUserAccount); 
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             response.UserId.Should().Be(_newAdUserAccount.UserId);
             response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
             SecureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Once);
-            IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail, false), Times.Once);
         }
 
         [Test]
