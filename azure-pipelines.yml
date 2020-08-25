@@ -77,6 +77,8 @@ parameters:
     value: $(testing-newgroup-0-groupid)
   - name: ReformEmail
     value: $(reformemail)
+  - name: TestDefaultPassword
+    value: $(testDefaultPassword)
   - name: ConnectionStrings:RedisCache
     value: redis-connection-str
     secret: true
@@ -102,6 +104,8 @@ parameters:
     value: $(defaultPassword)
   - name: ReformEmail
     value: $(reformemail)
+  - name: TestDefaultPassword
+    value: $(testDefaultPassword)
   - name: ConnectionStrings:RedisCache
     value: redis-connection-str
     secret: true

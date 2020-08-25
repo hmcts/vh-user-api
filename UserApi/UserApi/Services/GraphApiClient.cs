@@ -26,14 +26,14 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly string _baseUrl;
         private readonly string _defaultPassword;
-        private readonly string _testUserPassword;
+        private readonly string _testDefaultPassword;
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _defaultPassword = settings.DefaultPassword;
-            _testUserPassword = settings.TestUserPassword;
+            _testDefaultPassword = settings.TestDefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
@@ -65,7 +65,7 @@ namespace UserApi.Services
                 passwordProfile = new
                 {
                     forceChangePasswordNextSignIn = !isTestUser,
-                    password = isTestUser ? _testUserPassword : _defaultPassword
+                    password = isTestUser ? _testDefaultPassword : _defaultPassword
                 }
             };
 
@@ -78,7 +78,7 @@ namespace UserApi.Services
             var adAccount = JsonConvert.DeserializeObject<User>(responseJson);
             return new NewAdUserAccount
             {
-                OneTimePassword = isTestUser ? _testUserPassword : _defaultPassword,
+                OneTimePassword = isTestUser ? _testDefaultPassword : _defaultPassword,
                 UserId = adAccount.Id,
                 Username = adAccount.UserPrincipalName
             };

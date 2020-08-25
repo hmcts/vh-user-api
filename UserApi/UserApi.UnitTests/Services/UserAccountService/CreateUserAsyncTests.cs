@@ -41,7 +41,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
 
 
-            var response = await Service.CreateUserAsync("fName", "lName", RecoveryEmail);
+            var response = await Service.CreateUserAsync("fName", "lName", RecoveryEmail, false);
 
             response.Should().NotBeNull();
             response.Username.Should().Be(_newAdUserAccount.Username);
@@ -57,7 +57,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
 
 
-            var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail));
+            var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail, false));
 
 
             response.Message.Should().Be("User with recovery email already exists");
