@@ -7,5 +7,6 @@ namespace Testing.Common.Configuration
         public AzureAdConfiguration AzureAdConfiguration { get; set; }
         public TestSettings TestSettings { get; set; }
         public VhServices VhServices { get; set; }
+        public string TestUserPassword { get; set; }
     }
 }
