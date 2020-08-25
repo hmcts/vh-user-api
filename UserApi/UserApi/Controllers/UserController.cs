@@ -63,7 +63,7 @@ namespace UserApi.Controllers
             {
                 var adUserAccount =
                     await _userAccountService.CreateUserAsync(request.FirstName, request.LastName,
-                        request.RecoveryEmail);
+                        request.RecoveryEmail, request.IsTestUser);
                 var response = new NewUserResponse
                 {
                     UserId = adUserAccount.UserId,

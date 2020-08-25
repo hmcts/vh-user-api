@@ -26,12 +26,14 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly string _baseUrl;
         private readonly string _defaultPassword;
+        private readonly string _testDefaultPassword;
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _defaultPassword = settings.DefaultPassword;
+            _testDefaultPassword = settings.TestDefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
@@ -47,7 +49,7 @@ namespace UserApi.Services
             return result.Value.Select(user => user.UserPrincipalName);
         }
 
-        public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail)
+        public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false)
         {            
             // the user object provided by the graph api nuget package is missing the otherMails property
             // but it's there in the API so using a dynamic request model instead
@@ -62,8 +64,8 @@ namespace UserApi.Services
                 userPrincipalName = username,
                 passwordProfile = new
                 {
-                    forceChangePasswordNextSignIn = true,
-                    password = _defaultPassword
+                    forceChangePasswordNextSignIn = !isTestUser,
+                    password = isTestUser ? _testDefaultPassword : _defaultPassword
                 }
             };
 
@@ -76,7 +78,7 @@ namespace UserApi.Services
             var adAccount = JsonConvert.DeserializeObject<User>(responseJson);
             return new NewAdUserAccount
             {
-                OneTimePassword = _defaultPassword,
+                OneTimePassword = isTestUser ? _testDefaultPassword : _defaultPassword,
                 UserId = adAccount.Id,
                 Username = adAccount.UserPrincipalName
             };

@@ -22,7 +22,7 @@ namespace UserApi.AcceptanceTests.Steps
     {
         private const int Timeout = 90;
         private readonly TestContext _context;
-
+        private CreateUserRequest _createUserRequest;
         private string _newUsername;
         private readonly CommonSteps _commonSteps;
 
@@ -35,7 +35,15 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a new hearings reforms user account request with a valid email")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestWithAValidEmail()
         {
-            _context.Request = _context.Post(CreateUser, new CreateUserRequestBuilder().Build());
+            _createUserRequest = new CreateUserRequestBuilder().Build();
+            _context.Request = _context.Post(CreateUser, _createUserRequest);
+        }
+
+        [Given(@"I have a new hearings reforms test user account request with a valid email")]
+        public void GivenIHaveANewHearingsReformsTestUserAccountRequestWithAValidEmail()
+        {
+            _createUserRequest = new CreateUserRequestBuilder().IsTestUser().Build();
+            _context.Request = _context.Post(CreateUser, _createUserRequest);
         }
 
         [Given(@"I have a get user by AD user Id request for an existing user")]
@@ -62,7 +70,8 @@ namespace UserApi.AcceptanceTests.Steps
 
         private NewUserResponse CreateNewUser()
         {
-            _context.Request = _context.Post(CreateUser, new CreateUserRequestBuilder().Build());
+            _createUserRequest = new CreateUserRequestBuilder().Build();
+            _context.Request = _context.Post(CreateUser, _createUserRequest);
             _commonSteps.WhenISendTheRequestToTheEndpoint();
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Created, true);
             var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Response.Content);
@@ -134,11 +143,11 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a new hearings reforms user account request with an existing name")]
         public void GivenIHaveANewHearingsReformsUserAccountRequestWithAnExistingFullName()
         {
-            var request = new CreateUserRequestBuilder()
+            _createUserRequest = new CreateUserRequestBuilder()
                 .WithFirstname(_context.Config.TestSettings.ExistingUserFirstname)
                 .WithLastname(_context.Config.TestSettings.ExistingUserLastname)
                 .Build();
-            _context.Request = _context.Post(CreateUser, request);
+            _context.Request = _context.Post(CreateUser, _createUserRequest);
         }
 
         [Then(@"the user should be added")]
@@ -146,7 +155,16 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Response.Content);
             model.Should().NotBeNull();
-            model.OneTimePassword.Should().NotBeNullOrEmpty();
+
+            if (_createUserRequest.IsTestUser)
+            {
+                model.OneTimePassword.Should().Be(_context.Config.TestUserPassword);
+            }
+            else
+            {
+                model.OneTimePassword.Should().NotBeNullOrEmpty();
+            }
+
             model.UserId.Should().NotBeNullOrEmpty();
             model.Username.Should().NotBeNullOrEmpty();
             _context.Test.NewUserId = model.UserId;
@@ -163,27 +181,6 @@ namespace UserApi.AcceptanceTests.Steps
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
-        }
-
-        [Then(@"the new user should be deleted")]
-        public void ThenTheNewUserShouldBeDeleted()
-        {
-            PollForUserDeleted().Should().BeTrue("User has been successfully deleted");
-        }
-
-        private bool PollForUserDeleted()
-        {
-            _context.Request = _context.Get(GetUserByAdUserName(_newUsername));
-            for (var i = 0; i < Timeout; i++)
-            {
-                _commonSteps.WhenISendTheRequestToTheEndpoint();
-                if (_context.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return true;
-                }
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-            }
-            return false;
         }
 
         [Then(@"a list of ad judges should be retrieved")]

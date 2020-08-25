@@ -5,42 +5,46 @@ namespace Testing.Common.Helpers
 {
     public class CreateUserRequestBuilder
     {
-        private string _firstname;
-        private string _lastname;
-        private string _recoveryEmail;
+        private readonly CreateUserRequest _request;
 
         public CreateUserRequestBuilder()
         {
-            _firstname = Name.First();
-            _lastname = Name.Last();
-            _recoveryEmail = Internet.Email($"{_firstname} {_lastname}");
+            _request = new CreateUserRequest()
+            {
+                FirstName = $"Automation_{Name.First()}",
+                LastName = $"Automation_{Name.Last()}",
+                IsTestUser = false
+            };
+            _request.RecoveryEmail = Internet.Email($"{_request.FirstName} {_request.LastName}");
         }
 
         public CreateUserRequestBuilder WithFirstname(string firstname)
         {
-            _firstname = firstname;
+            _request.FirstName = firstname;
             return this;
         }
 
         public CreateUserRequestBuilder WithLastname(string lastname)
         {
-            _lastname = lastname;
+            _request.LastName = lastname;
             return this;
         }
 
         public CreateUserRequestBuilder WithRecoveryEmail(string recoveryEmail)
         {
-            _recoveryEmail = recoveryEmail;
+            _request.RecoveryEmail = recoveryEmail;
             return this;
         }
+
+        public CreateUserRequestBuilder IsTestUser()
+        {
+            _request.IsTestUser = true;
+            return this;
+        }
+
         public CreateUserRequest Build()
         {
-            return new CreateUserRequest()
-            {
-                RecoveryEmail = $"Automation_{_recoveryEmail}",
-                FirstName = $"Automation_{_firstname}",
-                LastName = $"Automation_{_lastname}"
-            };
+            return _request;
         }
     }
 }

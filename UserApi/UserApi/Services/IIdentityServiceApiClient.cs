@@ -7,7 +7,7 @@ namespace UserApi.Services
     public interface IIdentityServiceApiClient
     {
         Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text);
-        Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail);
+        Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false);
         Task DeleteUserAsync(string username);
         Task UpdateUserAsync(string username);
     }

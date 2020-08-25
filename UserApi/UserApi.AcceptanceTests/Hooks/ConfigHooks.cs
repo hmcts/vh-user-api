@@ -53,6 +53,8 @@ namespace UserApi.AcceptanceTests.Hooks
         {
             context.Config.TestSettings = Options.Create(_configRoot.GetSection("Testing").Get<TestSettings>()).Value;
             ConfigurationManager.VerifyConfigValuesSet(context.Config.TestSettings);
+            context.Config.TestUserPassword = _configRoot["TestDefaultPassword"];
+            context.Config.TestUserPassword.Should().NotBeNullOrWhiteSpace();
         }
 
         private void RegisterTestUsers(TestContext context)
