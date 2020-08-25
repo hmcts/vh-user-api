@@ -42,7 +42,7 @@ namespace UserApi.Services
             _reformEmail = settings.ReformEmail;
         }
 
-        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser = false)
+        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser)
         {
             var recoveryEmailText = recoveryEmail.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
