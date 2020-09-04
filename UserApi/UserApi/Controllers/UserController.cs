@@ -203,17 +203,16 @@ namespace UserApi.Controllers
         /// Delete an AAD user
         /// </summary>
         /// <returns>NoContent</returns>
-        [HttpDelete( "userName/{userName}", Name = "DeleteUser")]
+        [HttpDelete( "username/{username}", Name = "DeleteUser")]
         [SwaggerOperation(OperationId = "DeleteUser")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteUser(string username)
+        public async Task<IActionResult> DeleteUser([FromRoute]string username)
         {
             try
             {
                 await _userAccountService.DeleteUserAsync(username);
-
             }
             catch (UserDoesNotExistException)
             {
