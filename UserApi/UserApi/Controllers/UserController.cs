@@ -250,5 +250,40 @@ namespace UserApi.Controllers
             await _userAccountService.UpdateUserAsync(userProfile.UserName);
             return NoContent();
         }
+
+        /// <summary>
+        ///     Get new user (possibly in the queue to be created) by user principal name
+        /// </summary>
+        [HttpGet("userName/graph/{username?}", Name = "GetUserWithGraphByUserPrincipalName")]
+        [SwaggerOperation(OperationId = "GetUserWithGraphByUserPrincipalName")]
+        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetUserWithGraphByUserPrincipalName(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                ModelState.AddModelError(nameof(username), "user principal name cannot be empty");
+                return BadRequest(ModelState);
+            }
+
+            var profile = new UserProfileHelper(_userAccountService);
+            try
+            {
+                var userProfile = await profile.GetUserByUserPrincipalAsync(username);
+
+                if (userProfile != null)
+                {
+                    return Ok(userProfile);
+                }
+
+                ModelState.AddModelError(nameof(username), "user principal name does not exist");
+                return NotFound(ModelState);
+
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+        }
     }
 }

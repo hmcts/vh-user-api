@@ -49,6 +49,26 @@ namespace UserApi.Services
             return result.Value.Select(user => user.UserPrincipalName);
         }
 
+        public async Task<User> GetUserByUserPrincipalNameAsync(string text)
+        {
+            var filterText = text.Replace("'", "''");
+            var filter = $"userPrincipalName  eq '{filterText}'";
+            var queryUrl = $"{_baseUrl}/users?$filter={filter}";
+            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>();
+
+                if (result.Value != null && result.Value.Any())
+                {
+                    return result.Value[0];
+                }
+            }
+
+            return null;
+        }
+
         public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false)
         {            
             // the user object provided by the graph api nuget package is missing the otherMails property

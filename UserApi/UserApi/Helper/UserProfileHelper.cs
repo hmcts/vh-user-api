@@ -48,6 +48,28 @@ namespace UserApi.Helper
             return response;
         }
 
+        public async Task<UserProfile> GetUserByUserPrincipalAsync(string userPrincipalName)
+        {
+            var user = await _userAccountService.GetUserByUserPrincipalNameAsync(userPrincipalName);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new UserProfile
+            {
+                UserId = user.Id,
+                UserName = user.UserPrincipalName,
+                Email = user.Mail,
+                DisplayName = user.DisplayName,
+                FirstName = user.GivenName,
+                LastName = user.Surname,
+                UserRole = null,
+                CaseType = null
+            };
+        }
+
         private static UserRole GetUserRole(ICollection<Group> userGroups)
         {
             if (userGroups.Any(IsVirtualRoomAdministrator))

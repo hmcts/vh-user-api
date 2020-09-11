@@ -112,10 +112,8 @@ namespace UserApi.Services
                         Mail = adUser.OtherMails?.FirstOrDefault()
                     };
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             if (responseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -321,6 +319,16 @@ namespace UserApi.Services
         public async Task UpdateUserAsync(string username)
         {
             await _client.UpdateUserAsync(username);
+        }
+
+        /// <summary>
+        /// Get user by user principal name directly from graph api
+        /// </summary>
+        /// <param name="userPrincipalName"></param>
+        /// <returns>User by user principal name</returns>
+        public async Task<User> GetUserByUserPrincipalNameAsync(string userPrincipalName)
+        {
+            return await _client.GetUserByUserPrincipalNameAsync(userPrincipalName);
         }
     }
 }

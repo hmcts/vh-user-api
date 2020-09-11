@@ -20,5 +20,6 @@ namespace UserApi.Services
         Task<User> GetUserByFilterAsync(string filter);
         Task<IEnumerable<UserResponse>> GetJudgesAsync();
         Task UpdateUserAsync(string username);
+        Task<User> GetUserByUserPrincipalNameAsync(string userPrincipalName);
     }
 }
