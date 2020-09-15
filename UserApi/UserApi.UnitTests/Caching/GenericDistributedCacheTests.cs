@@ -94,5 +94,27 @@ namespace UserApi.UnitTests.Caching
 
             result.Should().BeNull();
         }
+
+        [Test]
+        public async Task RefreshAsync_refreshes_cache()
+        {
+            const string objectToCache = "some object value";
+
+            Func<Task<string>> factory = () => Task.FromResult(objectToCache);
+            _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None)).ReturnsAsync((byte[])null);
+            _cache.Setup
+            (
+                x => x.SetAsync
+                (
+                    factory.ToString(),
+                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(objectToCache)),
+                    It.IsAny<DistributedCacheEntryOptions>(), CancellationToken.None
+                )
+            );
+
+            var method = _genericDistributedCache.RefreshCacheAsync(factory);
+            await method;
+            method.IsCompletedSuccessfully.Should().BeTrue();
+        }
     }
 }
