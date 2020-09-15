@@ -68,7 +68,7 @@ namespace UserApi.AcceptanceTests.Steps
             PollForUserGroupAdded(model.UserId).Should().BeTrue("User added to group");
         }
 
-        [Given(@"I have a valid delete judges cache")]
+        [Given(@"I have a valid delete judges cache request")]
         public void GivenIHaveAValidDeleteJudgesCache()
         {
             _context.Request = _context.Delete(RemoveJudgesCache());
