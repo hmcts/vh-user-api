@@ -68,6 +68,12 @@ namespace UserApi.AcceptanceTests.Steps
             PollForUserGroupAdded(model.UserId).Should().BeTrue("User added to group");
         }
 
+        [Given(@"I have a valid refresh judges cache request")]
+        public void GivenIHaveAValidRefreshJudgesCache()
+        {
+            _context.Request = _context.Get(RefreshJudgesCache());
+        }
+
         private NewUserResponse CreateNewUser()
         {
             _createUserRequest = new CreateUserRequestBuilder().Build();

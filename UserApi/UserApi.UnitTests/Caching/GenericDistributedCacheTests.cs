@@ -87,14 +87,34 @@ namespace UserApi.UnitTests.Caching
         [Test]
         public async Task GetOrAddAsync_return_default_value_when_factory_returns_null()
         {
-            const string objectToCache = "some object value";
-
             Func<Task<string>> factory = () => Task.FromResult((string)null);
             _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None)).ReturnsAsync(new byte[] { });
 
             var result = await _genericDistributedCache.GetOrAddAsync(factory);
 
             result.Should().BeNull();
+        }
+
+        [Test]
+        public async Task RefreshAsync_refreshes_cache()
+        {
+            const string objectToCache = "some object value";
+
+            Func<Task<string>> factory = () => Task.FromResult(objectToCache);
+            _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None)).ReturnsAsync((byte[])null);
+            _cache.Setup
+            (
+                x => x.SetAsync
+                (
+                    factory.ToString(),
+                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(objectToCache)),
+                    It.IsAny<DistributedCacheEntryOptions>(), CancellationToken.None
+                )
+            );
+
+            var method = _genericDistributedCache.RefreshCacheAsync(factory);
+            await method;
+            method.IsCompletedSuccessfully.Should().BeTrue();
         }
     }
 }

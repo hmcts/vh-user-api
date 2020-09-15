@@ -61,7 +61,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_badrequest_with_invalid_AddUserToGroupRequest()
+        public async Task Should_return_bad_request_with_invalid_AddUserToGroupRequest()
         {
             request.GroupName = string.Empty;
 
@@ -72,7 +72,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_notfound_with_no_matching_group_by_name()
+        public async Task Should_return_not_found_with_no_matching_group_by_name()
         {
             _userAccountService.Setup(u => u.GetGroupByNameAsync(request.GroupName)).ReturnsAsync((Group)null);
 
@@ -83,7 +83,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_notfound_with_no_matching_user_by_filter()
+        public async Task Should_return_not_found_with_no_matching_user_by_filter()
         {
             _userAccountService.Setup(u => u.GetUserByFilterAsync(It.IsAny<string>())).ReturnsAsync((User)null);
 
@@ -95,7 +95,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_notfound_with_UserServiceException()
+        public async Task Should_return_not_found_with_UserServiceException()
         {
             _userAccountService.Setup(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>())).ThrowsAsync(new UserServiceException("",""));
 
@@ -122,7 +122,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_badrequest_with_invalid_groupName()
+        public async Task Should_return_bad_request_with_invalid_groupName()
         {
             var name = string.Empty;
 
@@ -154,7 +154,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_badrequest_with_invalid_groupId()
+        public async Task Should_return_bad_request_with_invalid_groupId()
         {
             var groupId = string.Empty;
 
@@ -191,7 +191,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_badrequest_with_invalid_userid()
+        public async Task Should_return_bad_request_with_invalid_userid()
         {
             var userId = string.Empty;
 
@@ -202,7 +202,7 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_notfound_when_no_matching_group_is_found()
+        public async Task Should_return_not_found_when_no_matching_group_is_found()
         {
             const string userId = "123";             
 

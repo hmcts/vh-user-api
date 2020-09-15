@@ -198,7 +198,20 @@ namespace UserApi.Controllers
 
             return Ok(adJudges);
         }
-        
+
+        /// <summary>
+        ///     Refresh Judge List Cache
+        /// </summary>
+        [HttpGet("judges/cache", Name = "RefreshJudgeCache")]
+        [SwaggerOperation(OperationId = "RefreshJudgeCache")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RefreshJudgeCache()
+        {
+            await _distributedCache.RefreshCacheAsync(() => _userAccountService.GetJudgesAsync());
+
+            return Ok();
+        }
+
         /// <summary>
         /// Delete an AAD user
         /// </summary>

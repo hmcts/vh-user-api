@@ -7,5 +7,6 @@ namespace UserApi.Caching
     {
         Task<T> GetOrAddAsync<T>(Func<Task<T>> factory);
         Task<T> GetOrAddAsync<T>(string key, Func<Task<T>> factory);
+        Task RefreshCacheAsync<T>(Func<Task<T>> factory);
     }
 }

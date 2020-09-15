@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
-using Testing.Common.Helpers;
 using UserApi.Security;
 
 namespace UserApi.UnitTests.Services.UserAccountService
@@ -32,18 +30,17 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public void Should_return_user_exception_for_other_responses()
         {
-            var reason = "User not authorised";
+            const string REASON = "User not authorised";
 
-            var expectedGroup = new Group {Id = GroupName, DisplayName = GroupName};
             DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
                 .Callback((string key, Func<Task<Group>> factory) => factory())
-                .ThrowsAsync(new UserServiceException($"Failed to get group by name {GroupName}", reason));
+                .ThrowsAsync(new UserServiceException($"Failed to get group by name {GroupName}", REASON));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByNameAsync(GroupName));
 
             response.Should().NotBeNull();
-            response.Message.Should().Be($"Failed to get group by name {GroupName}: {reason}");
-            response.Reason.Should().Be(reason);
+            response.Message.Should().Be($"Failed to get group by name {GroupName}: {REASON}");
+            response.Reason.Should().Be(REASON);
         }
     }
 }

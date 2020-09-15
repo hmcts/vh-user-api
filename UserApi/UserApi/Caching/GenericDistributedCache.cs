@@ -18,7 +18,6 @@ namespace UserApi.Caching
         public async Task<T> GetOrAddAsync<T>(Func<Task<T>> factory)
         {
             var key = factory.ToString();
-
             return await GetOrAddAsync(key, factory);
         }
 
@@ -37,15 +36,32 @@ namespace UserApi.Caching
             {
                 return default;
             }
-            
+
+            await SetAsync(key, result);
+
+            return result;
+        }
+
+        public async Task RefreshCacheAsync<T>(Func<Task<T>> factory)
+        {
+            var key = factory.ToString();
+
+            var result = await factory();
+
+            if (result != null)
+            {
+                await SetAsync(key, result);
+            }
+        }
+
+        private async Task SetAsync(string key, object result)
+        {
             var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
 
             await _distributedCache.SetAsync(key, bytes, new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(3)
             });
-
-            return result;
         }
     }
 }

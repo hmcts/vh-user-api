@@ -53,3 +53,8 @@ Scenario: Get a list of judges from the AD
 	Then the response should have the status OK and success status True
 	And a list of ad judges should be retrieved
 	And the list of ad judges should not contain performance test users
+
+Scenario: Refresh the judges cache
+	Given I have a valid refresh judges cache request
+	When I send the request to the endpoint
+	Then the response should have the status OK and success status True
