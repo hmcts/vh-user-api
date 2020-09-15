@@ -36,13 +36,8 @@ namespace UserApi.Caching
             {
                 return default;
             }
-            
-            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
 
-            await _distributedCache.SetAsync(key, bytes, new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(3)
-            });
+            await SetAsync(key, result);
 
             return result;
         }
@@ -53,6 +48,14 @@ namespace UserApi.Caching
 
             var result = await factory();
 
+            if (result != null)
+            {
+                await SetAsync(key, result);
+            }
+        }
+
+        private async Task SetAsync(string key, object result)
+        {
             var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
 
             await _distributedCache.SetAsync(key, bytes, new DistributedCacheEntryOptions
