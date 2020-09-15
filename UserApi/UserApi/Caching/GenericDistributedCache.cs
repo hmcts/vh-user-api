@@ -18,7 +18,6 @@ namespace UserApi.Caching
         public async Task<T> GetOrAddAsync<T>(Func<Task<T>> factory)
         {
             var key = factory.ToString();
-
             return await GetOrAddAsync(key, factory);
         }
 
@@ -46,6 +45,11 @@ namespace UserApi.Caching
             });
 
             return result;
+        }
+
+        public async Task RemoveCacheAsync(string key)
+        {
+            await _distributedCache.RemoveAsync(key);
         }
     }
 }

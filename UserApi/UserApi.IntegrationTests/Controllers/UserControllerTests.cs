@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -149,7 +148,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task should_get_judges()
+        public async Task Should_get_judges()
         {
             var getResponse = await SendGetRequestAsync(GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -159,6 +158,14 @@ namespace UserApi.IntegrationTests.Controllers
             var testAccount = usersForGroupModel.First(u => u.Email == $"Automation01_AW_Clerk01@{TestConfig.Instance.Settings.ReformEmail}");
             testAccount.Email.Should().NotBeNullOrWhiteSpace();
             testAccount.DisplayName.Should().NotBeNullOrWhiteSpace();
+        }
+
+        [Test]
+        public async Task Should_remove_judges_cache()
+        {
+            var response = await SendDeleteRequestAsync(RemoveJudgesCache());
+            response.IsSuccessStatusCode.Should().BeTrue();
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
         
         [Test]
