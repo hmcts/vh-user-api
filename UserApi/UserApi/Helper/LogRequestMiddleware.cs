@@ -25,7 +25,7 @@ namespace UserApi.Helper
             requestBodyStream.Seek(0, SeekOrigin.Begin);
 
             var url = context.Request.GetDisplayUrl();
-            var requestBodyText = new StreamReader(requestBodyStream).ReadToEnd();
+            var requestBodyText = await new StreamReader(requestBodyStream).ReadToEndAsync();
             var message =
                 $"REQUEST METHOD: {context.Request.Method}, REQUEST BODY: {requestBodyText}, REQUEST URL: {url}";
             var headers

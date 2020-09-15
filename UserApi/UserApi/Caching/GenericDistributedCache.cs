@@ -47,9 +47,18 @@ namespace UserApi.Caching
             return result;
         }
 
-        public async Task RemoveCacheAsync(string key)
+        public async Task RefreshCacheAsync<T>(Func<Task<T>> factory)
         {
-            await _distributedCache.RemoveAsync(key);
+            var key = factory.ToString();
+
+            var result = await factory();
+
+            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
+
+            await _distributedCache.SetAsync(key, bytes, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(3)
+            });
         }
     }
 }

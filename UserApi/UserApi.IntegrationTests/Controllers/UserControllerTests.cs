@@ -161,11 +161,11 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
-        public async Task Should_remove_judges_cache()
+        public async Task Should_refresh_judges_cache()
         {
-            var response = await SendDeleteRequestAsync(RemoveJudgesCache());
+            var response = await SendGetRequestAsync(RefreshJudgesCache());
             response.IsSuccessStatusCode.Should().BeTrue();
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
         
         [Test]

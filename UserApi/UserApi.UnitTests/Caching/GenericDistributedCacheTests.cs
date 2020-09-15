@@ -87,8 +87,6 @@ namespace UserApi.UnitTests.Caching
         [Test]
         public async Task GetOrAddAsync_return_default_value_when_factory_returns_null()
         {
-            const string objectToCache = "some object value";
-
             Func<Task<string>> factory = () => Task.FromResult((string)null);
             _cache.Setup(x => x.GetAsync(factory.ToString(), CancellationToken.None)).ReturnsAsync(new byte[] { });
 

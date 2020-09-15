@@ -198,19 +198,18 @@ namespace UserApi.Controllers
 
             return Ok(adJudges);
         }
+
         /// <summary>
-        ///     Remove Judge List Cache
+        ///     Refresh Judge List Cache
         /// </summary>
-        [HttpDelete("judges/cache", Name = "RemoveJudgeCache")]
-        [SwaggerOperation(OperationId = "RemoveJudgeCache")]
-        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> RemoveJudgeCache()
+        [HttpGet("judges/cache", Name = "RefreshJudgeCache")]
+        [SwaggerOperation(OperationId = "RefreshJudgeCache")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RefreshJudgeCache()
         {
-            const string KEY = "System.Func`1[System.Threading.Tasks.Task`1[System.Collections.Generic.IEnumerable`1[UserApi.Services.Models.UserResponse]]]";
+            await _distributedCache.RefreshCacheAsync(() => _userAccountService.GetJudgesAsync());
 
-            await _distributedCache.RemoveCacheAsync(KEY);
-
-            return NoContent();
+            return Ok();
         }
 
         /// <summary>
