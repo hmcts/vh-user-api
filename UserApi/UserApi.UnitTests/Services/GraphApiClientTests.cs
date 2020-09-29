@@ -11,7 +11,6 @@ using Testing.Common.Helpers;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace UserApi.UnitTests.Services
 {
@@ -19,6 +18,7 @@ namespace UserApi.UnitTests.Services
     {
         private Mock<IGraphApiSettings> _graphApiSettings;
         private Mock<ISecureHttpRequest> _secureHttpRequest;
+        private Mock<IPasswordService> _passwordService;
         private GraphApiClient _client;
         private string _baseUrl;
         private string _queryUrl;
@@ -30,11 +30,12 @@ namespace UserApi.UnitTests.Services
         {
             _secureHttpRequest = new Mock<ISecureHttpRequest>();
             _graphApiSettings = new Mock<IGraphApiSettings>();
+            _passwordService = new Mock<IPasswordService>();
             var settings = new Settings() { DefaultPassword = "TestPwd" };
             _defaultPassword = settings.DefaultPassword;
             _baseUrl = $"{_graphApiSettings.Object.GraphApiBaseUri}/v1.0/{_graphApiSettings.Object.TenantId}";
             _queryUrl = $"{_baseUrl}/users";
-            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, settings);
+            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
         }
 
         [Test]
@@ -154,6 +155,8 @@ namespace UserApi.UnitTests.Services
             _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                 .ReturnsAsync(responseMessage);
 
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns("TestPwd");
+
             Assert.DoesNotThrowAsync(() => _client.UpdateUserAsync(UserName));
 
             _secureHttpRequest.Verify(x => x.PatchAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
@@ -164,6 +167,8 @@ namespace UserApi.UnitTests.Services
         {
             _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("test",HttpStatusCode.BadRequest));
+
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns("TestPwd");
 
             Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserAsync(UserName));
         }
