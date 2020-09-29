@@ -134,6 +134,12 @@ namespace UserApi.AcceptanceTests.Steps
             _context.Request = _context.Delete(DeleteUser(_newUsername));
         }
 
+        [Given(@"I have an update user request for the new user")]
+        public void GivenIHaveAnUpdateUserRequestForTheNewUser()
+        {
+            _context.Request = _context.Patch(UpdateUser(), _newUsername);
+        }
+
         [Given(@"I have a get user profile by email request for an existing email")]
         public void GivenIHaveAGetUserProfileByEmailRequestForAnExistingEmail()
         {

@@ -157,7 +157,37 @@ namespace UserApi.UnitTests.Services
 
             _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns("TestPwd");
 
-            Assert.DoesNotThrowAsync(() => _client.UpdateUserAsync(UserName));
+            Assert.DoesNotThrowAsync(() => _client.UpdateUserPasswordAsync(UserName));
+
+            _secureHttpRequest.Verify(x => x.PatchAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
+        }
+
+        [Test]
+        public async Task Should_be_successful_response_with_new_password_on_update()
+        {
+            const string password = "password";
+            var user = new
+            {
+                userPrincipalName = UserName,
+                passwordProfile = new
+                {
+                    forceChangePasswordNextSignIn = true,
+                    password = password
+                }
+            };
+
+            _queryUrl += $"/{UserName}";
+            var json = JsonConvert.SerializeObject(user);
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
+
+            _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(responseMessage);
+
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(password);
+
+            var result = await _client.UpdateUserPasswordAsync(UserName);
+
+            result.Should().Be(password);
 
             _secureHttpRequest.Verify(x => x.PatchAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
         }
@@ -170,7 +200,7 @@ namespace UserApi.UnitTests.Services
 
             _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns("TestPwd");
 
-            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserAsync(UserName));
+            Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserPasswordAsync(UserName));
         }
     }
 }

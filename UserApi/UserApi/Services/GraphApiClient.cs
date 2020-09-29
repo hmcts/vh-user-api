@@ -110,15 +110,17 @@ namespace UserApi.Services
             }
         }
 
-        public async Task UpdateUserAsync(string username)
+        public async Task<string> UpdateUserPasswordAsync(string username)
         {
+            var newPassword = _passwordService.GenerateRandomPasswordWithDefaultComplexity();
+            
             var user = new
             {    
                 userPrincipalName = username,
                 passwordProfile = new
                 {
                     forceChangePasswordNextSignIn = true,
-                    password = _passwordService.GenerateRandomPasswordWithDefaultComplexity()
+                    password = newPassword
                 }
             };
 
@@ -127,6 +129,8 @@ namespace UserApi.Services
             var accessUri = $"{_baseUrl}/users/{username}";
             var response = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             await AssertResponseIsSuccessful(response);
+
+            return newPassword;
         }
     }
 }
