@@ -122,12 +122,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_update_user_data_in_aad()
         {
-            IdentityServiceApiClient.Setup(x => x.UpdateUserAsync(It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
+            const string newPassword = "newPassword";
+            
+            IdentityServiceApiClient.Setup(x => x.UpdateUserPasswordAsync(It.IsAny<string>()))
+                .ReturnsAsync(newPassword);
 
-            await Service.UpdateUserAsync("known.user@gmail.com");
+            var result = await Service.UpdateUserPasswordAsync("known.user@gmail.com");
 
-            IdentityServiceApiClient.Verify(i => i.UpdateUserAsync(It.IsAny<string>()), Times.Once);
+            result.Should().Be(newPassword);
+
+            IdentityServiceApiClient.Verify(i => i.UpdateUserPasswordAsync(It.IsAny<string>()), Times.Once);
         }
 
         [Test]

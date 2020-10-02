@@ -24,14 +24,19 @@ namespace UserApi.Services
     public class GraphApiClient : IIdentityServiceApiClient {
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
+        private readonly IPasswordService _passwordService;
         private readonly string _baseUrl;
         private readonly string _defaultPassword;
         private readonly string _testDefaultPassword;
 
-        public GraphApiClient(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, Settings settings)
+        public GraphApiClient(ISecureHttpRequest secureHttpRequest,
+            IGraphApiSettings graphApiSettings,
+            IPasswordService passwordService,
+            Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
+            _passwordService = passwordService;
             _defaultPassword = settings.DefaultPassword;
             _testDefaultPassword = settings.TestDefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
@@ -105,15 +110,17 @@ namespace UserApi.Services
             }
         }
 
-        public async Task UpdateUserAsync(string username)
+        public async Task<string> UpdateUserPasswordAsync(string username)
         {
+            var newPassword = _passwordService.GenerateRandomPasswordWithDefaultComplexity();
+            
             var user = new
-            {
+            {    
                 userPrincipalName = username,
                 passwordProfile = new
                 {
                     forceChangePasswordNextSignIn = true,
-                    password = _defaultPassword
+                    password = newPassword
                 }
             };
 
@@ -122,6 +129,8 @@ namespace UserApi.Services
             var accessUri = $"{_baseUrl}/users/{username}";
             var response = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             await AssertResponseIsSuccessful(response);
+
+            return newPassword;
         }
     }
 }

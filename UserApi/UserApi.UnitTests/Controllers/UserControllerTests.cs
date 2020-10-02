@@ -17,6 +17,7 @@ using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
+using UserApi.Responses;
 using UserApi.Services;
 using UserApi.Services.Models;
 namespace UserApi.UnitTests.Controllers
@@ -323,15 +324,23 @@ namespace UserApi.UnitTests.Controllers
             {
                 DisplayName = "Sample User",
                 GivenName = "User",
-                Surname = "Sample"
+                Surname = "Sample",
+                UserPrincipalName = email
             };
 
-            _userAccountService.Setup(x => x.GetUserByFilterAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(userResponse));
+            const string password = "Password123";
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).ReturnsAsync(userResponse);
+            _userAccountService.Setup(x => x.UpdateUserPasswordAsync(userResponse.UserPrincipalName)).ReturnsAsync(password);
 
             var result = await _controller.UpdateUser(email);
+            
             result.Should().NotBeNull();
-            result.Should().BeAssignableTo<NoContentResult>();
+            result.Should().BeAssignableTo<OkObjectResult>();
+            var response = (OkObjectResult) result;
+            response.Should().NotBeNull();
+            response.Value.Should().NotBeNull().And.BeAssignableTo<UpdateUserResponse>();
+            response.Value.As<UpdateUserResponse>().NewPassword.Should().Be(password);
+            
             _userAccountService.Verify(x => x.GetUserByFilterAsync(filter), Times.Once);
         }
     }

@@ -19,6 +19,7 @@ namespace UserApi.IntegrationTests.Services
         private SecureHttpRequest _secureHttpRequest;
         private GraphApiClient _identityServiceApiClient;
         private Mock<ICache> _distributedCache;
+        private IPasswordService _passwordService;
 
         [SetUp]
         public void Setup()
@@ -28,7 +29,8 @@ namespace UserApi.IntegrationTests.Services
             var settings = TestConfig.Instance.Settings;
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
-            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, settings);
+            _passwordService = new PasswordService();
+            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
             _distributedCache = new Mock<ICache>();
             _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _distributedCache.Object);
         }
