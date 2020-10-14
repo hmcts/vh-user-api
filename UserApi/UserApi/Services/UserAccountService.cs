@@ -323,9 +323,9 @@ namespace UserApi.Services
             }
         }
 
-        public async Task UpdateUserAsync(string username)
+        public async Task<string> UpdateUserPasswordAsync(string username)
         {
-            await _client.UpdateUserAsync(username);
+            return await _client.UpdateUserPasswordAsync(username);
         }
     }
 }

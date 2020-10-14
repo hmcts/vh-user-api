@@ -12,6 +12,7 @@ using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
+using UserApi.Responses;
 using UserApi.Services;
 using UserApi.Services.Models;
 using UserApi.Validations;
@@ -243,7 +244,7 @@ namespace UserApi.Controllers
         /// <returns>NoContent</returns>
         [HttpPatch(Name = "UpdateUser")]
         [SwaggerOperation(OperationId = "UpdateUser")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(UpdateUserResponse), (int) HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> UpdateUser([FromBody]string username)
@@ -262,8 +263,10 @@ namespace UserApi.Controllers
             {
                 return NotFound();
             }
-            await _userAccountService.UpdateUserAsync(userProfile.UserName);
-            return NoContent();
+            
+            var password = await _userAccountService.UpdateUserPasswordAsync(userProfile.UserName);
+            
+            return Ok(new UpdateUserResponse{NewPassword = password});
         }
     }
 }

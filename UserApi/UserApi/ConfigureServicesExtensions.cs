@@ -25,6 +25,7 @@ namespace UserApi
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
             serviceCollection.AddScoped<ICache, GenericDistributedCache>();
+            serviceCollection.AddScoped<IPasswordService, PasswordService>();
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
             
