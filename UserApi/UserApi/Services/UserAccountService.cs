@@ -21,10 +21,7 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
         private readonly ICache _distributedCache;
-        private readonly bool _isLive;
-        private readonly string _reformEmail;
-        private const string JudgesGroup = "VirtualRoomJudge";
-        private const string JudgesTestGroup = "TestAccount";
+        private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
         private const string UserGroupCacheKey = "cachekey.ad.group";
 
@@ -38,8 +35,7 @@ namespace UserApi.Services
             _graphApiSettings = graphApiSettings;
             _client = client;
             _distributedCache = distributedCache;
-            _isLive = settings.IsLive;
-            _reformEmail = settings.ReformEmail;
+            _settings = settings;
         }
 
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser)
@@ -55,7 +51,16 @@ namespace UserApi.Services
 
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+            try
+            {
+                return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+            }
+            catch (System.Exception ex)
+            {
+                var error = ex.Message;
+                throw;
+            }
+            
         }
 
         public async Task DeleteUserAsync(string username)
@@ -219,7 +224,7 @@ namespace UserApi.Services
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
             var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
-            var username = new IncrementingUsername(baseUsername, _reformEmail);
+            var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
             return username.GetGivenExistingUsers(existingUsernames);
         }
@@ -232,10 +237,10 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
         {
-            var judges = await GetJudgesByGroupNameAsync(JudgesGroup);
+            var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.Judge);
             judges = ExcludePerformanceTestUsersAsync(judges);
             
-            if (_isLive)
+            if (_settings.IsLive)
             {
                 judges = await ExcludeTestJudgesAsync(judges);
             }
@@ -265,7 +270,7 @@ namespace UserApi.Services
         
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesByGroupNameAsync(JudgesTestGroup);
+            var testJudges = await GetJudgesByGroupNameAsync(_settings.AdGroup.JudgesTestGroup);
             
             return judgesList.Except(testJudges, CompareJudgeById);
         }

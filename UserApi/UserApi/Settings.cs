@@ -10,5 +10,16 @@ namespace UserApi
         /// </summary>
         public bool IsLive { get; set; }
         public string ReformEmail { get; set; }
+        public AdGroup AdGroup { get; set; }
+    }
+
+    public class AdGroup
+    {
+        public string CaseType { get; set; }
+        public string Administrator { get; set; }
+        public string Judge { get; set; }
+        public string JudgesTestGroup { get; set; }
+        public string ProfessionalUser { get; set; }
+        public string External { get; set; }
     }
 }

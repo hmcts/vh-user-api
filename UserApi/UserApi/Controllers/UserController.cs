@@ -27,12 +27,14 @@ namespace UserApi.Controllers
         private readonly ICache _distributedCache;
         private readonly IUserAccountService _userAccountService;
         private const string Separator = "; ";
+        private readonly Settings _settings;
 
-        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache)
+        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache, Settings settings)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
             _distributedCache = distributedCache;
+            _settings = settings;
         }
 
         /// <summary>
@@ -99,7 +101,7 @@ namespace UserApi.Controllers
             }
 
             var filter = $"objectId  eq '{userId}'";
-            var profile = new UserProfileHelper(_userAccountService);
+            var profile = new UserProfileHelper(_userAccountService, _settings);
             var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null)
@@ -129,7 +131,7 @@ namespace UserApi.Controllers
             var filterText = userName.Replace("'", "''");
             var filter = $"userPrincipalName  eq '{filterText}'";
 
-            var profile = new UserProfileHelper(_userAccountService);
+            var profile = new UserProfileHelper(_userAccountService, _settings);
             try
             {
                 var userProfile = await profile.GetUserProfileAsync(filter);
@@ -172,7 +174,7 @@ namespace UserApi.Controllers
 
             var emailText = email.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{emailText}')";
-            var profile = new UserProfileHelper(_userAccountService);
+            var profile = new UserProfileHelper(_userAccountService, _settings);
             var userProfile = await profile.GetUserProfileAsync(filter);
 
             if (userProfile == null) return NotFound();
@@ -254,7 +256,7 @@ namespace UserApi.Controllers
 
             var filterText = username.Replace("'", "''");
             var filter = $"userPrincipalName  eq '{filterText}'";
-            var profile = new UserProfileHelper(_userAccountService);
+            var profile = new UserProfileHelper(_userAccountService, _settings);
             var userProfile = await profile.GetUserProfileAsync(filter);
             if (userProfile == null)
             {
