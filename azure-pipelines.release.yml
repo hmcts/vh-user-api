@@ -36,6 +36,8 @@ variables:
 - group: vh-domains-and-urls
 - group: vh-apps-settings-generic
 - group: vh-user-api
+- group: vh-user-groups
+
 - ${{ if ne(variables['Build.Reason'], 'ResourceTrigger') }}:
   - ${{ if containsValue(parameters.prodEnvs, parameters.environment) }}:
     - group: vh-prod

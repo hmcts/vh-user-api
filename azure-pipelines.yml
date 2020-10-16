@@ -115,6 +115,18 @@ parameters:
         value: false
       active:
         value: true
+  - name: AdGroup:CaseType
+    value: $(adgroup-casetype)
+  - name: AdGroup:Administrator
+    value: $(adgroup-administrator)
+  - name: AdGroup:Judge
+    value: $(adgroup-judge)
+  - name: AdGroup:ProfessionalUser
+    value: $(adgroup-professionaluser)
+  - name: AdGroup:JudgesTestGroup
+    value: $(adgroup-judgestestgroup)
+  - name: AdGroup:External
+    value: $(adgroup-external)
 
 variables:
   - group: vh-domains-and-urls
