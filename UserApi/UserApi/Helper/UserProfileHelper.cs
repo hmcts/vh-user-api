@@ -83,27 +83,27 @@ namespace UserApi.Helper
         private bool IsCaseType(Group group)
         {
             return !string.IsNullOrWhiteSpace(group.Description) &&
-                    string.Equals(_settings.AdGroup.CaseType, group.Description, StringComparison.InvariantCultureIgnoreCase);
+                    string.Equals("CaseType", group.Description, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomAdministrator(Group group)
         {
-            return string.Equals(_settings.AdGroup.Administrator, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals("VirtualRoomAdministrator", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomJudge(Group group)
         {
-            return string.Equals(_settings.AdGroup.Judge, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals("VirtualRoomJudge", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomProfessionalUser(Group group)
         {
-            return string.Equals(_settings.AdGroup.ProfessionalUser, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals("VirtualRoomProfessionalUser", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsExternal(Group group)
         {
-            return string.Equals(_settings.AdGroup.External, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals("External", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
