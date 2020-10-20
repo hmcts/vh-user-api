@@ -43,12 +43,13 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_group_by_id()
         {
             var groupId = TestConfig.Instance.TestSettings.ExistingGroups[1].GroupId;
+            var groupName = TestConfig.Instance.TestSettings.ExistingGroups[1].DisplayName;
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
-            Assert.AreEqual(TestConfig.Instance.Settings.AdGroup.External, groupResponseModel.DisplayName);
+            Assert.AreEqual(groupName, groupResponseModel.DisplayName);
         }
 
         [Test]
