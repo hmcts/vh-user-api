@@ -29,16 +29,30 @@ namespace UserApi.UnitTests.Controllers
         private CreateUserRequest _request;
         private NewAdUserAccount _newAdUserAccount;
         private Mock<ICache> _cache;
+        private Settings _settings;
+        protected const string Domain = "@hearings.test.server.net";
 
         [SetUp]
         public void Setup()
         {
             _userAccountService = new Mock<IUserAccountService>();
-            var representativeGroups = new List<Group> {new Group {DisplayName = "VirtualRoomProfessionalUser"}};
+            var representativeGroups = new List<Group> {new Group {DisplayName = "ProfUser"}};
             _userAccountService.Setup(x => x.GetGroupsForUserAsync(It.IsAny<string>()))
                 .ReturnsAsync(representativeGroups);
             var config = TelemetryConfiguration.CreateDefault();
             var client = new TelemetryClient(config);
+            _settings = new Settings { IsLive = true,
+                                        ReformEmail = Domain.Replace("@", ""),
+                                        AdGroup = new AdGroup
+                                        {
+                                            Administrator = "A",
+                                            CaseType = "CT",
+                                            External = "E",
+                                            Judge = "J",
+                                            ProfessionalUser = "ProfUser",
+                                            JudgesTestGroup = "JTG"
+                                        }
+                                    };
 
             _request = Builder<CreateUserRequest>.CreateNew()
                 .With(x => x.FirstName = "John")
@@ -48,8 +62,9 @@ namespace UserApi.UnitTests.Controllers
             _newAdUserAccount = new NewAdUserAccount { UserId = "TestUserId", Username = "TestUserName", OneTimePassword = "TestPassword" };
             _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ReturnsAsync(_newAdUserAccount);
             _cache = new Mock<ICache>();
+
             
-            _controller = new UserController(_userAccountService.Object, client, _cache.Object);
+            _controller = new UserController(_userAccountService.Object, client, _cache.Object, _settings);
         }
 
         [Test]
@@ -92,7 +107,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_user_by_user_id_from_api()
         {
-            const string userId = "b67d648b-f226-4880-88e1-51b6d1ec7da7";
+            string userId = Guid.NewGuid().ToString();
             var userResponse = new User
             {
                 DisplayName = "Sample User",

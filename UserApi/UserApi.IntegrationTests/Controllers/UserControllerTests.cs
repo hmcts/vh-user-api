@@ -52,7 +52,7 @@ namespace UserApi.IntegrationTests.Controllers
             _newUserId = createUserModel.UserId;
 
             var addExternalGroupRequest = new AddUserToGroupRequest
-                {UserId = createUserModel.UserId, GroupName = "External"};
+                {UserId = createUserModel.UserId, GroupName = TestConfig.Instance.Settings.AdGroup.External};
             var addExternalGroupHttpRequest = new StringContent(
                 RequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest),
                 Encoding.UTF8, "application/json");
@@ -64,7 +64,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_user_by_id()
         {
-            const string userId = "60c7fae1-8733-4d82-b912-eece8d55d54c";
+            string userId = TestConfig.Instance.TestSettings.ExistingUserId;
             var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
@@ -199,7 +199,7 @@ namespace UserApi.IntegrationTests.Controllers
             (
                 RequestHelper.SerialiseRequestToSnakeCaseJson(new AddUserToGroupRequest
                 {
-                    UserId = createUserModel.UserId, GroupName = "External"
+                    UserId = createUserModel.UserId, GroupName = TestConfig.Instance.Settings.AdGroup.External
                 }),
                 Encoding.UTF8, "application/json"
             );

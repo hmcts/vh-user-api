@@ -16,7 +16,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetJudgesAsyncTests: UserAccountServiceTests
     {
-        private const string JudgeGroupName = "VirtualRoomJudge";
+        private const string JudgeGroupName = "Judge";
         private readonly string _groupId = "Test123";
         private GraphQueryResponse _graphQueryResponse;
         private string _judgesGroup;
@@ -30,7 +30,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _graphQueryResponse = new GraphQueryResponse() { Value = new List<Group>() };
             _group = new Group() { Id = _groupId };
 
-            _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'VirtualRoomJudge'";
+            _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
             _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
 
@@ -81,7 +81,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             (
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
-                    IsLive = false
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
                 },
                 DistributedCache.Object
             );
@@ -125,7 +129,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             (
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
-                    IsLive = false
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
                 },
                 DistributedCache.Object
             );
@@ -170,7 +178,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             (
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
-                    IsLive = false
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
                 },
                 DistributedCache.Object
             );
@@ -224,7 +236,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             (
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
-                    IsLive = false
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
                 },
                 DistributedCache.Object
             );
@@ -256,7 +272,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             (
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
-                    IsLive = false
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
                 },
                 DistributedCache.Object
             );

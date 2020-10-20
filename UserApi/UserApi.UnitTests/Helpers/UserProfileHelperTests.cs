@@ -17,12 +17,28 @@ namespace UserApi.UnitTests.Helpers
         private UserProfileHelper _helper;
 
         private const string Filter = "some filter";
+        private Settings _settings;
+        protected const string Domain = "@hearings.test.server.net";
 
         [SetUp]
         public void Setup()
         {
             _accountService = new Mock<IUserAccountService>();
-            _helper = new UserProfileHelper(_accountService.Object);
+            _settings = new Settings
+            {
+                IsLive = true,
+                ReformEmail = Domain.Replace("@", ""),
+                AdGroup = new AdGroup
+                {
+                    Administrator = "Admin",
+                    CaseType = "CT",
+                    External = "Ext",
+                    Judge = "JudgeGroup",
+                    ProfessionalUser = "ProfUser",
+                    JudgesTestGroup = "TA"
+                }
+            };
+            _helper = new UserProfileHelper(_accountService.Object, _settings);
         }
         
         [Test]
@@ -58,7 +74,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
-            GivenFilterReturnsUserWithGroups("VirtualRoomJudge");
+            GivenFilterReturnsUserWithGroups("JudgeGroup");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -68,7 +84,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
         {
-            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator");
+            GivenFilterReturnsUserWithGroups("Admin");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -78,7 +94,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
         {
-            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator", "Financial Remedy");
+            GivenFilterReturnsUserWithGroups("Admin", "Financial Remedy");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -88,7 +104,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
-            GivenFilterReturnsUserWithGroups("VirtualRoomProfessionalUser");
+            GivenFilterReturnsUserWithGroups("ProfUser");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -98,7 +114,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_individual_for_user_with_external_group()
         {
-            GivenFilterReturnsUserWithGroups("External");
+            GivenFilterReturnsUserWithGroups("Ext");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -151,7 +167,7 @@ namespace UserApi.UnitTests.Helpers
                 UserPrincipalName = "bob.mcgregor@hearings.test.server.net"
             };
 
-            GivenFilterReturnsUserWithGroups(user, null, "External");
+            GivenFilterReturnsUserWithGroups(user, null, "Ext");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -176,7 +192,7 @@ namespace UserApi.UnitTests.Helpers
                 UserPrincipalName = "bo'b.mcg'regor@hearings.test.server.net"
             };
 
-            GivenFilterReturnsUserWithGroups(user, null, "External");
+            GivenFilterReturnsUserWithGroups(user, null, "Ext");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -208,7 +224,7 @@ namespace UserApi.UnitTests.Helpers
         {
             var user = new User { Id = Guid.NewGuid().ToString() };
 
-            GivenFilterReturnsUserWithGroups(user, "CaseType", groupDisplayNames);
+            GivenFilterReturnsUserWithGroups(user, "CT", groupDisplayNames);
         }
     }
 }

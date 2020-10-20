@@ -36,6 +36,8 @@ variables:
 - group: vh-domains-and-urls
 - group: vh-apps-settings-generic
 - group: vh-user-api
+- group: vh-user-groups
+
 - ${{ if ne(variables['Build.Reason'], 'ResourceTrigger') }}:
   - ${{ if containsValue(parameters.prodEnvs, parameters.environment) }}:
     - group: vh-prod
@@ -160,3 +162,15 @@ extends:
           value: $(reformemail)
         - name: TestDefaultPassword
           value: $(testDefaultPassword)
+        - name: AdGroup:CaseType
+          value: $(adgroup-casetype)
+        - name: AdGroup:Administrator
+          value: $(adgroup-administrator)
+        - name: AdGroup:Judge
+          value: $(adgroup-judge)
+        - name: AdGroup:ProfessionalUser
+          value: $(adgroup-professionaluser)
+        - name: AdGroup:JudgesTestGroup
+          value: $(adgroup-judgestestgroup)
+        - name: AdGroup:External
+          value: $(adgroup-external)

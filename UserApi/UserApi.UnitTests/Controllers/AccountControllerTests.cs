@@ -109,7 +109,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_group_by_name_from_api()
         {
-            const string groupName = "VirtualRoomAdministrator";
+            const string groupName = "VA";
             var response = new Group();
             var groupResponse = new GroupsResponse();
 
@@ -138,11 +138,11 @@ namespace UserApi.UnitTests.Controllers
             const string groupId = "123";
             var response = new Group
             {
-                DisplayName = "External"
+                DisplayName = "Ext"
             };
             var groupResponse = new GroupsResponse
             {
-                DisplayName = "External",
+                DisplayName = "Ext",
                 GroupId = "123"
             };
 
@@ -170,7 +170,7 @@ namespace UserApi.UnitTests.Controllers
             const string userId = "123";
             var group = new Group
             {
-                DisplayName = "External"
+                DisplayName = "Ext"
             };
             var response = new List<Group>
             {
@@ -179,7 +179,7 @@ namespace UserApi.UnitTests.Controllers
 
             IEnumerable<GroupsResponse> groupResponseList = new[]
             {
-                new GroupsResponse {DisplayName = "External"}
+                new GroupsResponse {DisplayName = "Ext"}
             };
 
             _userAccountService.Setup(x => x.GetGroupsForUserAsync(userId)).ReturnsAsync(response);

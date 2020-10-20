@@ -11,10 +11,12 @@ namespace UserApi.Helper
     public class UserProfileHelper
     {
         private readonly IUserAccountService _userAccountService;
-
-        public UserProfileHelper(IUserAccountService userAccountService)
+        private readonly Settings _settings;
+        
+        public UserProfileHelper(IUserAccountService userAccountService, Settings settings)
         {
             _userAccountService = userAccountService;
+            _settings = settings;
         }
 
         public async Task<UserProfile> GetUserProfileAsync(string filter)
@@ -48,7 +50,7 @@ namespace UserApi.Helper
             return response;
         }
 
-        private static UserRole GetUserRole(ICollection<Group> userGroups)
+        private UserRole GetUserRole(ICollection<Group> userGroups)
         {
             if (userGroups.Any(IsVirtualRoomAdministrator))
             {
@@ -78,30 +80,30 @@ namespace UserApi.Helper
             throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
         }
 
-        private static bool IsCaseType(Group group)
+        private bool IsCaseType(Group group)
         {
             return !string.IsNullOrWhiteSpace(group.Description) &&
-                    string.Equals("CaseType", group.Description, StringComparison.InvariantCultureIgnoreCase);
+                    string.Equals(_settings.AdGroup.CaseType, group.Description, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private static bool IsVirtualRoomAdministrator(Group group)
+        private bool IsVirtualRoomAdministrator(Group group)
         {
-            return string.Equals("VirtualRoomAdministrator", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(_settings.AdGroup.Administrator, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private static bool IsVirtualRoomJudge(Group group)
+        private bool IsVirtualRoomJudge(Group group)
         {
-            return string.Equals("VirtualRoomJudge", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(_settings.AdGroup.Judge, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private static bool IsVirtualRoomProfessionalUser(Group group)
+        private bool IsVirtualRoomProfessionalUser(Group group)
         {
-            return string.Equals("VirtualRoomProfessionalUser", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(_settings.AdGroup.ProfessionalUser, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private static bool IsExternal(Group group)
+        private bool IsExternal(Group group)
         {
-            return string.Equals("External", group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(_settings.AdGroup.External, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
