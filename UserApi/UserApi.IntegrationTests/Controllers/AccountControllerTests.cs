@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AcceptanceTests.Common.Api.Helpers;
 using FluentAssertions;
 using NUnit.Framework;
+using Testing.Common.Configuration;
 using Testing.Common.Helpers;
 using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
@@ -29,7 +30,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name()
         {
-            var groupName = "External";
+            var groupName = TestConfig.Instance.Settings.AdGroup.External;
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
@@ -41,13 +42,13 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_id()
         {
-            var groupId = "121fa058-1796-4531-a9ee-63be1d4dc630";
+            var groupId = TestConfig.Instance.TestSettings.ExistingGroups[1].GroupId;
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
-            Assert.AreEqual("External", groupResponseModel.DisplayName);
+            Assert.AreEqual(TestConfig.Instance.Settings.AdGroup.External, groupResponseModel.DisplayName);
         }
 
         [Test]
@@ -61,16 +62,15 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_groups_for_user()
         {
-            // user id for Automation01Administrator01
-            const string userId = "9a435325-df6d-4937-9f37-baca2052dd5d";
+            string userId = TestConfig.Instance.TestSettings.ExistingUserId;
             var getResponse = await SendGetRequestAsync(GetGroupsForUser(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupsForUserModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
-            const string expectedGroupName = "VirtualRoomHearingAdministrator";
+            const string expectedGroupName = "UserApiTestGroup";
             var group = groupsForUserModel.FirstOrDefault(g => g.DisplayName == expectedGroupName);
-            Assert.IsNotNull(group, $"Automation01Administrator01 should have group '{expectedGroupName}'");
+            Assert.IsNotNull(group, $"User should have group '{expectedGroupName}'");
         }
 
         [Test]

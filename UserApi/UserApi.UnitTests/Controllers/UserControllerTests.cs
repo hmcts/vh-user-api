@@ -107,7 +107,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_user_by_user_id_from_api()
         {
-            const string userId = "b67d648b-f226-4880-88e1-51b6d1ec7da7";
+            string userId = Guid.NewGuid().ToString();
             var userResponse = new User
             {
                 DisplayName = "Sample User",
