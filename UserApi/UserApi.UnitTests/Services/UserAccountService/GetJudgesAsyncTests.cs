@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Graph;
 using Moq;
 using Newtonsoft.Json;
@@ -23,6 +25,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
         private string _judgesTestGroup;
         private string _accessUri;
         private Group _group;
+        private readonly TelemetryClient _client;
+
+        public GetJudgesAsyncTests()
+        {
+            var config = TelemetryConfiguration.CreateDefault();
+            _client = new TelemetryClient(config);
+        }
         
         [SetUp]
         public void TestInitialize()
@@ -87,7 +96,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                         Judge = JudgeGroupName
                     }
                 },
-                DistributedCache.Object
+                DistributedCache.Object,
+                _client
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -135,7 +145,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                         Judge = JudgeGroupName
                     }
                 },
-                DistributedCache.Object
+                DistributedCache.Object,
+                _client
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -184,7 +195,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                         Judge = JudgeGroupName
                     }
                 },
-                DistributedCache.Object
+                DistributedCache.Object,
+                _client
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -242,7 +254,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                         Judge = JudgeGroupName
                     }
                 },
-                DistributedCache.Object
+                DistributedCache.Object,
+                _client
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -278,7 +291,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                         Judge = JudgeGroupName
                     }
                 },
-                DistributedCache.Object
+                DistributedCache.Object,
+                _client
             );
 
             var response = await Service.GetJudgesAsync();

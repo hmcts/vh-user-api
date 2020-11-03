@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.ActiveDirectory;
@@ -27,12 +29,14 @@ namespace UserApi.IntegrationTests.Services
             _secureHttpRequest = new SecureHttpRequest();
 
             var settings = TestConfig.Instance.Settings;
+            var config = TelemetryConfiguration.CreateDefault();
+            var client = new TelemetryClient(config);
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _passwordService = new PasswordService();
             _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
             _distributedCache = new Mock<ICache>();
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _distributedCache.Object);
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _distributedCache.Object, client);
         }
 
         [Test]

@@ -10,6 +10,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using UserApi.Caching;
 using UserApi.Common;
 using UserApi.Helper;
@@ -88,8 +90,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             };
             
             DistributedCache = new Mock<ICache>();
+            
+            var config = TelemetryConfiguration.CreateDefault();
+            var client = new TelemetryClient(config);
 
-            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings, DistributedCache.Object);
+            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings, DistributedCache.Object, client);
         }
 
         protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={Filter}&api-version=1.6";

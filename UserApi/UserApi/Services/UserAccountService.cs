@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Graph;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -5,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Newtonsoft.Json;
 using UserApi.Caching;
 using UserApi.Helper;
@@ -21,6 +23,7 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
         private readonly ICache _distributedCache;
+        private readonly TelemetryClient _telemetryClient;
         private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
         private const string UserGroupCacheKey = "cachekey.ad.group";
@@ -29,12 +32,13 @@ namespace UserApi.Services
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, 
-            Settings settings, ICache distributedCache)
+            Settings settings, ICache distributedCache, TelemetryClient telemetryClient)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
             _distributedCache = distributedCache;
+            _telemetryClient = telemetryClient;
             _settings = settings;
         }
 
@@ -45,7 +49,6 @@ namespace UserApi.Services
             var user = await GetUserByFilterAsync(filter);
             if (user != null)
             {
-                // Avoid including the exact email to not leak it to logs
                 throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
             }
 
@@ -55,9 +58,13 @@ namespace UserApi.Services
             {
                 return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                var error = ex.Message;
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    {"username", username}, {"recoveryEmail", recoveryEmail}
+                });
+                
                 throw;
             }
             

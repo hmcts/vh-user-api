@@ -75,13 +75,19 @@ namespace UserApi.Controllers
                 };
                 return CreatedAtRoute("GetUserByAdUserId", new {userId = adUserAccount.UserId}, response);
             }
-            catch (UserExistsException e)
+            catch (UserExistsException ex)
             {
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    {"problem", "CreateUserAsync: UserExists"},
+                    {"user", $"{request.FirstName} {request.LastName}"}, {"recoveryEmail", request.RecoveryEmail}
+                });
+                
                 return new ConflictObjectResult(new
                 {
                     Message = "User already exists",
                     Code = "UserExists",
-                    e.Username
+                    ex.Username
                 });
             }
         }
