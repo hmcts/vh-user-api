@@ -32,7 +32,7 @@ namespace UserApi.IntegrationTests.Controllers
                 LastName = $"Automation_{Name.Last()}"
             };
             var createUserHttpRequest = new StringContent(
-                RequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+                RequestHelper.Serialise(createUserRequest),
                 Encoding.UTF8, "application/json");
 
             var createUserResponse =
@@ -40,9 +40,9 @@ namespace UserApi.IntegrationTests.Controllers
 
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel =
-                RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(createUserResponse.Content
+                RequestHelper.Deserialise<NewUserResponse>(createUserResponse.Content
                     .ReadAsStringAsync().Result);
-            TestContext.WriteLine($"Response:{RequestHelper.SerialiseRequestToSnakeCaseJson(createUserModel)}");
+            TestContext.WriteLine($"Response:{RequestHelper.Serialise(createUserModel)}");
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
             createUserModel.Username.ToLower().Should()
@@ -54,7 +54,7 @@ namespace UserApi.IntegrationTests.Controllers
             var addExternalGroupRequest = new AddUserToGroupRequest
                 {UserId = createUserModel.UserId, GroupName = TestConfig.Instance.Settings.AdGroup.External};
             var addExternalGroupHttpRequest = new StringContent(
-                RequestHelper.SerialiseRequestToSnakeCaseJson(addExternalGroupRequest),
+                RequestHelper.Serialise(addExternalGroupRequest),
                 Encoding.UTF8, "application/json");
             var addExternalGroupHttpResponse =
                 await SendPatchRequestAsync(AddUserToGroup, addExternalGroupHttpRequest);
@@ -68,7 +68,7 @@ namespace UserApi.IntegrationTests.Controllers
             var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                RequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserId.Should().Be(userId);
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
@@ -82,7 +82,7 @@ namespace UserApi.IntegrationTests.Controllers
             var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                RequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserRole.Should().Be("CaseAdmin");
             userResponseModel.FirstName.Should().Be("Automation01");
@@ -105,7 +105,7 @@ namespace UserApi.IntegrationTests.Controllers
             var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+                RequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -129,7 +129,7 @@ namespace UserApi.IntegrationTests.Controllers
             var email = $"Admin.Kinly@{TestConfig.Instance.Settings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(getResponse.Content
+            var userResponseModel = RequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -152,7 +152,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(GetJudges());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var usersForGroupModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
+            var usersForGroupModel = RequestHelper.Deserialise<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
             var testAccount = usersForGroupModel.First(u => u.Email == $"Automation01_AW_Clerk01@{TestConfig.Instance.Settings.ReformEmail}");
@@ -177,7 +177,7 @@ namespace UserApi.IntegrationTests.Controllers
                 CreateUser, 
                 new StringContent
                 (
-                    RequestHelper.SerialiseRequestToSnakeCaseJson(new CreateUserRequest
+                    RequestHelper.Serialise(new CreateUserRequest
                     {
                         RecoveryEmail = $"Automation_{Internet.Email()}",
                         FirstName = $"Automation_{Name.First()}",
@@ -188,7 +188,7 @@ namespace UserApi.IntegrationTests.Controllers
             );
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>
+            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
             (
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
@@ -197,7 +197,7 @@ namespace UserApi.IntegrationTests.Controllers
 
             var addExternalGroupHttpRequest = new StringContent
             (
-                RequestHelper.SerialiseRequestToSnakeCaseJson(new AddUserToGroupRequest
+                RequestHelper.Serialise(new AddUserToGroupRequest
                 {
                     UserId = createUserModel.UserId, GroupName = TestConfig.Instance.Settings.AdGroup.External
                 }),

@@ -71,7 +71,7 @@ namespace UserApi.IntegrationTests.Steps
             }
 
             _testContext.HttpContent = new StringContent(
-                RequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+                RequestHelper.Serialise(createUserRequest),
                 Encoding.UTF8, "application/json");
         }
 
@@ -146,12 +146,12 @@ namespace UserApi.IntegrationTests.Steps
             _testContext.HttpMethod = HttpMethod.Post;
             var createUserRequest = new CreateUserRequestBuilder().Build();
             _testContext.HttpContent = new StringContent(
-                RequestHelper.SerialiseRequestToSnakeCaseJson(createUserRequest),
+                RequestHelper.Serialise(createUserRequest),
                 Encoding.UTF8, "application/json");
             _testContext.ResponseMessage = await SendPostRequestAsync(_testContext);
             _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            return RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
+            return RequestHelper.Deserialise<NewUserResponse>(json);
         }
 
         private async Task AddUserToExternalGroup(string userId)
@@ -163,7 +163,7 @@ namespace UserApi.IntegrationTests.Steps
                 UserId = userId,
                 GroupName = TestConfig.Instance.Settings.AdGroup.External
             };
-            var jsonBody = RequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            var jsonBody = RequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             _testContext.ResponseMessage = await SendPatchRequestAsync(_testContext);
             _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -232,7 +232,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheUserShouldBeAdded()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(json);
+            var model = RequestHelper.Deserialise<NewUserResponse>(json);
             model.Should().NotBeNull();
             model.OneTimePassword.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
@@ -244,7 +244,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheUserDetailsShouldBeRetrieved()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
+            var model = RequestHelper.Deserialise<UserProfile>(json);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
@@ -264,7 +264,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheResponseShouldBeEmpty()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(json);
+            var model = RequestHelper.Deserialise<UserProfile>(json);
             model.Should().BeNull();
         }
 

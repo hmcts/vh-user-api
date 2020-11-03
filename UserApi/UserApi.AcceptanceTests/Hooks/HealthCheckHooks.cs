@@ -12,9 +12,10 @@ namespace UserApi.AcceptanceTests.Hooks
         {
             CheckUserApiHealth(context.Config.VhServices.UserApiUrl, context.Tokens.UserApiBearerToken);
         }
+        
         private static void CheckUserApiHealth(string apiUrl, string bearerToken)
         {
-            HealthcheckManager.CheckHealthOfUserApi(apiUrl, bearerToken);
+            HealthcheckManager.Send("healthCheck/health", "UserApi", apiUrl, bearerToken);
         }
     }
 }

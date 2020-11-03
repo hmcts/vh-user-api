@@ -33,7 +33,7 @@ namespace UserApi.IntegrationTests.Controllers
             var groupName = TestConfig.Instance.Settings.AdGroup.External;
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
+            var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
             groupResponseModel.DisplayName.Should().Be(groupName);
             groupResponseModel.GroupId.Should().NotBeNullOrWhiteSpace();
@@ -46,7 +46,7 @@ namespace UserApi.IntegrationTests.Controllers
             var groupName = TestConfig.Instance.TestSettings.ExistingGroups[1].DisplayName;
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupResponseModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(getResponse.Content
+            var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
             Assert.AreEqual(groupName, groupResponseModel.DisplayName);
@@ -66,7 +66,7 @@ namespace UserApi.IntegrationTests.Controllers
             string userId = TestConfig.Instance.TestSettings.ExistingUserId;
             var getResponse = await SendGetRequestAsync(GetGroupsForUser(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var groupsForUserModel = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(getResponse.Content
+            var groupsForUserModel = RequestHelper.Deserialise<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
             const string expectedGroupName = "UserApiTestGroup";
