@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -151,8 +152,7 @@ namespace UserApi.Controllers
             var user = await _userAccountService.GetUserByFilterAsync(filter);
             if (user == null)
             {
-                _telemetryClient.TrackTrace(new TraceTelemetry($"User with ID '{request.UserId}' not found ",
-                    SeverityLevel.Error));
+                _telemetryClient.TrackTrace($"User with ID '{request.UserId}' not found ", SeverityLevel.Error);
 
                 ModelState.AddModelError(nameof(user), "User not found");
                 return NotFound(ModelState);
@@ -162,10 +162,28 @@ namespace UserApi.Controllers
             {
                 await _userAccountService.AddUserToGroupAsync(user, group);
             }
-            catch (UserServiceException)
+            catch (UserServiceException ex)
             {
                 ModelState.AddModelError(nameof(user), "user already exists");
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    {"problem", $"{ex.GetType().Name} - {ex.Message} : {ex.InnerException?.Message}"},
+                    {"request.UserId", request.UserId},
+                    {"request.GroupName", request.GroupName}
+                });
+                
                 return NotFound(ModelState);
+            }
+            catch (Exception ex)
+            {
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                {
+                    {"problem", $"{ex.GetType().Name} - {ex.Message} : {ex.InnerException?.Message}"},
+                    {"request.UserId", request.UserId},
+                    {"request.GroupName", request.GroupName}
+                });
+
+                throw;
             }
 
             return Accepted();

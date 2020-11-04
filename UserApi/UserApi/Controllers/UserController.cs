@@ -79,7 +79,7 @@ namespace UserApi.Controllers
             {
                 _telemetryClient.TrackException(ex, new Dictionary<string, string>
                 {
-                    {"problem", "CreateUserAsync: UserExists"},
+                    {"problem", "CreateUserAsync: UserAlreadyExists"},
                     {"user", $"{request.FirstName} {request.LastName}"}, {"recoveryEmail", request.RecoveryEmail}
                 });
                 

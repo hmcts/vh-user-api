@@ -56,10 +56,32 @@ namespace UserApi.Services
             var displayName = $"{firstName} {lastName}";
             try
             {
-                return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+                var newUser = await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+                _telemetryClient.TrackEvent($"CREATED_USER: {newUser != null}", new Dictionary<string, string>
+                {
+                    {"newUser.UserId", newUser?.UserId},
+                    {"newUser.Username", newUser?.Username},
+                    {"GeneratedUserName", username},
+                    {"displayName", displayName},
+                    {"firstName", firstName},
+                    {"lastName", lastName},
+                    {"recoveryEmail", recoveryEmail},
+                    {"isTestUser", isTestUser.ToString()},
+                    {$"Has OneTimePassword", (!string.IsNullOrWhiteSpace(newUser?.OneTimePassword)).ToString()},
+                });
+                
+                return newUser;
             }
             catch (Exception ex)
             {
+                _telemetryClient.TrackEvent($"CREATED_USER: False", new Dictionary<string, string>
+                {
+                    {"firstName", firstName},
+                    {"lastName", lastName},
+                    {"recoveryEmail", recoveryEmail},
+                    {"isTestUser", isTestUser.ToString()},
+                });
+                
                 _telemetryClient.TrackException(ex, new Dictionary<string, string>
                 {
                     {"username", username}, {"recoveryEmail", recoveryEmail}
@@ -77,6 +99,15 @@ namespace UserApi.Services
 
         public async Task AddUserToGroupAsync(User user, Group group)
         {
+            var properties = new Dictionary<string, string>
+            {
+                {"UserPrincipalName", user.UserPrincipalName}, 
+                {"Mail recoveryEmail", string.Join(", ", user.Mail ?? "NO RECOVERY EMAIL")},
+                {"user.Id", user.Id},
+                {"group.Id", group.Id},
+                {"group.DisplayName", group.DisplayName}
+            };
+            
             var body = new CustomDirectoryObject
             {
                 ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
@@ -84,22 +115,38 @@ namespace UserApi.Services
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
-            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
-            if (responseMessage.IsSuccessStatusCode)
+
+            try
             {
-                return;
+                var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    _telemetryClient.TrackEvent("ADD_USER_TO_GROUPS: True", properties);
+                    return;
+                }
+
+                var reason = await responseMessage.Content.ReadAsStringAsync();
+                properties.Add("reason", reason);
+                
+                // if we failed because the user is already in the group, consider it done anyway
+                if (reason.Contains("already exist"))
+                {
+                    _telemetryClient.TrackEvent("ADD_USER_TO_GROUPS: False - Group already added", properties);
+                    return;
+                }
+
+                var message = $"Failed to add user {user.Id} to group {group.Id}";
+                _telemetryClient.TrackEvent("ADD_USER_TO_GROUPS: False", properties);
+                
+                throw new UserServiceException(message, reason);
             }
-
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-
-            // if we failed because the user is already in the group, consider it done anyway
-            if (reason.Contains("already exist"))
+            catch (Exception ex)
             {
-                return;
+                _telemetryClient.TrackEvent($"ADD_USER_TO_GROUPS: False", properties);
+                _telemetryClient.TrackException(ex, properties);
+                
+                throw;
             }
-
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
-            throw new UserServiceException(message, reason);
         }
 
         public async Task<User> GetUserByFilterAsync(string filter)
@@ -109,11 +156,12 @@ namespace UserApi.Services
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                var queryResponse = await responseMessage.Content
-                    .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
+                var queryResponse = await responseMessage.Content.ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
+                
                 if (queryResponse.Value != null && queryResponse.Value.Any())
                 {
                     var adUser = queryResponse.Value[0];
+                    
                     return new User
                     {
                         Id = adUser.ObjectId,
@@ -126,17 +174,30 @@ namespace UserApi.Services
                 }
                 else
                 {
+                    _telemetryClient.TrackEvent($"GET_USER_BY_FILTER: False", new Dictionary<string, string>
+                    {
+                        {"queryResponse value", "Null or empty"}
+                    });
+                    
                     return null;
                 }
             }
 
             if (responseMessage.StatusCode == HttpStatusCode.NotFound)
             {
+                _telemetryClient.TrackEvent($"GET_USER_BY_FILTER: False: NotFound");
+                
                 return null;
             }
 
             var message = $"Failed to search user with filter {filter}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
+            
+            _telemetryClient.TrackEvent($"GET_USER_BY_FILTER: False: {message}", new Dictionary<string, string>
+            {
+                {"reason", reason}
+            });
+            
             throw new UserServiceException(message, reason);
         }
 
