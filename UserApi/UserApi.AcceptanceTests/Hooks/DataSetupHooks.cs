@@ -22,7 +22,7 @@ namespace UserApi.AcceptanceTests.Hooks
             context.Request = context.Get(GetGroupsForUser(context.Config.TestSettings.ExistingUserId));
             context.Response = context.Client().Execute(context.Request);
             context.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(context.Response.Content);
+            var model = RequestHelper.Deserialise<List<GroupsResponse>>(context.Response.Content);
             var actualGroups = model.Select(@group => new Group() { GroupId = @group.GroupId, DisplayName = @group.DisplayName }).ToList();
             foreach (var expectedGroup in context.Config.TestSettings.ExistingGroups)
             {

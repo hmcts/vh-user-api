@@ -14,7 +14,7 @@ namespace UserApi.AcceptanceTests.Hooks
         }
         private static void CheckUserApiHealth(string apiUrl, string bearerToken)
         {
-            HealthcheckManager.CheckHealthOfUserApi(apiUrl, bearerToken);
+            HealthcheckManager.Send("healthCheck/health", "UserApi", apiUrl, bearerToken);
         }
     }
 }

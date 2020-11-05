@@ -80,7 +80,7 @@ namespace UserApi.AcceptanceTests.Steps
             _context.Request = _context.Post(CreateUser, _createUserRequest);
             _commonSteps.WhenISendTheRequestToTheEndpoint();
             _commonSteps.ThenTheResponseShouldHaveTheStatusAndSuccessStatus(HttpStatusCode.Created, true);
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Response.Content);
+            var model = RequestHelper.Deserialise<NewUserResponse>(_context.Response.Content);
             model.Username.Should().NotBeNullOrEmpty();
             return model;
         }
@@ -118,7 +118,7 @@ namespace UserApi.AcceptanceTests.Steps
             for (var i = 0; i < Timeout; i++)
             {
                 _commonSteps.WhenISendTheRequestToTheEndpoint();
-                var groups = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Response.Content);
+                var groups = RequestHelper.Deserialise<List<GroupsResponse>>(_context.Response.Content);
                 if (groups.Any(x => x.DisplayName.Equals("External")))
                 {
                     return true;
@@ -165,7 +165,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the user should be added")]
         public void ThenTheUserShouldBeAdded()
         {
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<NewUserResponse>(_context.Response.Content);
+            var model = RequestHelper.Deserialise<NewUserResponse>(_context.Response.Content);
             model.Should().NotBeNull();
 
             if (_createUserRequest.IsTestUser)
@@ -185,7 +185,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the user details should be retrieved")]
         public void ThenTheUserDetailsShouldBeRetrieved()
         {
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<UserProfile>(_context.Response.Content);
+            var model = RequestHelper.Deserialise<UserProfile>(_context.Response.Content);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.Email.Should().NotBeNullOrEmpty();
@@ -198,7 +198,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad judges should be retrieved")]
         public void ThenAListOfAdJudgesShouldBeRetrieved()
         {
-            var actualJudges = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_context.Response.Content);
+            var actualJudges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
             actualJudges.Should().NotBeNull();
             foreach (var user in actualJudges)
             {
@@ -214,7 +214,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the list of ad judges should not contain performance test users")]
         public void TheListOfAdJudgesShouldNotContainPerformanceTestUsers()
         {
-            var actualJudges = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<UserResponse>>(_context.Response.Content);
+            var actualJudges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
             actualJudges.Should().NotBeNull();
             actualJudges.Any(x => x.FirstName == "TP").Should().BeFalse();
         }
