@@ -83,7 +83,7 @@ namespace UserApi.AcceptanceTests.Hooks
             ConfigurationManager.VerifyConfigValuesSet(context.Config.VhServices);
         }
 
-        private async Task GenerateBearerTokens(TestContext context)
+        private static async Task GenerateBearerTokens(TestContext context)
         {
             var azureConfig = new AzureAdConfig()
             {
