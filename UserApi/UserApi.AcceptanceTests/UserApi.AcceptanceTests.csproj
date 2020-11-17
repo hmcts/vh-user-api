@@ -14,28 +14,28 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="2.8.1">
+    <PackageReference Include="coverlet.msbuild" Version="2.9.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Faker.NETCore" Version="1.0.2" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="RestSharp" Version="106.10.1" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.6.1.17183">
+    <PackageReference Include="RestSharp" Version="106.11.7" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.14.0.22654">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SpecFlow" Version="3.1.97" />
-    <PackageReference Include="SpecFlow.NUnit" Version="3.1.97" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.1.97" />
-    <PackageReference Include="VH.AcceptanceTests.Common" Version="1.0.178" />
+    <PackageReference Include="SpecFlow" Version="3.5.5" />
+    <PackageReference Include="SpecFlow.NUnit" Version="3.5.5" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.5.5" />
+    <PackageReference Include="VH.AcceptanceTests.Common" Version="1.20.4" />
   </ItemGroup>
 
   <ItemGroup>

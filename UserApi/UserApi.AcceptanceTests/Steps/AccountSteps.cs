@@ -57,7 +57,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the ad groups should be retrieved")]
         public void ThenTheAdGroupsShouldBeRetrieved()
         {
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(_context.Response.Content);
+            var model = RequestHelper.Deserialise<GroupsResponse>(_context.Response.Content);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.GroupId.Should().NotBeNullOrEmpty();
@@ -66,7 +66,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad groups should be retrieved")]
         public void ThenAListOfAdGroupsShouldBeRetrieved()
         {
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(_context.Response.Content);
+            var model = RequestHelper.Deserialise<List<GroupsResponse>>(_context.Response.Content);
             model.Should().NotBeNull();
             foreach (var group in model)
             {
