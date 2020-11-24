@@ -55,9 +55,10 @@ namespace UserApi.Services
         }
 
         public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false)
-        {            
+        {
             // the user object provided by the graph api nuget package is missing the otherMails property
             // but it's there in the API so using a dynamic request model instead
+            var newPassword = isTestUser ? _testDefaultPassword : _passwordService.GenerateRandomPasswordWithDefaultComplexity();
             var user = new
             {
                 displayName,
@@ -70,7 +71,7 @@ namespace UserApi.Services
                 passwordProfile = new
                 {
                     forceChangePasswordNextSignIn = !isTestUser,
-                    password = isTestUser ? _testDefaultPassword : _defaultPassword
+                    password = newPassword
                 }
             };
 
@@ -83,7 +84,7 @@ namespace UserApi.Services
             var adAccount = JsonConvert.DeserializeObject<User>(responseJson);
             return new NewAdUserAccount
             {
-                OneTimePassword = isTestUser ? _testDefaultPassword : _defaultPassword,
+                OneTimePassword = newPassword,
                 UserId = adAccount.Id,
                 Username = adAccount.UserPrincipalName
             };
