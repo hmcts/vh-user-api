@@ -122,7 +122,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
-            var jsonBody = RequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            var jsonBody = RequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
@@ -155,7 +155,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
-            var jsonBody = RequestHelper.SerialiseRequestToSnakeCaseJson(addUserRequest);
+            var jsonBody = RequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
@@ -163,7 +163,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheAdGroupsShouldBeRetrieved()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<GroupsResponse>(json);
+            var model = RequestHelper.Deserialise<GroupsResponse>(json);
             model.Should().NotBeNull();
             model.DisplayName.Should().Be(_testContext.Config.TestSettings.ExistingGroups.First().DisplayName);
             model.GroupId.Should().Be(_testContext.Config.TestSettings.ExistingGroups.First().GroupId);
@@ -173,7 +173,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenAListOfAdGroupsShouldBeRetrieved()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.DeserialiseSnakeCaseJsonToResponse<List<GroupsResponse>>(json);
+            var model = RequestHelper.Deserialise<List<GroupsResponse>>(json);
             model.Should().NotBeNull();
             foreach (var group in model)
             {
