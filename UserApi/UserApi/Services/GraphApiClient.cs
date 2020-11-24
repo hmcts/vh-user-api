@@ -26,7 +26,6 @@ namespace UserApi.Services
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IPasswordService _passwordService;
         private readonly string _baseUrl;
-        private readonly string _defaultPassword;
         private readonly string _testDefaultPassword;
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest,
@@ -37,7 +36,6 @@ namespace UserApi.Services
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _passwordService = passwordService;
-            _defaultPassword = settings.DefaultPassword;
             _testDefaultPassword = settings.TestDefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
