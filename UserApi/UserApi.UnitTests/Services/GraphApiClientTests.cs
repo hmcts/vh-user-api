@@ -66,6 +66,7 @@ namespace UserApi.UnitTests.Services
 
             _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(),It.IsAny<StringContent>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.User(), HttpStatusCode.OK));
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
 
             var response = await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
 
