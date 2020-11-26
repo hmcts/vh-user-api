@@ -22,7 +22,7 @@ parameters:
 - name: RunZap
   displayName: Execute ZAP Tests
   type: boolean
-  default: false
+  default: true
 
 - name: prodEnvs
   displayName: Environments Using Prod Subscription
@@ -120,6 +120,8 @@ extends:
           value: $(adgroup-judgestestgroup)
         - name: AdGroup:External
           value: $(adgroup-external)
+        - name: ZapConfiguration:BuildConfigMode
+          value: $(zapConfiguration-buildConfigMode)
         - name: ConnectionStrings:RedisCache
           value: redis-connection-str
           secret: true
@@ -186,3 +188,5 @@ extends:
           value: $(adgroup-judgestestgroup)
         - name: AdGroup:External
           value: $(adgroup-external)
+        - name: ZapConfiguration:BuildConfigMode
+          value: $(zapConfiguration-buildConfigMode)

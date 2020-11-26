@@ -94,6 +94,8 @@ parameters:
     value: $(adgroup-judgestestgroup)
   - name: AdGroup:External
     value: $(adgroup-external)
+  - name: ZapConfiguration:BuildConfigMode
+    value: $(zapConfiguration-buildConfigMode)
 
 - name: appSettings
   type: object
