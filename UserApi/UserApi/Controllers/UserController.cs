@@ -101,7 +101,8 @@ namespace UserApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var filter = $"objectId  eq '{userId}'";
+            var filterText = userId.Replace("'", "''");
+            var filter = $"objectId  eq '{filterText}'";
             var profile = new UserProfileHelper(_userAccountService, _settings);
             var userProfile = await profile.GetUserProfileAsync(filter);
 

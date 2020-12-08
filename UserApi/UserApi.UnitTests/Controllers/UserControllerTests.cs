@@ -130,6 +130,33 @@ namespace UserApi.UnitTests.Controllers
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
         }
+        
+        [Test]
+        public async Task Should_get_user_by_user_id_from_api_with_special_characters()
+        {
+            string userId = "john.o'conner@hearings.reform.hmcts.net ";
+            var userResponse = new User
+            {
+                DisplayName = "Sample User",
+                GivenName = "User",
+                Surname = "Sample"
+            };
+            var response = new UserProfile
+            {
+                DisplayName = "Sample User",
+                FirstName = "User",
+                LastName = "Sample"
+            };
+
+            var filter = $"objectId  eq '{userId.Replace("'", "''")}'";
+            _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).Returns(Task.FromResult(userResponse));
+
+            var actionResult = (OkObjectResult) await _controller.GetUserByAdUserId(userId);
+            var actualResponse = (UserProfile) actionResult.Value;
+            actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
+            actualResponse.FirstName.Should().BeSameAs(response.FirstName);
+            actualResponse.LastName.Should().BeSameAs(response.LastName);
+        }
 
         [Test]
         public async Task Should_return_badrequest_with_invalid_userId()
