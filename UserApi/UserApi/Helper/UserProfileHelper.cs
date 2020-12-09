@@ -77,7 +77,7 @@ namespace UserApi.Helper
                 return UserRole.Individual;
             }
 
-            if (userGroups.Any(IsJoh))
+            if (userGroups.Any(IsJudicialOfficeHolder))
             {
                 return UserRole.JudicialOfficeHolder;
             }
@@ -111,7 +111,7 @@ namespace UserApi.Helper
             return string.Equals(_settings.AdGroup.External, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
         
-        private bool IsJoh(Group group)
+        private bool IsJudicialOfficeHolder(Group group)
         {
             return string.Equals(_settings.AdGroup.JudicialOfficeHolder, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
