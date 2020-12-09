@@ -89,7 +89,7 @@ namespace UserApi.UnitTests.Helpers
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("JudicialOffice Holder");
+            userProfile.UserRole.Should().Be("JudicialOfficeHolder");
         }
         
         [Test]
