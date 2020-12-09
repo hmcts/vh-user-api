@@ -77,6 +77,11 @@ namespace UserApi.Helper
                 return UserRole.Individual;
             }
 
+            if (userGroups.Any(IsJoh))
+            {
+                return UserRole.JudicialOfficeHolder;
+            }
+
             throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
         }
 
@@ -104,6 +109,11 @@ namespace UserApi.Helper
         private bool IsExternal(Group group)
         {
             return string.Equals(_settings.AdGroup.External, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+        
+        private bool IsJoh(Group group)
+        {
+            return string.Equals(_settings.AdGroup.JudicialOfficeHolder, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
