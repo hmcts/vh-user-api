@@ -21,5 +21,6 @@ namespace UserApi
         public string JudgesTestGroup { get; set; }
         public string ProfessionalUser { get; set; }
         public string External { get; set; }
+        public string JudicialOfficeHolder { get; set; }
     }
 }

@@ -35,7 +35,8 @@ namespace UserApi.UnitTests.Helpers
                     External = "Ext",
                     Judge = "JudgeGroup",
                     ProfessionalUser = "ProfUser",
-                    JudgesTestGroup = "TA"
+                    JudgesTestGroup = "TA",
+                    JudicialOfficeHolder = "JOH"
                 }
             };
             _helper = new UserProfileHelper(_accountService.Object, _settings);
@@ -79,6 +80,16 @@ namespace UserApi.UnitTests.Helpers
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("Judge");
+        }
+        
+        [Test]
+        public async Task Should_return_joh_for_joh_user()
+        {
+            GivenFilterReturnsUserWithGroups("JOH");
+            
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
+
+            userProfile.UserRole.Should().Be("JudicialOfficeHolder");
         }
         
         [Test]
