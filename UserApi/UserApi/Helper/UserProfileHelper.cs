@@ -77,7 +77,7 @@ namespace UserApi.Helper
                 return UserRole.Individual;
             }
 
-            if (userGroups.Any(IsJudicialOfficeHolder))
+            if (userGroups.Any(IsJudicialOfficeHolder) || userGroups.Any(IsPanelMember) || userGroups.Any(IsWinger))
             {
                 return UserRole.JudicialOfficeHolder;
             }
@@ -114,6 +114,16 @@ namespace UserApi.Helper
         private bool IsJudicialOfficeHolder(Group group)
         {
             return string.Equals(_settings.AdGroup.JudicialOfficeHolder, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+        
+        private bool IsPanelMember(Group group)
+        {
+            return string.Equals(_settings.AdGroup.PanelMember, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+        
+        private bool IsWinger(Group group)
+        {
+            return string.Equals(_settings.AdGroup.Winger, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

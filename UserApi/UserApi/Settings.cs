@@ -22,5 +22,7 @@ namespace UserApi
         public string ProfessionalUser { get; set; }
         public string External { get; set; }
         public string JudicialOfficeHolder { get; set; }
+        public string PanelMember { get; set; }
+        public string Winger { get; set; }
     }
 }
