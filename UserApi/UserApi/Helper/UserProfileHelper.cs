@@ -71,17 +71,17 @@ namespace UserApi.Helper
             {
                 return UserRole.Representative;
             }
-
-            if (userGroups.Any(IsExternal))
-            {
-                return UserRole.Individual;
-            }
-
+            
             if (userGroups.Any(IsJudicialOfficeHolder))
             {
                 return UserRole.JudicialOfficeHolder;
             }
 
+            if (userGroups.Any(IsExternal))
+            {
+                return UserRole.Individual;
+            }
+            
             throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
         }
 
