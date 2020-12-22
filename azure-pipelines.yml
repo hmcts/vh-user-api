@@ -94,6 +94,8 @@ parameters:
     value: $(adgroup-judgestestgroup)
   - name: AdGroup:External
     value: $(adgroup-external)
+  - name: AdGroup:JudicialOfficeHolder
+    value: $(adgroup-judicialofficeholder)
   - name: ZapConfiguration:BuildConfigMode
     value: $(zapConfiguration-buildConfigMode)
 
@@ -132,6 +134,8 @@ parameters:
     value: $(adgroup-judgestestgroup)
   - name: AdGroup:External
     value: $(adgroup-external)
+  - name: AdGroup:JudicialOfficeHolder
+    value: $(adgroup-judicialofficeholder)
   - name: ConnectionStrings:RedisCache
     value: redis-connection-str
     secret: true
