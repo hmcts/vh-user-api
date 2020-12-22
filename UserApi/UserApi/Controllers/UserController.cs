@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using UserApi.Caching;
 using UserApi.Contract.Requests;
@@ -29,13 +30,16 @@ namespace UserApi.Controllers
         private readonly IUserAccountService _userAccountService;
         private const string Separator = "; ";
         private readonly Settings _settings;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache, Settings settings)
+
+        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache, Settings settings, ILogger<UserController> logger)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
             _distributedCache = distributedCache;
             _settings = settings;
+            _logger = logger;
         }
 
         /// <summary>
@@ -133,6 +137,7 @@ namespace UserApi.Controllers
             var filterText = userName.Replace("'", "''");
             var filter = $"userPrincipalName  eq '{filterText}'";
 
+            _logger.LogInformation($"[User_api] Has settings for JOH {_settings.AdGroup.JudicialOfficeHolder}");
             var profile = new UserProfileHelper(_userAccountService, _settings);
             try
             {
