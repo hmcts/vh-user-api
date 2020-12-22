@@ -9,6 +9,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
@@ -31,10 +32,12 @@ namespace UserApi.UnitTests.Controllers
         private Mock<ICache> _cache;
         private Settings _settings;
         protected const string Domain = "@hearings.test.server.net";
+        private Mock<ILogger<UserController>> _logger;
 
         [SetUp]
         public void Setup()
         {
+            _logger = new Mock<ILogger<UserController>>();
             _userAccountService = new Mock<IUserAccountService>();
             var representativeGroups = new List<Group> {new Group {DisplayName = "ProfUser"}};
             _userAccountService.Setup(x => x.GetGroupsForUserAsync(It.IsAny<string>()))
@@ -64,7 +67,7 @@ namespace UserApi.UnitTests.Controllers
             _cache = new Mock<ICache>();
 
             
-            _controller = new UserController(_userAccountService.Object, client, _cache.Object, _settings);
+            _controller = new UserController(_userAccountService.Object, client, _cache.Object, _settings, _logger.Object);
         }
 
         [Test]
