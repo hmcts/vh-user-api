@@ -138,6 +138,7 @@ namespace UserApi.Controllers
             var filter = $"userPrincipalName  eq '{filterText}'";
 
             _logger.LogInformation($"[User_api] Has settings for JOH {_settings.AdGroup.JudicialOfficeHolder}");
+
             var profile = new UserProfileHelper(_userAccountService, _settings);
             try
             {
