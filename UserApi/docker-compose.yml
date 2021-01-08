@@ -3,7 +3,7 @@ version: '3.4'
 services:
   userapi:
     container_name: userapi
-    image: ${DOCKER_REGISTRY-}userapi
+    image: ${DOCKER_REGISTRY-}userapi:latest
     build:
       context: .
       dockerfile: UserApi/Dockerfile
