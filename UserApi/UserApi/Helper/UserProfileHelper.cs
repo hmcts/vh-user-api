@@ -81,8 +81,8 @@ namespace UserApi.Helper
             {
                 return UserRole.Individual;
             }
-            
-            throw new UnauthorizedAccessException("Matching user is not registered with valid groups");
+
+            return UserRole.None;
         }
 
         private bool IsCaseType(Group group)

@@ -133,13 +133,13 @@ namespace UserApi.UnitTests.Helpers
         }
         
         [Test]
-        public void Should_raise_exception_if_user_lacks_video_hearing_groups()
+        public async Task Should_return_none_for_user_with_no_groups()
         {
             GivenFilterReturnsUserWithGroups();
+            
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-           var exception = Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await _helper.GetUserProfileAsync(Filter));
-
-            exception.Message.Should().Be("Matching user is not registered with valid groups");
+            userProfile.UserRole.Should().Be("None");
         }
         
         [Test]
