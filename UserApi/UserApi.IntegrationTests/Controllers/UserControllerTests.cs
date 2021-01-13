@@ -10,6 +10,7 @@ using Faker;
 using FluentAssertions;
 using NUnit.Framework;
 using Testing.Common.Configuration;
+using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
@@ -169,23 +170,32 @@ namespace UserApi.IntegrationTests.Controllers
         }
         
         [Test]
+        public async Task Should_get_none_user_role_for_user_not_in_group()
+        {
+            // Create User
+            var createUserResponse = await CreateAdUser();
+            
+            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
+            (
+                createUserResponse.Content.ReadAsStringAsync().Result
+            );
+            
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var userResponseModel = RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
+            userResponseModel.UserRole.Should().Be("None");
+
+            // Delete User
+            var result = await SendDeleteRequestAsync(DeleteUser(createUserModel.Username));
+            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+        
+        [Test]
         public async Task Should_delete_user()
         {
             // Create User
-            var createUserResponse = await SendPostRequestAsync
-            (
-                CreateUser, 
-                new StringContent
-                (
-                    RequestHelper.Serialise(new CreateUserRequest
-                    {
-                        RecoveryEmail = $"Automation_{Internet.Email()}",
-                        FirstName = $"Automation_{Name.First()}",
-                        LastName = $"Automation_{Name.Last()}"
-                    }),
-                    Encoding.UTF8, "application/json"
-                )
-            );
+            var createUserResponse = await CreateAdUser();
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel = RequestHelper.Deserialise<NewUserResponse>
@@ -194,7 +204,6 @@ namespace UserApi.IntegrationTests.Controllers
             );
             
             //Add User to group
-
             var addExternalGroupHttpRequest = new StringContent
             (
                 RequestHelper.Serialise(new AddUserToGroupRequest
@@ -223,6 +232,24 @@ namespace UserApi.IntegrationTests.Controllers
             var result = client.SendAsync(httpRequestMessage).Result;
             result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
             _newUserId = null;
+        }
+
+        private async Task<HttpResponseMessage> CreateAdUser()
+        {
+            return await SendPostRequestAsync
+            (
+                CreateUser,
+                new StringContent
+                (
+                    RequestHelper.Serialise(new CreateUserRequest
+                    {
+                        RecoveryEmail = $"Automation_{Internet.Email()}",
+                        FirstName = $"Automation_{Name.First()}",
+                        LastName = $"Automation_{Name.Last()}"
+                    }),
+                    Encoding.UTF8, "application/json"
+                )
+            );
         }
     }
 }
