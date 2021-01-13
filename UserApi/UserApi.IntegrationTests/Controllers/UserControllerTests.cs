@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,6 +10,7 @@ using AcceptanceTests.Common.Api.Helpers;
 using Faker;
 using FluentAssertions;
 using NUnit.Framework;
+using Polly;
 using Testing.Common.Configuration;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
@@ -180,8 +182,14 @@ namespace UserApi.IntegrationTests.Controllers
             (
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
+
+            const int RETRIES = 5;
+
+            var policy = Policy
+                .HandleResult<HttpResponseMessage>(message => !message.IsSuccessStatusCode)
+                .WaitAndRetryAsync(RETRIES, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
             
-            var getResponse = await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username));
+            var getResponse = await policy.ExecuteAsync(async () => await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username)));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel = RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
             userResponseModel.UserRole.Should().Be("None");
