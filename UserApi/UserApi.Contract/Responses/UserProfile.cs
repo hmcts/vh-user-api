@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UserApi.Services.Models
+namespace UserApi.Contract.Responses
 {
     public class UserProfile
     {

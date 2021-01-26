@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using NSwag.Annotations;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Security;
@@ -33,7 +33,7 @@ namespace UserApi.Controllers
         ///     Get AD Group By Name
         /// </summary>
         [HttpGet("group", Name = "GetGroupByName")]
-        [SwaggerOperation(OperationId = "GetGroupByName")]
+        [OpenApiOperation("GetGroupByName")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupByName([FromQuery] string name)
@@ -60,7 +60,7 @@ namespace UserApi.Controllers
         ///     Get AD Group By Id
         /// </summary>
         [HttpGet("group/{groupId?}", Name = "GetGroupById")]
-        [SwaggerOperation(OperationId = "GetGroupById")]
+        [OpenApiOperation("GetGroupById")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupById(string groupId)
@@ -93,7 +93,7 @@ namespace UserApi.Controllers
         ///     Get AD Group For a User
         /// </summary>
         [HttpGet("user/{userId?}/groups", Name = "GetGroupsForUser")]
-        [SwaggerOperation(OperationId = "GetGroupsForUser")]
+        [OpenApiOperation("GetGroupsForUser")]
         [ProducesResponseType(typeof(List<GroupsResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupsForUser(string userId)
@@ -119,7 +119,7 @@ namespace UserApi.Controllers
         ///     Add a user to a group
         /// </summary>
         [HttpPatch("user/group", Name = "AddUserToGroup")]
-        [SwaggerOperation(OperationId = "AddUserToGroup")]
+        [OpenApiOperation("AddUserToGroup")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]

@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UserApi.Caching;
+using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -38,7 +39,8 @@ namespace UserApi.Services
             _settings = settings;
         }
 
-        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser)
+        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail,
+            bool isTestUser)
         {
             var recoveryEmailText = recoveryEmail.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
@@ -51,16 +53,8 @@ namespace UserApi.Services
 
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            try
-            {
-                return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
-            }
-            catch (System.Exception ex)
-            {
-                var error = ex.Message;
-                throw;
-            }
-            
+
+            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
         }
 
         public async Task DeleteUserAsync(string username)

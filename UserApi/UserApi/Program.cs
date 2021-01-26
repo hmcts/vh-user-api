@@ -1,20 +1,23 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices.ComTypes;
+﻿using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace UserApi
 {
-    public static class Program
+    public class Program
     {
+        protected Program()
+        {
+        }
+        
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
-        private static IHostBuilder CreateWebHostBuilder(string[] args)
+        // ReSharper disable once MemberCanBePrivate.Global Needed for client generation on build with nswag
+        public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
@@ -27,7 +30,7 @@ namespace UserApi
                 .ConfigureAppConfiguration((_, configuration) => AddAllKeysPerFileForKubernetes(configuration));
         }
 
-        public static void AddAllKeysPerFileForKubernetes(this IConfigurationBuilder configuration)
+        private static void AddAllKeysPerFileForKubernetes(IConfigurationBuilder configuration)
         {
             const string rootPath = "/mnt/secret/vh-infra-core/vh-user-api";
 

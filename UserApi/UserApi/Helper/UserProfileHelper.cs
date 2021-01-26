@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UserApi.Contract.Responses;
 using UserApi.Services;
-using UserApi.Services.Models;
 
 namespace UserApi.Helper
 {

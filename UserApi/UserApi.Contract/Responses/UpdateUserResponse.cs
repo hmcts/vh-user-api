@@ -1,4 +1,4 @@
-namespace UserApi.Responses
+namespace UserApi.Contract.Responses
 {
     public class UpdateUserResponse
     {

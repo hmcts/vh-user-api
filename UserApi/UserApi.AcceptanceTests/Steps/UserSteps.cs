@@ -11,7 +11,6 @@ using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
-using UserApi.Services.Models;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 

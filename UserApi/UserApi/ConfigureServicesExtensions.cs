@@ -1,17 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Swagger;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 using UserApi.Caching;
 using UserApi.Common;
-using UserApi.Contract.Requests;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
 using UserApi.Swagger;
+using ZymLabs.NSwag.FluentValidation;
 
 namespace UserApi
 {
@@ -37,43 +33,29 @@ namespace UserApi
             return serviceCollection;
         }
 
-        private static void AddSwaggerToApi(this IServiceCollection serviceCollection)
+        private static void AddSwaggerToApi(this IServiceCollection services)
         {
-            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-
-            var contractsXmlFile = $"{typeof(AddUserToGroupRequest).Assembly.GetName().Name}.xml";
-            var contractsXmlPath = Path.Combine(AppContext.BaseDirectory, contractsXmlFile);
-            
-            serviceCollection.AddSwaggerGen(c =>
+            services.AddSingleton<FluentValidationSchemaProcessor>();
+            services.AddOpenApiDocument((document, serviceProvider) =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "User API", Version = "v1"});
-                c.AddFluentValidationRules();
-                c.IncludeXmlComments(xmlPath);
-                c.IncludeXmlComments(contractsXmlPath);
-                c.EnableAnnotations();
+                document.Title = "User API";
+                document.DocumentProcessors.Add(
+                    new SecurityDefinitionAppender("JWT",
+                        new OpenApiSecurityScheme
+                        {
+                            Type = OpenApiSecuritySchemeType.ApiKey,
+                            Name = "Authorization",
+                            In = OpenApiSecurityApiKeyLocation.Header,
+                            Description = "Type into the textbox: Bearer {your JWT token}.",
+                            Scheme = "bearer"
+                        }));
+                document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
+                document.OperationProcessors.Add(new AuthResponseOperationProcessor());
+                var fluentValidationSchemaProcessor = serviceProvider.GetService<FluentValidationSchemaProcessor>();
 
-                c.AddSecurityDefinition("Bearer", //Name the security scheme
-                    new OpenApiSecurityScheme{
-                        Description = "JWT Authorization header using the Bearer scheme.",
-                        Type = SecuritySchemeType.Http, //We set the scheme type to http since we're using bearer authentication
-                        Scheme = "bearer" //The name of the HTTP Authorization scheme to be used in the Authorization header. In this case "bearer".
-                    });
-
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement{ 
-                    {
-                        new OpenApiSecurityScheme{
-                            Reference = new OpenApiReference{
-                                Id = "Bearer", //The name of the previously defined security scheme.
-                                Type = ReferenceType.SecurityScheme
-                            }
-                        },new List<string>()
-                    }
-                });
-                
-                c.OperationFilter<AuthResponsesOperationFilter>();
+                // Add the fluent validations schema processor
+                document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
             });
-            serviceCollection.AddSwaggerGenNewtonsoftSupport();
         }
     }
 }

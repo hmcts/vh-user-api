@@ -17,7 +17,6 @@ using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
-using UserApi.Responses;
 using UserApi.Services;
 using UserApi.Services.Models;
 namespace UserApi.UnitTests.Controllers
@@ -349,9 +348,9 @@ namespace UserApi.UnitTests.Controllers
         {
             var username = " ";            
 
-            (await _controller.UpdateUser(null)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
-            (await _controller.UpdateUser(string.Empty)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
-            var actionResult = (BadRequestObjectResult)await _controller.UpdateUser(username);
+            (await _controller.ResetUserPassword(null)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+            (await _controller.ResetUserPassword(string.Empty)).Should().NotBeNull().And.BeAssignableTo<BadRequestObjectResult>();
+            var actionResult = (BadRequestObjectResult)await _controller.ResetUserPassword(username);
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
@@ -374,7 +373,7 @@ namespace UserApi.UnitTests.Controllers
             _userAccountService.Setup(x => x.GetUserByFilterAsync(filter)).ReturnsAsync(userResponse);
             _userAccountService.Setup(x => x.UpdateUserPasswordAsync(userResponse.UserPrincipalName)).ReturnsAsync(password);
 
-            var result = await _controller.UpdateUser(email);
+            var result = await _controller.ResetUserPassword(email);
             
             result.Should().NotBeNull();
             result.Should().BeAssignableTo<OkObjectResult>();

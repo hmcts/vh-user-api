@@ -12,10 +12,8 @@ using FluentAssertions;
 using NUnit.Framework;
 using Polly;
 using Testing.Common.Configuration;
-using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
-using UserApi.Services.Models;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
