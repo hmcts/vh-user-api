@@ -188,6 +188,7 @@ extends:
   parameters:
     coreProjectPath: UserApi/UserApi
     nugetProjectPath: UserApi/UserApi.Client
+    PackageNuget: ${{ parameters.PackageNuget }}
     PackageApp: ${{ parameters.PackageApp }}
     PackageAcceptanceTests: ${{ parameters.PackageACTests }}
     Test: ${{ or(parameters.RunUnitTests, parameters.RunIntegTests, parameters.RunMutationTests) }}
