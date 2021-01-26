@@ -131,6 +131,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a delete user request for the new user")]
         public void GivenIHaveADeleteUserRequestForTheNewUser()
         {
+            _context.Test.NewUserId = null;
             _context.Request = _context.Delete(DeleteUser(_newUsername));
         }
 
