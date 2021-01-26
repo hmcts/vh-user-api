@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Graph;
@@ -13,6 +14,7 @@ namespace UserApi.Services
         /// </summary>
         /// <exception cref="UserExistsException">Thrown if a user with the recovery email already exists</exception>
         Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser);
+        Task<User> UpdateUserAccountAsync(string currentUsername, string firstName, string lastName);
         Task DeleteUserAsync(string username);
         Task AddUserToGroupAsync(User user, Group group);
         Task<Group> GetGroupByNameAsync(string groupName);

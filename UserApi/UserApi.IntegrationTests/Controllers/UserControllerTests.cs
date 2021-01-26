@@ -227,13 +227,65 @@ namespace UserApi.IntegrationTests.Controllers
             result.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
+        [Test]
+        public async Task should_return_bad_request_when_updating_nonexistent_user_with_missing_name()
+        {
+            var username = "does_not_exist@hearings.reform.hmcts.net";
+            var updateUserRequest = new UpdateUserAccountRequest
+            {
+                LastName = "Doe"
+            };
+            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            var result = await SendPatchRequestAsync(UpdateUserAccount(username), stringContent);
+            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+        
+        [Test]
+        public async Task should_return_not_found_when_updating_nonexistent_user()
+        {
+            var username = "does_not_exist@hearings.reform.hmcts.net";
+            var updateUserRequest = new UpdateUserAccountRequest
+            {
+                FirstName = "John",
+                LastName = "Doe"
+            };
+            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            var result = await SendPatchRequestAsync(UpdateUserAccount(username), stringContent);
+            result.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Test]
+        public async Task should_return_ok_and_updated_user_when_updating_an_account_successfully()
+        {
+            var existingUser = await CreateNewUser();
+            var username = existingUser.Username;
+            var updateUserRequest = new UpdateUserAccountRequest
+            {
+                FirstName = "RandomTest",
+                LastName = "UpdatedTest"
+            };
+            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            
+            var responseMessage = await SendPatchRequestAsync(UpdateUserAccount(username), stringContent);
+            
+            responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+            var updatedUserResponse = RequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
+            updatedUserResponse.FirstName.Should().Be(updateUserRequest.FirstName);
+            updatedUserResponse.LastName.Should().Be(updateUserRequest.LastName);
+            updatedUserResponse.Email.Should().NotBe(username);
+        }
+        
         [TearDown]
         public void ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_newUserId)) return;
+            TestContext.WriteLine($"Attempting to delete account {_newUserId}");
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get,
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                 $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
             var result = client.SendAsync(httpRequestMessage).Result;
             result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
@@ -256,6 +308,20 @@ namespace UserApi.IntegrationTests.Controllers
                     Encoding.UTF8, "application/json"
                 )
             );
+        }
+
+        private async Task<NewUserResponse> CreateNewUser()
+        {
+            var createUserResponse = await CreateAdUser();
+            createUserResponse.IsSuccessStatusCode.Should().BeTrue();
+            
+            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
+            (
+                createUserResponse.Content.ReadAsStringAsync().Result
+            );
+            _newUserId = createUserModel.UserId;
+            TestContext.WriteLine($"Created account {_newUserId}");
+            return createUserModel;
         }
     }
 }

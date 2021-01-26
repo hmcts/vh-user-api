@@ -88,6 +88,25 @@ namespace UserApi.Services
             };
         }
 
+        public async Task<User> UpdateUserAccount(string userId, string firstName, string lastName, string newUsername)
+        {
+            var updatedUser = new User
+            {
+                Id = userId,
+                GivenName = firstName,
+                Surname = lastName,
+                DisplayName = $"{firstName} {lastName}",
+                UserPrincipalName = newUsername
+            };
+            
+            var json = JsonConvert.SerializeObject(updatedUser);
+            var stringContent = new StringContent(json);
+            var accessUri = $"{_baseUrl}/users/{userId}";
+            var response = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            await AssertResponseIsSuccessful(response);
+            return updatedUser;
+        }
+
         public async Task DeleteUserAsync(string username)
         {
             var queryUrl = $"{_baseUrl}/users/{username}";

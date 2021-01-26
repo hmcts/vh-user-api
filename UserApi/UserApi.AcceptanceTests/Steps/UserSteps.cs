@@ -136,7 +136,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have an update user request for the new user")]
         public void GivenIHaveAnUpdateUserRequestForTheNewUser()
         {
-            _context.Request = _context.Patch(UpdateUser(), _newUsername);
+            _context.Request = _context.Patch(ResetUserPassword(), _newUsername);
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]

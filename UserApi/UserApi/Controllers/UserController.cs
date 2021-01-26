@@ -13,7 +13,6 @@ using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Services;
-using UserApi.Services.Models;
 using UserApi.Validations;
 
 namespace UserApi.Controllers
@@ -238,6 +237,50 @@ namespace UserApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Update an accounts first and last name
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        [HttpPatch( "username/{username}", Name = "UpdateUserAccount")]
+        [OpenApiOperation("UpdateUserAccount")]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateUserAccount([FromRoute]string username, [FromBody] UpdateUserAccountRequest payload)
+        {
+            var result = await new UpdateUserAccountRequestValidation().ValidateAsync(payload);
+            if (!result.IsValid)
+            {
+                foreach (var failure in result.Errors)
+                    ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
+
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
+                _telemetryClient.TrackTrace(new TraceTelemetry(
+                    $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}",
+                    SeverityLevel.Error));
+                return BadRequest(ModelState);
+            }
+            
+            try
+            {
+                var user = await _userAccountService.UpdateUserAccountAsync(username, payload.FirstName, payload.LastName);
+                var response = new UserResponse
+                {
+                    Email = user.UserPrincipalName,
+                    DisplayName = user.DisplayName,
+                    FirstName = user.GivenName,
+                    LastName = user.Surname
+                };
+                return Ok(response);
+            }
+            catch (UserDoesNotExistException)
+            {
+                return NotFound();
+            }
+        }
+        
         /// <summary>
         ///     Reset password for an AAD user
         /// </summary>
