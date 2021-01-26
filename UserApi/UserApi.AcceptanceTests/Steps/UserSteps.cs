@@ -61,6 +61,7 @@ namespace UserApi.AcceptanceTests.Steps
         public void GivenIHaveANewUser()
         {
             var model = CreateNewUser();
+            _context.Test.NewUserId = model.UserId;
             _newUsername = model.Username;
             AddUserToExternalGroup(model.UserId);
             PollForUserInAad().Should().BeTrue("User has been created in AAD");
@@ -137,6 +138,17 @@ namespace UserApi.AcceptanceTests.Steps
         public void GivenIHaveAnUpdateUserRequestForTheNewUser()
         {
             _context.Request = _context.Patch(ResetUserPassword(), _newUsername);
+        }
+        
+        [Given(@"I have an update user details request for the new user")]
+        public void GivenIHaveAnUpdateUserDetailsRequestForTheNewUser()
+        {
+            var body = new UpdateUserAccountRequest
+            {
+                FirstName = "AcUpdatedFirstName",
+                LastName = "ACUpdatedLastName"
+            };
+            _context.Request = _context.Patch(UpdateUserAccount(_newUsername), body);
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]
