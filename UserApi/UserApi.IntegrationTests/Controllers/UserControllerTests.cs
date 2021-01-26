@@ -279,7 +279,7 @@ namespace UserApi.IntegrationTests.Controllers
         }
         
         [TearDown]
-        public void ClearUp()
+        public async Task ClearUp()
         {
             if (string.IsNullOrWhiteSpace(_newUserId)) return;
             TestContext.WriteLine($"Attempting to delete account {_newUserId}");
@@ -287,8 +287,7 @@ namespace UserApi.IntegrationTests.Controllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
                 $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
-            var result = client.SendAsync(httpRequestMessage).Result;
-            result.IsSuccessStatusCode.Should().BeTrue($"{_newUserId} should be deleted");
+            await client.SendAsync(httpRequestMessage);
             _newUserId = null;
         }
 
