@@ -68,7 +68,7 @@ namespace UserApi.Services
                 throw new UserDoesNotExistException(currentUsername);
             }
 
-            string newUsername = null;
+            var newUsername = currentUsername;
             if (!user.GivenName.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) ||
                 !user.Surname.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
             {
