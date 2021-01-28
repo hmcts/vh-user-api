@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using AcceptanceTests.Common.Api.Helpers;
-using AcceptanceTests.Common.Configuration.Users;
 using TechTalk.SpecFlow;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
