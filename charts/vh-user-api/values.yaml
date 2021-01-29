@@ -14,7 +14,6 @@ java:
         - vh-user-api-key
         - vh-user-api-appid
         - vh-user-api-identifieruris
-        - vh-infra-core-AppInsightsKey
         - defaultpassword
         - redis-connection-str
         - testdefaultpassword
