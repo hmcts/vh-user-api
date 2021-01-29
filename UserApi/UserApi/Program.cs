@@ -1,9 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices.ComTypes;
+﻿using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using UserApi.AksKeyVaultFileProvider;
 
 namespace UserApi
 {
@@ -17,24 +16,21 @@ namespace UserApi
         private static IHostBuilder CreateWebHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((_, configuration) =>
+                {
+                    var path = "/mnt/secrets/vh-infra-core/";
+                    configuration.AddKeyPerFile(k =>
+                    {
+                        k.FileProvider = new AksKeyVaultSecretFileProvider(path);
+                        k.Optional = true;
+                    });
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
                     webBuilder.UseIISIntegration();
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureAppConfiguration((_, configuration) => AddAllKeysPerFileForKubernetes(configuration));
-                })
-                .ConfigureAppConfiguration((_, configuration) => AddAllKeysPerFileForKubernetes(configuration));
-        }
-
-        public static void AddAllKeysPerFileForKubernetes(this IConfigurationBuilder configuration)
-        {
-            const string rootPath = "/mnt/secret/vh-infra-core/vh-user-api";
-
-            if (Directory.Exists(rootPath))
-            {
-                configuration.AddKeyPerFile(directoryPath: rootPath, optional: true);
-            }
+                });
         }
     }
 }
