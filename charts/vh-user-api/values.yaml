@@ -24,6 +24,7 @@ java:
         - azuread--vhuserapiresourceid
         - connectionstrings--rediscache
   environment:
+    ASPNETCORE_URLS: http://+:8080
     ADGROUP__ADMINISTRATOR: VirtualRoomAdministrator
     ADGROUP__CASETYPE: CaseType
     ADGROUP__EXTERNAL: External
@@ -39,7 +40,6 @@ java:
     DISABLEHTTPSREDIRECTION: true
     INSTRUMENTATIONENGINE_EXTENSION_VERSION: disabled
     ISLIVE: false
-    KESTREL__ENDPOINTS__HTTP__URL: http://localhost:8080
     MSDEPLOY_RENAME_LOCKED_FILES: 1
     REFORMEMAIL: hearings.reform.hmcts.net
     SNAPSHOTDEBUGGER_EXTENSION_VERSION: disabled
