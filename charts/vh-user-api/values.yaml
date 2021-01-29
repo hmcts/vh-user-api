@@ -1,6 +1,6 @@
 ---
 java:
-  image: 'sdshmctspublic.azurecr.io/vh/user-api:v0.2'
+  image: 'sdshmctspublic.azurecr.io/vh/user-api:latest'
   applicationPort: 8080
   ingressHost: vh-user-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   releaseNameOverride: vh-user-api
