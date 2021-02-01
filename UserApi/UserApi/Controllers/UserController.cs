@@ -87,7 +87,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get User by AD User ID
         /// </summary>
-        [HttpGet("{userId?}", Name = "GetUserByAdUserId")]
+        [HttpGet("{userId:Guid}", Name = "GetUserByAdUserId")]
         [OpenApiOperation("GetUserByAdUserId")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -240,15 +240,15 @@ namespace UserApi.Controllers
         /// <summary>
         /// Update an accounts first and last name
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="userId">AD Object ID for user</param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        [HttpPatch( "username/{username}", Name = "UpdateUserAccount")]
+        [HttpPatch( "username/{userId:Guid}", Name = "UpdateUserAccount")]
         [OpenApiOperation("UpdateUserAccount")]
         [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> UpdateUserAccount([FromRoute]string username, [FromBody] UpdateUserAccountRequest payload)
+        public async Task<IActionResult> UpdateUserAccount([FromRoute]Guid userId, [FromBody] UpdateUserAccountRequest payload)
         {
             var result = await new UpdateUserAccountRequestValidation().ValidateAsync(payload);
             if (!result.IsValid)
@@ -265,7 +265,7 @@ namespace UserApi.Controllers
             
             try
             {
-                var user = await _userAccountService.UpdateUserAccountAsync(username, payload.FirstName, payload.LastName);
+                var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName, payload.LastName);
                 var response = new UserResponse
                 {
                     Email = user.UserPrincipalName,
@@ -275,9 +275,9 @@ namespace UserApi.Controllers
                 };
                 return Ok(response);
             }
-            catch (UserDoesNotExistException)
+            catch (UserDoesNotExistException e)
             {
-                return NotFound();
+                return NotFound(e.Message);
             }
         }
         

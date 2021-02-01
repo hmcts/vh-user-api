@@ -1,3 +1,5 @@
+using System;
+
 namespace Testing.Common.Helpers
 {
     public static class UserApiUriFactory
@@ -22,7 +24,7 @@ namespace Testing.Common.Helpers
             public static string RefreshJudgesCache() => $"{ApiRoot}/judges/cache";
             public static string DeleteUser(string userName) => $"{ApiRoot}/username/{userName}";
             public static string ResetUserPassword() => $"{ApiRoot}";
-            public static string UpdateUserAccount(string userName) => $"{ApiRoot}/username/{userName}";
+            public static string UpdateUserAccount(Guid userId) => $"{ApiRoot}/username/{userId}";
         }
 
         public static class HealthCheckEndpoints

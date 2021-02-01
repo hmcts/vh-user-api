@@ -93,11 +93,11 @@ namespace UserApi.IntegrationTests.Services
         [Test]
         public void should_throw_exception_when_attempting_to_update_nonexistent_user()
         {
-            const string username = "does.notexist@anywhere.com";
+            var userId = Guid.NewGuid();
             var firstName = "Foo";
             var lastName = "Bar";
             Assert.ThrowsAsync<UserDoesNotExistException>(() =>
-                _service.UpdateUserAccountAsync(username, firstName, lastName));
+                _service.UpdateUserAccountAsync(userId, firstName, lastName));
         }
 
         [Test]
@@ -106,8 +106,9 @@ namespace UserApi.IntegrationTests.Services
             await CreateAccount();
             var newFirstName = "Auto";
             var newLastName = "Updated";
-            
-            await _service.UpdateUserAccountAsync(_createdAccount.Username, newFirstName, newLastName);
+
+            var id = Guid.Parse(_createdAccount.UserId);
+            await _service.UpdateUserAccountAsync(id, newFirstName, newLastName);
 
             var filter = $"objectId  eq '{_createdAccount.UserId}'";
             var updatedUser = await _service.GetUserByFilterAsync(filter);

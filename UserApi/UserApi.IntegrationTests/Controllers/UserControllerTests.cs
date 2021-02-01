@@ -230,21 +230,21 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_return_bad_request_when_updating_nonexistent_user_with_missing_name()
         {
-            var username = "does_not_exist@hearings.reform.hmcts.net";
+            var userId = Guid.NewGuid();
             var updateUserRequest = new UpdateUserAccountRequest
             {
                 LastName = "Doe"
             };
             var jsonBody = RequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-            var result = await SendPatchRequestAsync(UpdateUserAccount(username), stringContent);
+            var result = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
         
         [Test]
         public async Task should_return_not_found_when_updating_nonexistent_user()
         {
-            var username = "does_not_exist@hearings.reform.hmcts.net";
+            var userId = Guid.NewGuid();
             var updateUserRequest = new UpdateUserAccountRequest
             {
                 FirstName = "John",
@@ -252,7 +252,7 @@ namespace UserApi.IntegrationTests.Controllers
             };
             var jsonBody = RequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-            var result = await SendPatchRequestAsync(UpdateUserAccount(username), stringContent);
+            var result = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             result.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -260,6 +260,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task should_return_ok_and_updated_user_when_updating_an_account_successfully()
         {
             var existingUser = await CreateNewUser();
+            var userId = Guid.Parse(existingUser.UserId);
             var username = existingUser.Username;
             var updateUserRequest = new UpdateUserAccountRequest
             {
@@ -269,7 +270,7 @@ namespace UserApi.IntegrationTests.Controllers
             var jsonBody = RequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             
-            var responseMessage = await SendPatchRequestAsync(UpdateUserAccount(username), stringContent);
+            var responseMessage = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             
             responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
             var updatedUserResponse = RequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());

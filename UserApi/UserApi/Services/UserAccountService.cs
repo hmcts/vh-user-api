@@ -58,24 +58,23 @@ namespace UserApi.Services
             return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
         }
 
-        public async Task<User> UpdateUserAccountAsync(string currentUsername, string firstName, string lastName)
+        public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName)
         {
-            var filterText = currentUsername.Replace("'", "''");
-            var filter = $"userPrincipalName  eq '{filterText}'";
+            var filter = $"objectId  eq '{userId}'";
             var user = await GetUserByFilterAsync(filter);
             if (user == null)
             {
-                throw new UserDoesNotExistException(currentUsername);
+                throw new UserDoesNotExistException(userId);
             }
 
-            var newUsername = currentUsername;
+            var username = user.UserPrincipalName;
             if (!user.GivenName.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) ||
                 !user.Surname.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
             {
-                newUsername = await CheckForNextAvailableUsernameAsync(firstName, lastName);
+                username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             }
 
-            return await _client.UpdateUserAccount(user.Id, firstName, lastName, newUsername);
+            return await _client.UpdateUserAccount(user.Id, firstName, lastName, username);
         }
 
         public async Task DeleteUserAsync(string username)

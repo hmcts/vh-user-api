@@ -149,7 +149,8 @@ namespace UserApi.AcceptanceTests.Steps
                 FirstName = "AcUpdatedFirstName",
                 LastName = "ACUpdatedLastName"
             };
-            _context.Request = _context.Patch(UpdateUserAccount(_newUsername), body);
+            var userId = Guid.Parse(_context.Test.NewUserId);
+            _context.Request = _context.Patch(UpdateUserAccount(userId), body);
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]

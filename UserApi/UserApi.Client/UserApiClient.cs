@@ -148,13 +148,15 @@ namespace UserApi.Client
         System.Threading.Tasks.Task DeleteUserAsync(string username, System.Threading.CancellationToken cancellationToken);
     
         /// <summary>Update an accounts first and last name</summary>
+        /// <param name="userId">AD Object ID for user</param>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(string username, UpdateUserAccountRequest payload);
+        System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(System.Guid userId, UpdateUserAccountRequest payload);
     
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>Update an accounts first and last name</summary>
+        /// <param name="userId">AD Object ID for user</param>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(string username, UpdateUserAccountRequest payload, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(System.Guid userId, UpdateUserAccountRequest payload, System.Threading.CancellationToken cancellationToken);
     
     }
     
@@ -1288,23 +1290,28 @@ namespace UserApi.Client
         }
     
         /// <summary>Update an accounts first and last name</summary>
+        /// <param name="userId">AD Object ID for user</param>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        public System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(string username, UpdateUserAccountRequest payload)
+        public System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(System.Guid userId, UpdateUserAccountRequest payload)
         {
-            return UpdateUserAccountAsync(username, payload, System.Threading.CancellationToken.None);
+            return UpdateUserAccountAsync(userId, payload, System.Threading.CancellationToken.None);
         }
     
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>Update an accounts first and last name</summary>
+        /// <param name="userId">AD Object ID for user</param>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(string username, UpdateUserAccountRequest payload, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task<UserResponse> UpdateUserAccountAsync(System.Guid userId, UpdateUserAccountRequest payload, System.Threading.CancellationToken cancellationToken)
         {
+            if (userId == null)
+                throw new System.ArgumentNullException("userId");
+    
             if (payload == null)
                 throw new System.ArgumentNullException("payload");
     
             var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/users/username/{username}");
-            urlBuilder_.Replace("{username}", System.Uri.EscapeDataString(ConvertToString(username, System.Globalization.CultureInfo.InvariantCulture)));
+            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/users/username/{userId}");
+            urlBuilder_.Replace("{userId}", System.Uri.EscapeDataString(ConvertToString(userId, System.Globalization.CultureInfo.InvariantCulture)));
     
             var client_ = _httpClient;
             var disposeClient_ = false;
