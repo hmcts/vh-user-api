@@ -559,6 +559,7 @@
           "Microsoft.Net.Http.Headers": "2.2.0"
         }
       },
+<<<<<<< HEAD
       "Microsoft.AspNetCore.Mvc.ApiExplorer": {
         "type": "Transitive",
         "resolved": "1.0.4",
@@ -567,6 +568,8 @@
           "Microsoft.AspNetCore.Mvc.Core": "1.0.4"
         }
       },
+=======
+>>>>>>> using new configuration package
       "Microsoft.AspNetCore.Mvc.Core": {
         "type": "Transitive",
         "resolved": "2.2.5",
@@ -589,6 +592,7 @@
           "System.Threading.Tasks.Extensions": "4.5.1"
         }
       },
+<<<<<<< HEAD
       "Microsoft.AspNetCore.Mvc.Formatters.Json": {
         "type": "Transitive",
         "resolved": "1.0.4",
@@ -598,6 +602,8 @@
           "Microsoft.AspNetCore.Mvc.Core": "1.0.4"
         }
       },
+=======
+>>>>>>> using new configuration package
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "Transitive",
         "resolved": "3.1.1",
@@ -658,6 +664,7 @@
           "Microsoft.AspNetCore.Http.Abstractions": "2.2.0"
         }
       },
+<<<<<<< HEAD
       "Microsoft.AspNetCore.StaticFiles": {
         "type": "Transitive",
         "resolved": "1.0.4",
@@ -670,6 +677,8 @@
           "Microsoft.Extensions.WebEncoders": "1.0.3"
         }
       },
+=======
+>>>>>>> using new configuration package
       "Microsoft.AspNetCore.WebUtilities": {
         "type": "Transitive",
         "resolved": "2.2.0",
@@ -985,8 +994,13 @@
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Transitive",
+<<<<<<< HEAD
         "resolved": "3.1.5",
         "contentHash": "ZvwowjRSWXewdPI+whPFXgwF4Qme6Q9KV9SCPEITSGiqHLArct7q5hTBtTzj3GPsVLjTqehvTg6Bd/EQk9JS0A=="
+=======
+        "resolved": "2.2.0",
+        "contentHash": "B2WqEox8o+4KUOpL7rZPyh6qYjik8tHi2tN8Z9jZkHzED8ElYgZa/h6K+xliB435SqUcWT290Fr2aa8BtZjn8A=="
+>>>>>>> using new configuration package
       },
       "Microsoft.Extensions.Logging.ApplicationInsights": {
         "type": "Transitive",
@@ -2985,8 +2999,13 @@
       },
       "VH.Core.Configuration": {
         "type": "Transitive",
+<<<<<<< HEAD
         "resolved": "0.1.12",
         "contentHash": "uoDl/7HSRkueoe8e2uwPD1qCz1wuY0Tdzqf4HdQALuiK2qWXmFq/JYvnIl0g0IZmY4B1zsn7KKTOLvI4PMttuQ==",
+=======
+        "resolved": "0.1.0",
+        "contentHash": "im4MAtV8qasoiO9+jaWwoU0XwIheQBNjU+6U1Kn40gOo0yD/tEJuae2YhAX/JBF6qpoUZAkSMwT/q7RudnjFqw==",
+>>>>>>> using new configuration package
         "dependencies": {
           "Microsoft.AspNetCore.Http.Connections.Common": "3.1.10",
           "Microsoft.AspNetCore.Mvc.Core": "2.2.5",
@@ -2995,6 +3014,7 @@
           "SonarAnalyzer.CSharp": "8.2.0.14119"
         }
       },
+<<<<<<< HEAD
       "ZymLabs.NSwag.FluentValidation": {
         "type": "Transitive",
         "resolved": "0.4.0",
@@ -3005,6 +3025,8 @@
           "NJsonSchema": "10.1.23"
         }
       },
+=======
+>>>>>>> using new configuration package
       "testing.common": {
         "type": "Project",
         "dependencies": {
@@ -3039,8 +3061,12 @@
           "SonarAnalyzer.CSharp": "8.2.0.14119",
           "UserApi.Common": "1.0.0",
           "UserApi.Contract": "1.0.0",
+<<<<<<< HEAD
           "VH.Core.Configuration": "0.1.12",
           "ZymLabs.NSwag.FluentValidation": "0.4.0"
+=======
+          "VH.Core.Configuration": "0.1.0"
+>>>>>>> using new configuration package
         }
       },
       "userapi.common": {

@@ -2,11 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-<<<<<<< HEAD
-using VH.Core.Configuration;
-=======
 using UserApi.AksKeyVaultFileProvider;
->>>>>>> aks key vault load secrets
 
 namespace UserApi
 {
@@ -28,12 +24,6 @@ namespace UserApi
             const string vhUserApi = "/mnt/secrets/vh-user-api";
 
             return Host.CreateDefaultBuilder(args)
-<<<<<<< HEAD
-                .ConfigureAppConfiguration((configBuilder) =>
-                {
-                    configBuilder.AddAksKeyVaultSecretProvider(vhInfraCore);
-                    configBuilder.AddAksKeyVaultSecretProvider(vhUserApi);
-=======
                 .ConfigureAppConfiguration((_, configuration) =>
                 {
                     var path = "/mnt/secrets/vh-infra-core/";
@@ -42,7 +32,6 @@ namespace UserApi
                         k.FileProvider = new AksKeyVaultSecretFileProvider(path);
                         k.Optional = true;
                     });
->>>>>>> aks key vault load secrets
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
