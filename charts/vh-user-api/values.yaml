@@ -6,6 +6,8 @@ java:
   releaseNameOverride: vh-user-api
   readinessPath: /healthcheck/health
   livenessPath: /healthcheck/health
+  livenessDelay: 360
+  livenessPeriod: 120
   aadIdentityName: vh-aad-identity
   keyVaults:
     vh-infra-core:
