@@ -9,6 +9,11 @@ parameters:
   type: boolean
   default: true
 
+- name: PackageNuget
+  displayName: Package Nuget Project
+  type: boolean
+  default: true
+
 - name: RunUnitTests
   displayName: Run Unit Tests
   type: boolean
@@ -182,6 +187,8 @@ extends:
   template: stages\dotnet-package.yml@templates
   parameters:
     coreProjectPath: UserApi/UserApi
+    nugetProjectPath: UserApi/UserApi.Client
+    PackageNuget: ${{ parameters.PackageNuget }}
     PackageApp: ${{ parameters.PackageApp }}
     PackageAcceptanceTests: ${{ parameters.PackageACTests }}
     Test: ${{ or(parameters.RunUnitTests, parameters.RunIntegTests, parameters.RunMutationTests) }}
@@ -209,8 +216,8 @@ extends:
         - "[Testing.Common]*"
       sonarCloud_ExtraProperties: |
         sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)/Coverage/coverage.opencover.xml
-        sonar.coverage.exclusions="**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**"
-        sonar.cpd.exclusions="**/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi/Swagger/**"
+        sonar.coverage.exclusions=**/UserApi/Swagger/**,**/Program.cs,**/Startup.cs,**/Testing.Common/**,**/UserApi.Common/**,**/UserApi.IntegrationTests/**,**/UserApi.UnitTests/**,**/UserApi/Helper/**,**/UserApi/ConfigureServicesExtensions.cs,**/UserApi/Extensions/**
+        sonar.cpd.exclusions=**/Program.cs,**/Startup.cs,**/Testing.Common/**,**/UserApi/Swagger/**
       StrykerBreak: 75
     ACTest: ${{ parameters.RunACTests }}
     releaseParameters:

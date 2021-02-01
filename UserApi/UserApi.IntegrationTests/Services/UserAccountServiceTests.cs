@@ -9,6 +9,7 @@ using UserApi.Caching;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
+using UserApi.Services.Models;
 
 namespace UserApi.IntegrationTests.Services
 {
@@ -20,19 +21,35 @@ namespace UserApi.IntegrationTests.Services
         private GraphApiClient _identityServiceApiClient;
         private Mock<ICache> _distributedCache;
         private IPasswordService _passwordService;
+        private NewAdUserAccount _createdAccount;
 
         [SetUp]
         public void Setup()
         {
+            _createdAccount = null;
+
             _secureHttpRequest = new SecureHttpRequest();
 
             var settings = TestConfig.Instance.Settings;
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _passwordService = new PasswordService();
-            _identityServiceApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
+            _identityServiceApiClient =
+                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
             _distributedCache = new Mock<ICache>();
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient, settings, _distributedCache.Object);
+            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient,
+                settings, _distributedCache.Object);
+        }
+
+        [TearDown]
+        public async Task TearDown()
+        {
+            if (_createdAccount != null)
+            {
+                TestContext.WriteLine($"Attempting to delete account {_createdAccount.UserId}");
+                await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_createdAccount.UserId,
+                    _graphApiSettings.AccessToken);
+            }
         }
 
         [Test]
@@ -71,6 +88,47 @@ namespace UserApi.IntegrationTests.Services
             const string username = "does.notexist@anywhere.com";
             var result = Assert.ThrowsAsync<UserDoesNotExistException>(() => _service.DeleteUserAsync(username));
             result.Username.Should().Be(username);
+        }
+
+        [Test]
+        public void should_throw_exception_when_attempting_to_update_nonexistent_user()
+        {
+            var userId = Guid.NewGuid();
+            var firstName = "Foo";
+            var lastName = "Bar";
+            Assert.ThrowsAsync<UserDoesNotExistException>(() =>
+                _service.UpdateUserAccountAsync(userId, firstName, lastName));
+        }
+
+        [Test]
+        public async Task should_update_existing_user()
+        {
+            await CreateAccount();
+            var newFirstName = "Auto";
+            var newLastName = "Updated";
+
+            var id = Guid.Parse(_createdAccount.UserId);
+            await _service.UpdateUserAccountAsync(id, newFirstName, newLastName);
+
+            var filter = $"objectId  eq '{_createdAccount.UserId}'";
+            var updatedUser = await _service.GetUserByFilterAsync(filter);
+            
+            updatedUser.GivenName.Should().Be(newFirstName);
+            updatedUser.Surname.Should().Be(newLastName);
+            var username = updatedUser.UserPrincipalName;
+            username.Should().NotBe(_createdAccount.Username);
+            username.ToLower().Should().Contain(newFirstName.ToLower());
+            username.ToLower().Should().Contain(newLastName.ToLower());
+        }
+
+        private async Task CreateAccount()
+        {
+            const string firstName = "Automatically";
+            const string lastName = "Created";
+            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
+            _createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
+            TestContext.WriteLine($"Created new account {_createdAccount.UserId}");
         }
     }
 }

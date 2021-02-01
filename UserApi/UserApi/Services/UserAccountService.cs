@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Graph;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UserApi.Caching;
+using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
@@ -38,7 +40,8 @@ namespace UserApi.Services
             _settings = settings;
         }
 
-        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser)
+        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail,
+            bool isTestUser)
         {
             var recoveryEmailText = recoveryEmail.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
@@ -51,16 +54,27 @@ namespace UserApi.Services
 
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
-            try
+
+            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+        }
+
+        public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName)
+        {
+            var filter = $"objectId  eq '{userId}'";
+            var user = await GetUserByFilterAsync(filter);
+            if (user == null)
             {
-                return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+                throw new UserDoesNotExistException(userId);
             }
-            catch (System.Exception ex)
+
+            var username = user.UserPrincipalName;
+            if (!user.GivenName.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) ||
+                !user.Surname.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
             {
-                var error = ex.Message;
-                throw;
+                username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             }
-            
+
+            return await _client.UpdateUserAccount(user.Id, firstName, lastName, username);
         }
 
         public async Task DeleteUserAsync(string username)

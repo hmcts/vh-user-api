@@ -7,14 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using NSwag.Annotations;
 using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
-using UserApi.Responses;
 using UserApi.Services;
-using UserApi.Services.Models;
 using UserApi.Validations;
 
 namespace UserApi.Controllers
@@ -43,7 +41,7 @@ namespace UserApi.Controllers
         /// </summary>
         /// <param name="request">Details of a new user</param>
         [HttpPost(Name = "CreateUser")]
-        [SwaggerOperation(OperationId = "CreateUser")]
+        [OpenApiOperation("CreateUser")]
         [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
@@ -89,18 +87,12 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get User by AD User ID
         /// </summary>
-        [HttpGet("{userId?}", Name = "GetUserByAdUserId")]
-        [SwaggerOperation(OperationId = "GetUserByAdUserId")]
+        [HttpGet("{userId}", Name = "GetUserByAdUserId")]
+        [OpenApiOperation("GetUserByAdUserId")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByAdUserId(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                ModelState.AddModelError(nameof(userId), "username cannot be empty");
-                return BadRequest(ModelState);
-            }
-
             var filterText = userId.Replace("'", "''");
             var filter = $"objectId  eq '{filterText}'";
             var profile = new UserProfileHelper(_userAccountService, _settings);
@@ -119,7 +111,7 @@ namespace UserApi.Controllers
         ///     Get User by User principal name
         /// </summary>
         [HttpGet("userName/{userName?}", Name = "GetUserByAdUserName")]
-        [SwaggerOperation(OperationId = "GetUserByAdUserName")]
+        [OpenApiOperation("GetUserByAdUserName")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByUserName(string userName)
@@ -157,7 +149,7 @@ namespace UserApi.Controllers
         ///     Get user profile by email
         /// </summary>
         [HttpGet("email/{email?}", Name = "GetUserByEmail")]
-        [SwaggerOperation(OperationId = "GetUserByEmail")]
+        [OpenApiOperation("GetUserByEmail")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByEmail(string email)
@@ -188,7 +180,7 @@ namespace UserApi.Controllers
         ///     Get Judges from AD
         /// </summary>
         [HttpGet("judges", Name = "GetJudges")]
-        [SwaggerOperation(OperationId = "GetJudges")]
+        [OpenApiOperation("GetJudges")]
         [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetJudges()
@@ -207,7 +199,7 @@ namespace UserApi.Controllers
         ///     Refresh Judge List Cache
         /// </summary>
         [HttpGet("judges/cache", Name = "RefreshJudgeCache")]
-        [SwaggerOperation(OperationId = "RefreshJudgeCache")]
+        [OpenApiOperation("RefreshJudgeCache")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> RefreshJudgeCache()
         {
@@ -221,7 +213,7 @@ namespace UserApi.Controllers
         /// </summary>
         /// <returns>NoContent</returns>
         [HttpDelete( "username/{username}", Name = "DeleteUser")]
-        [SwaggerOperation(OperationId = "DeleteUser")]
+        [OpenApiOperation("DeleteUser")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -240,15 +232,59 @@ namespace UserApi.Controllers
         }
 
         /// <summary>
-        ///     Updates an AAD user
+        /// Update an accounts first and last name
         /// </summary>
-        /// <returns>NoContent</returns>
-        [HttpPatch(Name = "UpdateUser")]
-        [SwaggerOperation(OperationId = "UpdateUser")]
+        /// <param name="userId">AD Object ID for user</param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        [HttpPatch( "username/{userId:Guid}", Name = "UpdateUserAccount")]
+        [OpenApiOperation("UpdateUserAccount")]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateUserAccount([FromRoute]Guid userId, [FromBody] UpdateUserAccountRequest payload)
+        {
+            var result = await new UpdateUserAccountRequestValidation().ValidateAsync(payload);
+            if (!result.IsValid)
+            {
+                foreach (var failure in result.Errors)
+                    ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
+
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
+                _telemetryClient.TrackTrace(new TraceTelemetry(
+                    $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}",
+                    SeverityLevel.Error));
+                return BadRequest(ModelState);
+            }
+            
+            try
+            {
+                var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName, payload.LastName);
+                var response = new UserResponse
+                {
+                    Email = user.UserPrincipalName,
+                    DisplayName = user.DisplayName,
+                    FirstName = user.GivenName,
+                    LastName = user.Surname
+                };
+                return Ok(response);
+            }
+            catch (UserDoesNotExistException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+        
+        /// <summary>
+        ///     Reset password for an AAD user
+        /// </summary>
+        /// <returns>New password</returns>
+        [HttpPatch(Name = "ResetUserPassword")]
+        [OpenApiOperation("ResetUserPassword")]
         [ProducesResponseType(typeof(UpdateUserResponse), (int) HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> UpdateUser([FromBody]string username)
+        public async Task<IActionResult> ResetUserPassword([FromBody]string username)
         {
             if (string.IsNullOrWhiteSpace(username))
             {

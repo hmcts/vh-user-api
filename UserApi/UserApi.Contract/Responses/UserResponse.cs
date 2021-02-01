@@ -1,4 +1,4 @@
-﻿namespace UserApi.Services.Models
+﻿namespace UserApi.Contract.Responses
 {
     /// <summary>
     /// A judge existing in the system

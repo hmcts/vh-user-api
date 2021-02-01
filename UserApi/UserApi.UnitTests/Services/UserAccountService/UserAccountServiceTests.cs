@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using UserApi.Caching;
 using UserApi.Common;
+using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;

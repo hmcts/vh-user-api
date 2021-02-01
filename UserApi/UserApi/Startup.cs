@@ -119,11 +119,10 @@ namespace UserApi
         /// <param name="env"></param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            app.UseOpenApi();
+            app.UseSwaggerUi3(c =>
             {
-                const string url = "/swagger/v1/swagger.json";
-                c.SwaggerEndpoint(url, "User API V1");
+                c.DocumentTitle = "User API V1";
             });
 
             if (env.IsDevelopment())

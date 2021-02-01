@@ -112,7 +112,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 case Scenario.Nonexistent:
                 {
-                    addUserRequest.UserId = "Does not exist";
+                    addUserRequest.UserId = Guid.NewGuid().ToString();
                     break;
                 }
                 case Scenario.Invalid:

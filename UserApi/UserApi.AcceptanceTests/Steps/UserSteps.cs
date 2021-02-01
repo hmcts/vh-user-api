@@ -10,7 +10,6 @@ using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
-using UserApi.Services.Models;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
@@ -61,6 +60,7 @@ namespace UserApi.AcceptanceTests.Steps
         public void GivenIHaveANewUser()
         {
             var model = CreateNewUser();
+            _context.Test.NewUserId = model.UserId;
             _newUsername = model.Username;
             AddUserToExternalGroup(model.UserId);
             PollForUserInAad().Should().BeTrue("User has been created in AAD");
@@ -130,13 +130,26 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a delete user request for the new user")]
         public void GivenIHaveADeleteUserRequestForTheNewUser()
         {
+            _context.Test.NewUserId = null;
             _context.Request = _context.Delete(DeleteUser(_newUsername));
         }
 
         [Given(@"I have an update user request for the new user")]
         public void GivenIHaveAnUpdateUserRequestForTheNewUser()
         {
-            _context.Request = _context.Patch(UpdateUser(), _newUsername);
+            _context.Request = _context.Patch(ResetUserPassword(), _newUsername);
+        }
+        
+        [Given(@"I have an update user details request for the new user")]
+        public void GivenIHaveAnUpdateUserDetailsRequestForTheNewUser()
+        {
+            var body = new UpdateUserAccountRequest
+            {
+                FirstName = "AcUpdatedFirstName",
+                LastName = "ACUpdatedLastName"
+            };
+            var userId = Guid.Parse(_context.Test.NewUserId);
+            _context.Request = _context.Patch(UpdateUserAccount(userId), body);
         }
 
         [Given(@"I have a get user profile by email request for an existing email")]

@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NSwag.Annotations;
 using UserApi.Caching;
 using UserApi.Contract.Responses;
 using UserApi.Security;
@@ -33,7 +33,7 @@ namespace UserApi.Controllers
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         [HttpGet("health")]
-        [SwaggerOperation(OperationId = "CheckServiceHealth")]
+        [OpenApiOperation("CheckServiceHealth")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Health()
