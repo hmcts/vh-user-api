@@ -46,6 +46,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.0.0" />
     <PackageReference Include="Microsoft.Graph" Version="1.21.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.5" />
+    <PackageReference Include="VH.Core.Configuration" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>

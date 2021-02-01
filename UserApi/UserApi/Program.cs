@@ -1,8 +1,7 @@
 ﻿using System.IO;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using UserApi.AksKeyVaultFileProvider;
+using VH.Core.Configuration;
 
 namespace UserApi
 {
@@ -16,15 +15,7 @@ namespace UserApi
         private static IHostBuilder CreateWebHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((_, configuration) =>
-                {
-                    var path = "/mnt/secrets/vh-infra-core/";
-                    configuration.AddKeyPerFile(k =>
-                    {
-                        k.FileProvider = new AksKeyVaultSecretFileProvider(path);
-                        k.Optional = true;
-                    });
-                })
+                .AddAksKeyVaultSecretProvider()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
