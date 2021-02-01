@@ -4,8 +4,8 @@ java:
   applicationPort: 8080
   ingressHost: vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
   releaseNameOverride: vh-user-api
-  readinessPath: /healthcheck/health
-  livenessPath: /healthcheck/health
+  readinessPath: /health
+  livenessPath: /health
   aadIdentityName: vh-aad-identity
   keyVaults:
     vh-infra-core:
