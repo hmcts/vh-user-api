@@ -48,8 +48,6 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_add_user_to_group_for_given_request()
         {
-            var filter = $"objectId  eq '{request.UserId}'";
-
             var response = await _controller.AddUserToGroup(request);
 
             response.Should().NotBeNull();

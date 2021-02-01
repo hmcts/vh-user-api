@@ -1344,7 +1344,7 @@ namespace UserApi.Client
                         ProcessResponse(client_, response_);
     
                         var status_ = (int)response_.StatusCode;
-                        if (status_ == 204)
+                        if (status_ == 200)
                         {
                             var objectResponse_ = await ReadObjectResponseAsync<UserResponse>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)

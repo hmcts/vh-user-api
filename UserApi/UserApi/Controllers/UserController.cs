@@ -239,7 +239,7 @@ namespace UserApi.Controllers
         /// <returns></returns>
         [HttpPatch( "username/{userId:Guid}", Name = "UpdateUserAccount")]
         [OpenApiOperation("UpdateUserAccount")]
-        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> UpdateUserAccount([FromRoute]Guid userId, [FromBody] UpdateUserAccountRequest payload)
