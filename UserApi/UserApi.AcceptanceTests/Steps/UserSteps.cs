@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using AcceptanceTests.Common.Api.Helpers;
-using AcceptanceTests.Common.Configuration.Users;
 using TechTalk.SpecFlow;
 using Testing.Common.Helpers;
 using UserApi.AcceptanceTests.Contexts;
@@ -211,25 +210,21 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad judges should be retrieved")]
         public void ThenAListOfAdJudgesShouldBeRetrieved()
         {
-            var actualJudges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
-            actualJudges.Should().NotBeNull();
-            foreach (var user in actualJudges)
+            var judges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
+            judges.Should().NotBeEmpty();
+            foreach (var judge in judges)
             {
-                user.Email.Should().NotBeNullOrEmpty();
-                user.DisplayName.Should().NotBeNullOrEmpty();
+                judge.Email.Should().NotBeNullOrEmpty();
+                judge.DisplayName.Should().NotBeNullOrEmpty();
             }
-
-            var expectedJudge = UserManager.GetJudgeUser(_context.UserAccounts);
-            var actualJudge = actualJudges.First(u => u.Email.Equals(expectedJudge.Username));
-            actualJudge.DisplayName.Should().Be(expectedJudge.DisplayName);
         }
         
         [Then(@"the list of ad judges should not contain performance test users")]
         public void TheListOfAdJudgesShouldNotContainPerformanceTestUsers()
         {
-            var actualJudges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
-            actualJudges.Should().NotBeNull();
-            actualJudges.Any(x => x.FirstName == "TP").Should().BeFalse();
+            var judges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
+            judges.Should().NotBeNull();
+            judges.Any(x => x.FirstName == "TP").Should().BeFalse();
         }
     }
 }

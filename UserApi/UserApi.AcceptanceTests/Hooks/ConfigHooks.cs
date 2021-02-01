@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AcceptanceTests.Common.Api;
 using AcceptanceTests.Common.Configuration;
 using AcceptanceTests.Common.Configuration.Users;
+using AcceptanceTests.Common.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -20,15 +21,10 @@ namespace UserApi.AcceptanceTests.Hooks
 
         public ConfigHooks(TestContext context)
         {
-            _configRoot = ConfigurationManager.BuildConfig("CF55F1BB-0EE3-456A-A566-70E56AC24C95", GetTargetEnvironment());
+            _configRoot = ConfigurationManager.BuildConfig("CF55F1BB-0EE3-456A-A566-70E56AC24C95", "de27c4e5-a750-4ee5-af7e-592e4ee78ab2");
             context.Config = new Config();
             context.UserAccounts = new List<UserAccount>();
             context.Tokens = new UserApiTokens();
-        }
-
-        private static string GetTargetEnvironment()
-        {
-            return NUnit.Framework.TestContext.Parameters["TargetEnvironment"] ?? "";
         }
 
         [BeforeScenario(Order = (int)HooksSequence.ConfigHooks)]
@@ -79,8 +75,15 @@ namespace UserApi.AcceptanceTests.Hooks
 
         private void RegisterHearingServices(TestContext context)
         {
-            context.Config.VhServices = Options.Create(_configRoot.GetSection("VhServices").Get<VhServices>()).Value;
+            context.Config.VhServices = GetTargetTestEnvironment() == string.Empty ? Options.Create(_configRoot.GetSection("VhServices").Get<VhServices>()).Value
+                : Options.Create(_configRoot.GetSection($"Testing.{GetTargetTestEnvironment()}.VhServices").Get<VhServices>()).Value;
+            if (context.Config.VhServices == null && GetTargetTestEnvironment() != string.Empty) throw new TestSecretsFileMissingException(GetTargetTestEnvironment());
             ConfigurationManager.VerifyConfigValuesSet(context.Config.VhServices);
+        }
+
+        private static string GetTargetTestEnvironment()
+        {
+            return NUnit.Framework.TestContext.Parameters["TargetTestEnvironment"] ?? string.Empty;
         }
 
         private static async Task GenerateBearerTokens(TestContext context)
