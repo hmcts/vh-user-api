@@ -63,3 +63,6 @@ java:
     XDT_MICROSOFTAPPLICATIONINSIGHTS_MODE: default
     ZAPCONFIGURATION__BUILDCONFIGMODE: Release
     Kestrel__EndPoints__Http__Url: http://localhost:8080
+    Logging__LogLevel__Default: debug
+    Logging__LogLevel__System: debug
+    Logging__LogLevel__Microsoft: debug
