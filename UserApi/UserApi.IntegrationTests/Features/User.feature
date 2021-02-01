@@ -47,12 +47,6 @@ Scenario: User account not retrieved for a nonexistent user
 	Then the response should have the status NotFound and success status False
 	And the error response message should contain 'user does not exist'
 	
-Scenario: User account not retrieved for an invalid user
-	Given I have a get user by AD user Id request for an invalid user with Individual
-	When I send the request to the endpoint
-	Then the response should have the status BadRequest and success status False
-	And the error response message should contain 'username cannot be empty'
-
 Scenario: Get user by user principal name
 	Given I have a get user by user principal name request for an existing user principal name
 	When I send the request to the endpoint

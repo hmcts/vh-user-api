@@ -56,8 +56,6 @@ namespace UserApi.UnitTests.Controllers
             var result = (AcceptedResult)response;
             result.StatusCode.Should().Be((int)HttpStatusCode.Accepted);
             _userAccountService.Verify(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>()), Times.Once);
-            _userAccountService.Verify(u => u.GetUserByFilterAsync(filter), Times.Once);
-
         }
 
         [Test]
@@ -85,25 +83,15 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_not_found_with_no_matching_user_by_filter()
         {
-            _userAccountService.Setup(u => u.GetUserByFilterAsync(It.IsAny<string>())).ReturnsAsync((User)null);
+            _userAccountService.Setup(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>()))
+                .ThrowsAsync(new UserServiceException(
+                    $"Failed to add user {request.UserId} to group {request.GroupName}", "Resource not found"));
 
             var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
             
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage("user", "User not found");
-        }
-
-        [Test]
-        public async Task Should_return_not_found_with_UserServiceException()
-        {
-            _userAccountService.Setup(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>())).ThrowsAsync(new UserServiceException("",""));
-
-            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
-
-            actionResult.Should().NotBeNull();
-            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage("user", "user already exists");
+            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage("user", "Resource not found");
         }
 
         [Test]

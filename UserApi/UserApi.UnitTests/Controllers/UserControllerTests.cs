@@ -158,18 +158,6 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_badrequest_with_invalid_userId()
-        {
-            var userId = string.Empty;
-
-            var actionResult = (BadRequestObjectResult)await _controller.GetUserByAdUserId(userId);
-
-            actionResult.Should().NotBeNull();
-            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
-            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage(nameof(userId), "username cannot be empty");
-        }
-
-        [Test]
         public async Task Should_return_notfound_with_no_matching_user_profile()
         {
             var userId = Guid.NewGuid().ToString();

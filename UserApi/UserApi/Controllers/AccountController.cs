@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Graph;
 using NSwag.Annotations;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -147,24 +148,18 @@ namespace UserApi.Controllers
                 return NotFound();
             }
 
-            var filter = $"objectId  eq '{request.UserId}'";
-            var user = await _userAccountService.GetUserByFilterAsync(filter);
-            if (user == null)
+            var user = new User
             {
-                _telemetryClient.TrackTrace(new TraceTelemetry($"User with ID '{request.UserId}' not found ",
-                    SeverityLevel.Error));
-
-                ModelState.AddModelError(nameof(user), "User not found");
-                return NotFound(ModelState);
-            }
+                Id = request.UserId
+            };
 
             try
             {
                 await _userAccountService.AddUserToGroupAsync(user, group);
             }
-            catch (UserServiceException)
+            catch (UserServiceException e)
             {
-                ModelState.AddModelError(nameof(user), "user already exists");
+                ModelState.AddModelError(nameof(user), e.Reason);
                 return NotFound(ModelState);
             }
 

@@ -87,18 +87,12 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get User by AD User ID
         /// </summary>
-        [HttpGet("{userId:Guid}", Name = "GetUserByAdUserId")]
+        [HttpGet("{userId}", Name = "GetUserByAdUserId")]
         [OpenApiOperation("GetUserByAdUserId")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByAdUserId(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                ModelState.AddModelError(nameof(userId), "username cannot be empty");
-                return BadRequest(ModelState);
-            }
-
             var filterText = userId.Replace("'", "''");
             var filter = $"objectId  eq '{filterText}'";
             var profile = new UserProfileHelper(_userAccountService, _settings);

@@ -156,7 +156,7 @@ namespace UserApi.IntegrationTests.Controllers
             var usersForGroupModel = RequestHelper.Deserialise<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
-            var testAccount = usersForGroupModel.First(u => u.Email == $"Automation01_AW_Clerk01@{TestConfig.Instance.Settings.ReformEmail}");
+            var testAccount = usersForGroupModel.First(u => u.Email.EndsWith($".judge@{TestConfig.Instance.Settings.ReformEmail}"));
             testAccount.Email.Should().NotBeNullOrWhiteSpace();
             testAccount.DisplayName.Should().NotBeNullOrWhiteSpace();
         }
