@@ -7,10 +7,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
+COPY ["nuget.config", "nuget.config"]
 COPY ["UserApi/UserApi.csproj", "UserApi/"]
 COPY ["UserApi.Common/UserApi.Common.csproj", "UserApi.Common/"]
 COPY ["UserApi.Contract/UserApi.Contract.csproj", "UserApi.Contract/"]
-RUN dotnet restore "UserApi/UserApi.csproj"
+RUN dotnet restore --configfile nuget.config "UserApi/UserApi.csproj"
 COPY . .
 WORKDIR "/src/UserApi"
 RUN dotnet build "UserApi.csproj" -c Release -o /app/build
