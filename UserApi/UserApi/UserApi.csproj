@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -47,6 +47,7 @@
     <PackageReference Include="Microsoft.Graph" Version="1.21.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.5" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="8.2.0.14119" />
+    <PackageReference Include="VH.Core.Configuration" Version="0.1.0" />
     <PackageReference Include="ZymLabs.NSwag.FluentValidation" Version="0.4.0" />
   </ItemGroup>
 
@@ -66,7 +67,7 @@
     <Folder Include="Responses" />
   </ItemGroup>
 
-  <Target Name="NSwag" AfterTargets="Build" Condition="'$(TF_BUILD)'!='True'">
+  <Target Name="NSwag" AfterTargets="Build" Condition="'$(TF_BUILD)'!='True' And '$(Configuration)' == 'Debug' ">
     <Copy SourceFiles="@(ReferencePath)" DestinationFolder="$(OutDir)References" />
     <Exec Command="$(NSwagExe_Core31) run /runtime:NetCore31 /variables:ProjectPath=&quot;$(MSBuildProjectFullPath)&quot;" />
     <RemoveDir Directories="$(OutDir)References" />
