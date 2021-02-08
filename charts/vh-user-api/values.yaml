@@ -22,12 +22,16 @@ java:
         - defaultpassword
         - redis-connection-str
         - testdefaultpassword
-        - applicationinsights-instrumentationkey
-        - applicationinsights-connection-string
+        - connectionstrings--rediscache
+    vh-user-api:
+      excludeEnvironmentSuffix: false
+      resourceGroup: vh-infra-core-{{ .Values.global.environment }}
+      usePodIdentity: true
+      secrets:
         - azuread--clientsecret
         - azuread--clientid
-        - azuread--vhuserapiresourceid
-        - connectionstrings--rediscache
+        - applicationinsights-instrumentationkey
+        - applicationinsights-connection-string
   environment:
     ASPNETCORE_URLS: http://+:8080
     ADGROUP__ADMINISTRATOR: VirtualRoomAdministrator
@@ -37,6 +41,7 @@ java:
     ADGROUP__JUDGESTESTGROUP: TestAccount
     ADGROUP__JUDICIALOFFICEHOLDER: JudicialOfficeHolder
     ADGROUP__PROFESSIONALUSER: VirtualRoomProfessionalUser
+    AZUREAD__VHUSERAPIRESOURCEID: https://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
     APPINSIGHTS_PROFILERFEATURE_VERSION: disabled
     APPINSIGHTS_SNAPSHOTFEATURE_VERSION: disabled
     APPLICATIONINSIGHTSAGENT_EXTENSION_VERSION: ~2
