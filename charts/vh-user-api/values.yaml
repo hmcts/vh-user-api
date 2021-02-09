@@ -19,6 +19,8 @@ java:
         - vh-user-api-key
         - vh-user-api-appid
         - vh-user-api-identifieruris
+        - azuread--clientsecret
+        - azuread--clientid
         - defaultpassword
         - redis-connection-str
         - testdefaultpassword
