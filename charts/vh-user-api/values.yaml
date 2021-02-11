@@ -38,7 +38,7 @@ java:
     ADGROUP__JUDGESTESTGROUP: TestAccount
     ADGROUP__JUDICIALOFFICEHOLDER: JudicialOfficeHolder
     ADGROUP__PROFESSIONALUSER: VirtualRoomProfessionalUser
-    AZUREAD__VHUSERAPIRESOURCEID: http://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
+    AZUREAD__VHUSERAPIRESOURCEID: https://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
     APPINSIGHTS_PROFILERFEATURE_VERSION: disabled
     APPINSIGHTS_SNAPSHOTFEATURE_VERSION: disabled
     APPLICATIONINSIGHTSAGENT_EXTENSION_VERSION: ~2
@@ -62,8 +62,8 @@ java:
     TESTING__EXISTINGUSERPRINCIPAL: UserApiTestUser@hearings.reform.hmcts.net
     TESTING__NEWGROUPS__0__DISPLAYNAME: NewUserApiTestGroup
     TESTING__NEWGROUPS__0__GROUPID: 7d62cf17-c548-4a69-8f8f-4bc7fee90fbe
-    VHSERVICES__USERAPIRESOURCEID: http://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
-    VHSERVICES__USERAPIURL: http://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net/
+    VHSERVICES__USERAPIRESOURCEID: https://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
+    VHSERVICES__USERAPIURL: https://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net/
     XDT_MICROSOFTAPPLICATIONINSIGHTS_BASEEXTENSIONS: disabled
     XDT_MICROSOFTAPPLICATIONINSIGHTS_MODE: default
     ZAPCONFIGURATION__BUILDCONFIGMODE: Release
