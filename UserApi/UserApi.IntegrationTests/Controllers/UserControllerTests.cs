@@ -143,7 +143,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_profile_by_email_not_found_with_bogus_mail()
         {
-            const string email = "i.do.not.exist@nowhere.ever.com";
+            const string email = "i.do.not.exist@hmcts.net";
             var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
