@@ -238,7 +238,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_user_by_email_from_api()
         {
-            const string email = "sample.user'test@gmail.com";
+            const string email = "sample.user'test@hmcts.net";
             var userResponse = new User
             {
                 DisplayName = "Sample User",
@@ -347,7 +347,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_update_the_password_for_a_user_that_exists_in_ad()
         {
-            const string email = "known.user'test@gmail.com";
+            const string email = "known.user'test@hmcts.net";
             var filter = $"userPrincipalName  eq '{email.Replace("'", "''")}'";
             var userResponse = new User
             {

@@ -28,7 +28,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var createUserRequest = new CreateUserRequest
             {
-                RecoveryEmail = $"Automation_{Internet.Email()}",
+                RecoveryEmail = $"Automation_{Name.First()}@hmcts.net",
                 FirstName = $"Automation_{Name.First()}",
                 LastName = $"Automation_{Name.Last()}"
             };
@@ -143,7 +143,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_profile_by_email_not_found_with_bogus_mail()
         {
-            const string email = "i.do.not.exist@nowhere.ever.com";
+            const string email = "i.do.not.exist@hmcts.net";
             var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -156,7 +156,7 @@ namespace UserApi.IntegrationTests.Controllers
             var usersForGroupModel = RequestHelper.Deserialise<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             usersForGroupModel.Should().NotBeEmpty();
 
-            var testAccount = usersForGroupModel.First(u => u.Email.EndsWith($".judge@{TestConfig.Instance.Settings.ReformEmail}"));
+            var testAccount = usersForGroupModel.First(u => u.Email.ToLower().EndsWith($".judge@{TestConfig.Instance.Settings.ReformEmail}".ToLower()));
             testAccount.Email.Should().NotBeNullOrWhiteSpace();
             testAccount.DisplayName.Should().NotBeNullOrWhiteSpace();
         }
@@ -301,7 +301,7 @@ namespace UserApi.IntegrationTests.Controllers
                 (
                     RequestHelper.Serialise(new CreateUserRequest
                     {
-                        RecoveryEmail = $"Automation_{Internet.Email()}",
+                        RecoveryEmail = $"Automation_{Name.First()}@hmcts.net",
                         FirstName = $"Automation_{Name.First()}",
                         LastName = $"Automation_{Name.Last()}"
                     }),

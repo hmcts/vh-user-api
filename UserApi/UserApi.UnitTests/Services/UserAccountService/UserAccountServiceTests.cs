@@ -143,16 +143,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public void Should_get_judges_except_test_judges()
         {
-            var judgesList = new List<UserResponse>{ new UserResponse { Email = "aa@aa.aa" },
-            new UserResponse { Email = "bb@aa.aa" }, new UserResponse{Email="test@aa.aa"} };
+            var judgesList = new List<UserResponse>{ new UserResponse { Email = "aa@hmcts.net" },
+            new UserResponse { Email = "bb@hmcts.net" }, new UserResponse{Email="test@hmcts.net"} };
 
-            var testJudges = new List<UserResponse> { new UserResponse { Email = "test@aa.aa" } };
+            var testJudges = new List<UserResponse> { new UserResponse { Email = "test@hmcts.net" } };
 
             var result = judgesList.Except(testJudges, UserApi.Services.UserAccountService.CompareJudgeById).ToList();
 
             Assert.AreEqual(2, result.Count);
-            Assert.AreEqual("aa@aa.aa", result[0].Email);
-            Assert.AreEqual("bb@aa.aa", result[1].Email);
+            Assert.AreEqual("aa@hmcts.net", result[0].Email);
+            Assert.AreEqual("bb@hmcts.net", result[1].Email);
 
         }
 

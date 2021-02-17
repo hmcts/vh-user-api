@@ -15,7 +15,7 @@ namespace Testing.Common.Helpers
                 LastName = $"Automation_{Name.Last()}",
                 IsTestUser = false
             };
-            _request.RecoveryEmail = Internet.Email($"{_request.FirstName} {_request.LastName}");
+            _request.RecoveryEmail = $"{_request.FirstName}.{_request.LastName}@hmcts.net";
         }
 
         public CreateUserRequestBuilder WithFirstname(string firstname)

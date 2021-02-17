@@ -41,7 +41,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_server_error_when_unable_to_access_users()
         {
-            var email = "checkuser@test.com";
+            var email = "checkuser@hmcts.net";
             var filter = $"otherMails/any(c:c eq '{email}')";
             var message = "GetUserByFilter unauthorized access to Microsoft Graph";
             var reason = "service not available";
@@ -171,9 +171,9 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_server_errors_if_access_to_user_and_croup_unsuccessful()
+        public async Task Should_return_server_errors_if_access_to_user_and_group_unsuccessful()
         {
-            var email = "checkuser@test.com";
+            var email = "checkuser@hmcts.net";
             var filter = $"otherMails/any(c:c eq '{email}')";
             var message = string.Empty;
             var reason = string.Empty;

@@ -46,7 +46,7 @@ namespace UserApi.Controllers
             try
             {
                 //Check if user profile end point is accessible
-                const string filter = "otherMails/any(c:c eq 'checkuser@test.com')";
+                const string filter = "otherMails/any(c:c eq 'checkuser@hmcts.net')";
                 await _userAccountService.GetUserByFilterAsync(filter);
                 response.UserAccessHealth.Successful = SUCCESS;
             }
