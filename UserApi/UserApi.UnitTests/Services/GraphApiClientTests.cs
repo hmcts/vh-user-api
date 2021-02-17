@@ -44,7 +44,7 @@ namespace UserApi.UnitTests.Services
             var username = "TestTester";
             var firstName = "Test";
             var lastName = "Tester";
-            var recoveryEmail = "test'tester@mail.com";
+            var recoveryEmail = "test'tester@hmcts.net";
             var displayName = $"{firstName} {lastName}";
             var user = new
             {
