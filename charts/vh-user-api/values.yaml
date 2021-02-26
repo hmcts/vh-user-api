@@ -17,7 +17,6 @@ java:
       usePodIdentity: true
       secrets:
         - defaultpassword
-        - redis-connection-str
         - testdefaultpassword
         - connectionstrings--rediscache
         - applicationinsights--instrumentationkey
