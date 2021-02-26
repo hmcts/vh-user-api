@@ -20,6 +20,7 @@ java:
         - redis-connection-str
         - testdefaultpassword
         - connectionstrings--rediscache
+        - applicationinsights--instrumentationkey
     vh-user-api:
       excludeEnvironmentSuffix: false
       resourceGroup: vh-infra-core-{{ .Values.global.environment }}
@@ -27,8 +28,6 @@ java:
       secrets:
         - azuread--clientsecret
         - azuread--clientid
-        - applicationinsights-instrumentationkey
-        - applicationinsights-connection-string
   environment:
     ASPNETCORE_URLS: http://+:8080
     ADGROUP__ADMINISTRATOR: VirtualRoomAdministrator
