@@ -14,7 +14,6 @@ using UserApi.Services;
 namespace UserApi.Controllers
 {
     [Produces("application/json")]
-    [Route("healthcheck")]
     [ApiController]
     [AllowAnonymous]
     public class HealthCheckController : ControllerBase
@@ -32,7 +31,8 @@ namespace UserApi.Controllers
         ///     Run a health check of the service
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
-        [HttpGet("health")]
+        [HttpGet("HealthCheck/health")]
+        [HttpGet("health/liveness")]
         [OpenApiOperation("CheckServiceHealth")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]

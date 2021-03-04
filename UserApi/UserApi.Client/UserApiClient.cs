@@ -69,6 +69,17 @@ namespace UserApi.Client
         /// <exception cref="UserApiException">A server side error occurred.</exception>
         System.Threading.Tasks.Task CheckServiceHealthAsync(System.Threading.CancellationToken cancellationToken);
     
+        /// <summary>Run a health check of the service</summary>
+        /// <returns>Error if fails, otherwise OK status</returns>
+        /// <exception cref="UserApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task CheckServiceHealth2Async();
+    
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>Run a health check of the service</summary>
+        /// <returns>Error if fails, otherwise OK status</returns>
+        /// <exception cref="UserApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task CheckServiceHealth2Async(System.Threading.CancellationToken cancellationToken);
+    
         /// <summary>Create a new hearings reforms user account</summary>
         /// <param name="request">Details of a new user</param>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
@@ -554,7 +565,81 @@ namespace UserApi.Client
         public async System.Threading.Tasks.Task CheckServiceHealthAsync(System.Threading.CancellationToken cancellationToken)
         {
             var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/healthcheck/health");
+            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/HealthCheck/health");
+    
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+    
+                    PrepareRequest(client_, request_, urlBuilder_);
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+                    PrepareRequest(client_, request_, url_);
+    
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+    
+                        ProcessResponse(client_, response_);
+    
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            return;
+                        }
+                        else
+                        if (status_ == 500)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new UserApiException("A server side error occurred.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false); 
+                            throw new UserApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+    
+        /// <summary>Run a health check of the service</summary>
+        /// <returns>Error if fails, otherwise OK status</returns>
+        /// <exception cref="UserApiException">A server side error occurred.</exception>
+        public System.Threading.Tasks.Task CheckServiceHealth2Async()
+        {
+            return CheckServiceHealth2Async(System.Threading.CancellationToken.None);
+        }
+    
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>Run a health check of the service</summary>
+        /// <returns>Error if fails, otherwise OK status</returns>
+        /// <exception cref="UserApiException">A server side error occurred.</exception>
+        public async System.Threading.Tasks.Task CheckServiceHealth2Async(System.Threading.CancellationToken cancellationToken)
+        {
+            var urlBuilder_ = new System.Text.StringBuilder();
+            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/health/liveness");
     
             var client_ = _httpClient;
             var disposeClient_ = false;

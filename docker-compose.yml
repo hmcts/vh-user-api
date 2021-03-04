@@ -6,4 +6,4 @@ services:
     image: ${DOCKER_REGISTRY-}userapi:latest
     build:
       context: .
-      dockerfile: UserApi/Dockerfile
+      dockerfile: UserApi/UserApi/Dockerfile
