@@ -14,7 +14,6 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
 COPY UserApi .
 RUN dotnet restore --configfile nuget.config "UserApi/UserApi.csproj"
-COPY . .
 WORKDIR "/src/UserApi"
 COPY --from=gitversion /version/AssemblyInfo.cs .
 RUN dotnet build "UserApi.csproj" -c Release -o /app/build
