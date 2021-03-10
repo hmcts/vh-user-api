@@ -251,6 +251,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }
+        
+        [Test]
+        public async Task Should_remove_spaces_before_checking_user_name()
+        {
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<string> { "janemary.vangreen" });
+            var result = await Service.CheckForNextAvailableUsernameAsync("Jane Mary","van Green");
+
+            Assert.IsTrue(result.Contains("janemary.vangreen@hearings.test.server.net"));
+        }
 
         [Test]
         public async Task Should_check_for_next_available_user_name_find_with_prefix()
