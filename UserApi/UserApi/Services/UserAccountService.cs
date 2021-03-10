@@ -237,7 +237,9 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            var baseUsername = $"{firstName}.{lastName}".ToLowerInvariant();
+            var noSpaceFirstName = firstName.Replace(" ", string.Empty);
+            var noSpaceLastName = lastName.Replace(" ", string.Empty);
+            var baseUsername = $"{noSpaceFirstName}.{noSpaceLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
             return username.GetGivenExistingUsers(existingUsernames);
