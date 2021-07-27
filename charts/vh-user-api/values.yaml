@@ -1,6 +1,6 @@
 ---
 java:
-  image: 'sdshmctspublic.azurecr.io/vh/user-api:20210727.2'
+  image: 'sdshmctspublic.azurecr.io/vh/user-api:20210727.4'
   applicationPort: 8080
   replicas: 2
   ingressHost: vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
