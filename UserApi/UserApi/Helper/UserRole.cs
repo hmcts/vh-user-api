@@ -10,6 +10,7 @@ namespace UserApi.Helper
         [Display(Name = "Individual")] Individual = 3,
         [Display(Name = "Judge")] Judge = 4,
         [Display(Name = "Case Admin")] CaseAdmin = 5,
-        [Display(Name = "Judicial Office Holder")] JudicialOfficeHolder = 6
+        [Display(Name = "Judicial Office Holder")] JudicialOfficeHolder = 6,
+        [Display(Name = "Staff Member")] StaffMember = 7
     }
 }

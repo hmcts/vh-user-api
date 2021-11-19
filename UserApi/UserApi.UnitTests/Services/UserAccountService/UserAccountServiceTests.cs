@@ -40,11 +40,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
-            _settings = new Settings { IsLive = true, ReformEmail = Domain.Replace("@", ""),
-                AdGroup = new AdGroup
-                {
-                    Administrator = "Admin",
-                }
+            _settings = new Settings { IsLive = true, ReformEmail = Domain.Replace("@", "")
             };
 
             var azureAdConfig = new AzureAdConfiguration()

@@ -53,7 +53,7 @@ namespace UserApi.IntegrationTests.Controllers
             _newUserId = createUserModel.UserId;
 
             var addExternalGroupRequest = new AddUserToGroupRequest
-                {UserId = createUserModel.UserId, GroupName = TestConfig.Instance.Settings.AdGroup.External};
+                {UserId = createUserModel.UserId, GroupName = AdGroup.External};
             var addExternalGroupHttpRequest = new StringContent(
                 RequestHelper.Serialise(addExternalGroupRequest),
                 Encoding.UTF8, "application/json");
@@ -214,7 +214,7 @@ namespace UserApi.IntegrationTests.Controllers
             (
                 RequestHelper.Serialise(new AddUserToGroupRequest
                 {
-                    UserId = createUserModel.UserId, GroupName = TestConfig.Instance.Settings.AdGroup.External
+                    UserId = createUserModel.UserId, GroupName = AdGroup.External
                 }),
                 Encoding.UTF8, "application/json"
             );

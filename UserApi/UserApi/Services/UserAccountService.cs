@@ -253,7 +253,7 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
         {
-            var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.Judge);
+            var judges = await GetJudgesByGroupNameAsync(AdGroup.Judge);
             judges = ExcludePerformanceTestUsersAsync(judges);
             
             if (_settings.IsLive)
@@ -286,7 +286,7 @@ namespace UserApi.Services
         
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesByGroupNameAsync(_settings.AdGroup.JudgesTestGroup);
+            var testJudges = await GetJudgesByGroupNameAsync(AdGroup.JudgesTestGroup);
             
             return judgesList.Except(testJudges, CompareJudgeById);
         }

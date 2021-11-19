@@ -82,10 +82,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
                 },
                 DistributedCache.Object
             );
@@ -130,10 +126,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
                 },
                 DistributedCache.Object
             );
@@ -179,10 +171,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
                 },
                 DistributedCache.Object
             );
@@ -237,10 +225,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
                 },
                 DistributedCache.Object
             );
@@ -273,10 +257,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
                 {
                     IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
                 },
                 DistributedCache.Object
             );

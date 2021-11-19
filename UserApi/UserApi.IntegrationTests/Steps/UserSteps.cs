@@ -10,7 +10,6 @@ using FluentAssertions;
 using Polly;
 using TechTalk.SpecFlow;
 using Testing.Common.ActiveDirectory;
-using Testing.Common.Configuration;
 using Testing.Common.Helpers;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -160,7 +159,7 @@ namespace UserApi.IntegrationTests.Steps
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = userId,
-                GroupName = TestConfig.Instance.Settings.AdGroup.External
+                GroupName = AdGroup.External
             };
             var jsonBody = RequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");

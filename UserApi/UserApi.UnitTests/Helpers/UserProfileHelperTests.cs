@@ -28,16 +28,6 @@ namespace UserApi.UnitTests.Helpers
             {
                 IsLive = true,
                 ReformEmail = Domain.Replace("@", ""),
-                AdGroup = new AdGroup
-                {
-                    Administrator = "Admin",
-                    CaseType = "CT",
-                    External = "Ext",
-                    Judge = "JudgeGroup",
-                    ProfessionalUser = "ProfUser",
-                    JudgesTestGroup = "TA",
-                    JudicialOfficeHolder = "JOH"
-                }
             };
             _helper = new UserProfileHelper(_accountService.Object, _settings);
         }
@@ -49,7 +39,7 @@ namespace UserApi.UnitTests.Helpers
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("CaseAdmin");
+            userProfile.UserRole.Should().Be(UserRole.CaseAdmin.ToString());
         }
         
         [Test]
@@ -59,7 +49,7 @@ namespace UserApi.UnitTests.Helpers
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("CaseAdmin");
+            userProfile.UserRole.Should().Be(UserRole.CaseAdmin.ToString());
         }
 
         [Test]
@@ -69,67 +59,77 @@ namespace UserApi.UnitTests.Helpers
 
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("CaseAdmin");
+            userProfile.UserRole.Should().Be(UserRole.CaseAdmin.ToString());
         }
 
         [Test]
         public async Task Should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
-            GivenFilterReturnsUserWithGroups("JudgeGroup");
+            GivenFilterReturnsUserWithGroups(AdGroup.Judge);
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("Judge");
+            userProfile.UserRole.Should().Be(UserRole.Judge.ToString());
         }
         
         [Test]
         public async Task Should_return_joh_for_joh_user()
         {
-            GivenFilterReturnsUserWithGroups("JOH");
+            GivenFilterReturnsUserWithGroups(AdGroup.JudicialOfficeHolder);
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("JudicialOfficeHolder");
+            userProfile.UserRole.Should().Be(UserRole.JudicialOfficeHolder.ToString());
         }
         
         [Test]
         public async Task Should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
         {
-            GivenFilterReturnsUserWithGroups("Admin");
+            GivenFilterReturnsUserWithGroups();
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("VhOfficer");
+            userProfile.UserRole.Should().Be(UserRole.VhOfficer.ToString());
+        }
+        
+        [Test]
+        public async Task Should_return_staff_member_for_user_with_staff_member()
+        {
+            GivenFilterReturnsUserWithGroups(AdGroup.StaffMember);
+            
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
+
+            userProfile.UserRole.Should().Be(UserRole.StaffMember.ToString());
         }
         
         [Test]
         public async Task Should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
         {
-            GivenFilterReturnsUserWithGroups("Admin", "Financial Remedy");
+            GivenFilterReturnsUserWithGroups(AdGroup.Administrator, "Financial Remedy");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("VhOfficer");
+            userProfile.UserRole.Should().Be(UserRole.VhOfficer.ToString());
         }
         
         [Test]
         public async Task Should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
-            GivenFilterReturnsUserWithGroups("ProfUser");
+            GivenFilterReturnsUserWithGroups(AdGroup.ProfessionalUser);
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("Representative");
+            userProfile.UserRole.Should().Be(UserRole.Representative.ToString());
         }
 
         [Test]
         public async Task Should_return_individual_for_user_with_external_group()
         {
-            GivenFilterReturnsUserWithGroups("Ext");
+            GivenFilterReturnsUserWithGroups(AdGroup.External);
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
-            userProfile.UserRole.Should().Be("Individual");
+            userProfile.UserRole.Should().Be(UserRole.Individual.ToString());
         }
         
         [Test]
@@ -235,7 +235,7 @@ namespace UserApi.UnitTests.Helpers
         {
             var user = new User { Id = Guid.NewGuid().ToString() };
 
-            GivenFilterReturnsUserWithGroups(user, "CT", groupDisplayNames);
+            GivenFilterReturnsUserWithGroups(user, "CaseType", groupDisplayNames);
         }
     }
 }
