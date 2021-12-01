@@ -115,6 +115,19 @@ namespace UserApi.UnitTests.Services.UserAccountService
         }
 
         [Test]
+        public async Task Should_sanitise_names()
+        {
+            const string firstName = ".First.";
+            const string lastName = ".La.st.";
+            var baseUsername = "First.La.st".ToLowerInvariant();
+
+            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName);
+
+            nextAvailable.Should().Be(baseUsername + Domain);
+            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
+        }
+
+        [Test]
         public async Task Should_delete()
         {
             IdentityServiceApiClient.Setup(x => x.DeleteUserAsync(It.IsAny<string>()))

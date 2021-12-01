@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -41,8 +42,9 @@ namespace UserApi.UnitTests.Services
         [Test]
         public async Task Should_create_user_successfully_and_return_NewAdUserAccount()
         {
-            var username = "TestTester";
-            var firstName = "Test";
+            var periodRegexString = "^\\.|\\.$";
+            var username = ".TestTester.";
+            var firstName = ".Test.";
             var lastName = "Tester";
             var recoveryEmail = "test'tester@hmcts.net";
             var displayName = $"{firstName} {lastName}";
@@ -51,7 +53,8 @@ namespace UserApi.UnitTests.Services
                 displayName,
                 givenName = firstName,
                 surname = lastName,
-                mailNickname = $"{firstName}.{lastName}".ToLower(),
+                mailNickname = $"{Regex.Replace(firstName, periodRegexString, string.Empty)}.{Regex.Replace(lastName, periodRegexString, string.Empty)}"
+                    .ToLower(),
                 otherMails = new List<string> { recoveryEmail },
                 accountEnabled = true,
                 userPrincipalName = username,
