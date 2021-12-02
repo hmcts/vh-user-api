@@ -12,6 +12,8 @@ using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
+using System.Text.RegularExpressions;
+using Group = Microsoft.Graph.Group;
 
 namespace UserApi.Services
 {
@@ -237,9 +239,14 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            var noSpaceFirstName = firstName.Replace(" ", string.Empty);
-            var noSpaceLastName = lastName.Replace(" ", string.Empty);
-            var baseUsername = $"{noSpaceFirstName}.{noSpaceLastName}".ToLowerInvariant();
+            var periodRegexString = "^\\.|\\.$";
+            var sanitisedFirstName = Regex.Replace(firstName, periodRegexString, string.Empty);
+            var sanitisedLastName = Regex.Replace(lastName, periodRegexString, string.Empty);
+
+            sanitisedFirstName = Regex.Replace(sanitisedFirstName, " ", string.Empty);
+            sanitisedLastName = Regex.Replace(sanitisedLastName, " ", string.Empty);
+
+            var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
             return username.GetGivenExistingUsers(existingUsernames);
