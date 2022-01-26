@@ -108,9 +108,10 @@ namespace UserApi.UnitTests.Controllers
         {
             _userAccountService.Setup(u => u.DeleteUserAsync(It.IsAny<string>())).ThrowsAsync(new ForbiddenRequestToRemoveUserException("", ""));
 
-            var actionResult = (ForbidResult)await _controller.DeleteUser("asd@asd");
+            var actionResult = (StatusCodeResult)await _controller.DeleteUser("asd@asd");
 
             actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.Forbidden);
         }
 
         [Test]

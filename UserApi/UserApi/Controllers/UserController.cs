@@ -229,7 +229,7 @@ namespace UserApi.Controllers
             }
             catch (ForbiddenRequestToRemoveUserException)
             {
-                return Forbid();
+                return StatusCode((int)HttpStatusCode.Forbidden);
             }
 
             return NoContent();
