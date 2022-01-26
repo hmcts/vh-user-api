@@ -124,7 +124,7 @@ namespace UserApi.Services
 
             if(response.StatusCode == HttpStatusCode.Forbidden)
             {
-                throw new ForbiddenRequestToRemoveUserException(ForbiddenResponseExceptionMessage, username);
+                throw new ForbiddenRequestToRemoveUserException(ForbiddenResponseExceptionMessage);
             }
 
             await AssertResponseIsSuccessful(response);
