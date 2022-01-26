@@ -104,6 +104,16 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
+        public async Task returns_forbidden_response_for_forbidden_delete_user()
+        {
+            _userAccountService.Setup(u => u.DeleteUserAsync(It.IsAny<string>())).ThrowsAsync(new ForbiddenRequestToRemoveUserException("", ""));
+
+            var actionResult = (ForbidResult)await _controller.DeleteUser("asd@asd");
+
+            actionResult.Should().NotBeNull();
+        }
+
+        [Test]
         public async Task Should_get_user_by_user_id_from_api()
         {
             string userId = Guid.NewGuid().ToString();

@@ -28,6 +28,7 @@ namespace UserApi.Services
         private readonly IPasswordService _passwordService;
         private readonly string _baseUrl;
         private readonly string _testDefaultPassword;
+        public const string ForbiddenResponseExceptionMessage = "Insufficient privileges to remove specified username";
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest,
             IGraphApiSettings graphApiSettings,
@@ -115,10 +116,17 @@ namespace UserApi.Services
         {
             var queryUrl = $"{_baseUrl}/users/{username}";
             var response = await _secureHttpRequest.DeleteAsync(_graphApiSettings.AccessToken, queryUrl);
+
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 throw new UserDoesNotExistException(username);
             }
+
+            if(response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                throw new ForbiddenRequestToRemoveUserException(ForbiddenResponseExceptionMessage, username);
+            }
+
             await AssertResponseIsSuccessful(response);
         }
 

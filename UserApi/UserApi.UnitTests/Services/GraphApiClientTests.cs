@@ -125,7 +125,19 @@ namespace UserApi.UnitTests.Services
             exception.Should().NotBeNull();
             exception.Message.Should().Be("Failed to call API: Unauthorized\r\ntest");
         }
-        
+
+        [Test]
+        public void Should_raise_ForbiddenRequestToRemoveUserException_on_forbidden_response_on_delete()
+        {
+            _secureHttpRequest.Setup(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("test", HttpStatusCode.Forbidden));
+
+            var exception = Assert.ThrowsAsync<ForbiddenRequestToRemoveUserException>(async () => await _client.DeleteUserAsync(UserName));
+
+            exception.Should().NotBeNull();
+            exception.Message.Should().Contain(GraphApiClient.ForbiddenResponseExceptionMessage);
+        }
+
         [Test]
         public void Should_be_successful_response_on_delete()
         {

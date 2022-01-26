@@ -227,6 +227,10 @@ namespace UserApi.Controllers
             {
                 return NotFound();
             }
+            catch (ForbiddenRequestToRemoveUserException)
+            {
+                return Forbid();
+            }
 
             return NoContent();
         }
