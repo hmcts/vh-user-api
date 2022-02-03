@@ -57,6 +57,11 @@ namespace UserApi.Helper
                 return UserRole.VhOfficer;
             }
 
+            if (userGroups.Any(IsStaffMember))
+            {
+                return UserRole.StaffMember;
+            }
+
             if (userGroups.Any(IsCaseType))
             {
                 return UserRole.CaseAdmin;
@@ -94,6 +99,11 @@ namespace UserApi.Helper
         private bool IsVirtualRoomAdministrator(Group group)
         {
             return string.Equals(_settings.AdGroup.Administrator, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private bool IsStaffMember(Group group)
+        {
+            return string.Equals(_settings.AdGroup.StaffMember, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomJudge(Group group)
