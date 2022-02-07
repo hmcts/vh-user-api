@@ -195,7 +195,7 @@ namespace UserApi.Services
 
         public async Task<bool> IsUserAdminAsync(string principalId)
         {
-            var userRoleAssignmentUri = $"{_graphApiSettings.GraphApiBaseUri}beta/rolemanagement/directory/roleAssignments?$filter=principalId eq '{principalId}'";  
+            var userRoleAssignmentUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleAssignments?$filter=principalId eq '{principalId}'";  
             
             var adminRoleUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
 

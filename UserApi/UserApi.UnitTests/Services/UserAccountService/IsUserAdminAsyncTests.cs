@@ -14,7 +14,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
     public class IsUserAdminAsyncTests : UserAccountServiceTests
     {
         private const string PrincipalId = "55c07278-7109-4a46-ae60-4b644bc83a31";
-        private string UserRoleEndpoint => $"{GraphApiSettings.GraphApiBaseUri}beta/rolemanagement/directory/roleAssignments?$filter=principalId eq '{PrincipalId}'";
+        private string UserRoleEndpoint => $"{GraphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleAssignments?$filter=principalId eq '{PrincipalId}'";
         private string UserAdminRoleEndpoint => $"{GraphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
 
 
