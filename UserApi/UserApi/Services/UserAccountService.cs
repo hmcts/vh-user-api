@@ -101,7 +101,7 @@ namespace UserApi.Services
 
             var reason = await responseMessage.Content.ReadAsStringAsync();
 
-            // if we failed because the user is already in the group, consider it done anyway
+            // If we failed because the user is already in the group, consider it done anyway
             if (reason.Contains("already exist"))
             {
                 return;
