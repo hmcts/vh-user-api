@@ -199,11 +199,13 @@ namespace UserApi.Services
             
             var adminRoleUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
 
-            var userAssignedRoles = (await ExecuteRequest<AzureAdGraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri)).Value;
+            var userAssignedRoles = (await ExecuteRequest<AzureAdGraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri))?.Value;
 
-            var adminRole = (await ExecuteRequest<AzureAdGraphQueryResponse<RoleDefinition>>(adminRoleUri)).Value[0];
+            var adminRole = (await ExecuteRequest<AzureAdGraphQueryResponse<RoleDefinition>>(adminRoleUri))?.Value[0];
 
-            return userAssignedRoles.Any(r => r.RoleDefinitionId == adminRole.Id);
+            if (userAssignedRoles == null || adminRole == null) return false;
+
+            return userAssignedRoles.Any(r => r.RoleDefinitionId == adminRole?.Id);
         }
 
         private async Task<T> ExecuteRequest<T>(string accessUri) where T : class
