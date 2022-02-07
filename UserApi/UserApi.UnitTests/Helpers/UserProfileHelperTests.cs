@@ -8,6 +8,7 @@ using UserApi.Helper;
 using UserApi.Services;
 using System.Threading.Tasks;
 using Microsoft.Graph;
+using FizzWare.NBuilder;
 
 namespace UserApi.UnitTests.Helpers
 {
@@ -213,6 +214,22 @@ namespace UserApi.UnitTests.Helpers
             userProfile.Email.Should().Be(user.Mail);
             userProfile.UserId.Should().Be(user.Id);
             userProfile.UserName.Should().Be(user.UserPrincipalName);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task Should_check_if_user_is_admin(bool isAdmin)
+        {
+            var user = Builder<User>.CreateNew().Build();
+
+            GivenFilterReturnsUserWithGroups(user, null, "Ext");
+
+            _accountService.Setup(x => x.IsUserAdminAsync(It.IsAny<string>()))
+                .Returns(() => Task.FromResult(isAdmin));
+
+            var userProfile = await _helper.GetUserProfileAsync(Filter);
+
+            userProfile.IsUserAdmin.Should().Be(isAdmin);
         }
 
         private void GivenFilterReturnsUserWithGroups(params string[] groupDisplayNames)

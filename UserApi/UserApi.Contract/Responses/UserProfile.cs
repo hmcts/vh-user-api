@@ -12,5 +12,6 @@ namespace UserApi.Contract.Responses
         public string LastName { get; set; }
         public string UserRole { get; set; }
         public List<string> CaseType { get; set; }
+        public bool IsUserAdmin { get; set; }
     }
 }
