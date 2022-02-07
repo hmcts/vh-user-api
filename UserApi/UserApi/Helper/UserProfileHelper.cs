@@ -28,6 +28,8 @@ namespace UserApi.Helper
                 return null;
             }
 
+            var isUserAdmin = await _userAccountService.IsUserAdminAsync(user.Id);
+
             var groups = (await _userAccountService.GetGroupsForUserAsync(user.Id))
                 .Where(x => !string.IsNullOrWhiteSpace(x.DisplayName))
                 .ToList();
@@ -44,7 +46,8 @@ namespace UserApi.Helper
                 FirstName = user.GivenName,
                 LastName = user.Surname,
                 UserRole = userRole,
-                CaseType = caseTypes
+                CaseType = caseTypes,
+                IsUserAdmin = isUserAdmin
             };
 
             return response;
