@@ -115,6 +115,8 @@ extends:
           value: $(adgroup-administrator)
         - name: AdGroup:Judge
           value: $(adgroup-judge)
+        - name: AdGroup:StaffMember
+          value: $(adgroup-staffmember)
         - name: AdGroup:ProfessionalUser
           value: $(adgroup-professionaluser)
         - name: AdGroup:JudgesTestGroup
@@ -185,6 +187,8 @@ extends:
           value: $(adgroup-administrator)
         - name: AdGroup:Judge
           value: $(adgroup-judge)
+        - name: AdGroup:StaffMember
+          value: $(adgroup-staffmember)
         - name: AdGroup:ProfessionalUser
           value: $(adgroup-professionaluser)
         - name: AdGroup:JudgesTestGroup
