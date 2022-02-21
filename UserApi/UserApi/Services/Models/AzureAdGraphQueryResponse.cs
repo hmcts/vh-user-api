@@ -19,4 +19,14 @@ namespace UserApi.Services.Models
         public string Surname { get; set; }
         public List<string> OtherMails { get; set; }
     }
+    
+    public class UserAssignedRole
+    {
+        public string Id { get; set; }
+        public string PrincipalId { get; set; }
+        public string PrincipalOrganizationId { get; set; }
+        public string ResourceScope { get; set; }
+        public string RoleDefinitionId { get; set; }
+    }
+  
 }

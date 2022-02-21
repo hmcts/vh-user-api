@@ -28,6 +28,8 @@ namespace UserApi.Helper
                 return null;
             }
 
+            var isUserAdmin = await _userAccountService.IsUserAdminAsync(user.Id);
+
             var groups = (await _userAccountService.GetGroupsForUserAsync(user.Id))
                 .Where(x => !string.IsNullOrWhiteSpace(x.DisplayName))
                 .ToList();
@@ -44,7 +46,8 @@ namespace UserApi.Helper
                 FirstName = user.GivenName,
                 LastName = user.Surname,
                 UserRole = userRole,
-                CaseType = caseTypes
+                CaseType = caseTypes,
+                IsUserAdmin = isUserAdmin
             };
 
             return response;
@@ -55,6 +58,11 @@ namespace UserApi.Helper
             if (userGroups.Any(IsVirtualRoomAdministrator))
             {
                 return UserRole.VhOfficer;
+            }
+
+            if (userGroups.Any(IsStaffMember))
+            {
+                return UserRole.StaffMember;
             }
 
             if (userGroups.Any(IsCaseType))
@@ -94,6 +102,11 @@ namespace UserApi.Helper
         private bool IsVirtualRoomAdministrator(Group group)
         {
             return string.Equals(_settings.AdGroup.Administrator, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private bool IsStaffMember(Group group)
+        {
+            return string.Equals(_settings.AdGroup.StaffMember, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomJudge(Group group)

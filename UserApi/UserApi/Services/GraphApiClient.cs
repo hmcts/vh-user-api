@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UserApi.Helper;
@@ -54,6 +55,8 @@ namespace UserApi.Services
 
         public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false)
         {
+            var periodRegexString = "^\\.|\\.$";
+
             // the user object provided by the graph api nuget package is missing the otherMails property
             // but it's there in the API so using a dynamic request model instead
             var newPassword = isTestUser ? _testDefaultPassword : _passwordService.GenerateRandomPasswordWithDefaultComplexity();
@@ -62,7 +65,8 @@ namespace UserApi.Services
                 displayName,
                 givenName = firstName,
                 surname = lastName,
-                mailNickname = $"{firstName}.{lastName}".ToLower(),
+                mailNickname = $"{Regex.Replace(firstName, periodRegexString, string.Empty)}.{Regex.Replace(lastName, periodRegexString, string.Empty)}"
+                    .ToLower(),
                 otherMails = new List<string> { recoveryEmail },
                 accountEnabled = true,
                 userPrincipalName = username,

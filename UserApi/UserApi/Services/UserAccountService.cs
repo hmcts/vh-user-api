@@ -12,6 +12,8 @@ using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
+using System.Text.RegularExpressions;
+using Group = Microsoft.Graph.Group;
 
 namespace UserApi.Services
 {
@@ -30,7 +32,7 @@ namespace UserApi.Services
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client, 
+        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client,
             Settings settings, ICache distributedCache)
         {
             _secureHttpRequest = secureHttpRequest;
@@ -99,7 +101,7 @@ namespace UserApi.Services
 
             var reason = await responseMessage.Content.ReadAsStringAsync();
 
-            // if we failed because the user is already in the group, consider it done anyway
+            // If we failed because the user is already in the group, consider it done anyway
             if (reason.Contains("already exist"))
             {
                 return;
@@ -191,6 +193,40 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
+        public async Task<bool> IsUserAdminAsync(string principalId)
+        {
+            var userRoleAssignmentUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleAssignments?$filter=principalId eq '{principalId}'";  
+            
+            var adminRoleUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
+
+            var userAssignedRoles = (await ExecuteRequest<AzureAdGraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri))?.Value;
+
+            var adminRole = (await ExecuteRequest<AzureAdGraphQueryResponse<RoleDefinition>>(adminRoleUri))?.Value[0];
+
+            if (userAssignedRoles == null || adminRole == null) return false;
+
+            return userAssignedRoles.Any(r => r.RoleDefinitionId == adminRole?.Id);
+        }
+
+        private async Task<T> ExecuteRequest<T>(string accessUri) where T : class
+        {
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var content = await responseMessage.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<T>(content);
+            }
+
+            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                return default;
+            }
+
+            throw new UserServiceException($"An error occurred processing request {accessUri}", responseMessage.ReasonPhrase );
+        }
+
         public async Task<List<Group>> GetGroupsForUserAsync(string userId)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
@@ -237,9 +273,14 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
         {
-            var noSpaceFirstName = firstName.Replace(" ", string.Empty);
-            var noSpaceLastName = lastName.Replace(" ", string.Empty);
-            var baseUsername = $"{noSpaceFirstName}.{noSpaceLastName}".ToLowerInvariant();
+            var periodRegexString = "^\\.|\\.$";
+            var sanitisedFirstName = Regex.Replace(firstName, periodRegexString, string.Empty);
+            var sanitisedLastName = Regex.Replace(lastName, periodRegexString, string.Empty);
+
+            sanitisedFirstName = Regex.Replace(sanitisedFirstName, " ", string.Empty);
+            sanitisedLastName = Regex.Replace(sanitisedLastName, " ", string.Empty);
+
+            var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
             return username.GetGivenExistingUsers(existingUsernames);
@@ -255,7 +296,7 @@ namespace UserApi.Services
         {
             var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.Judge);
             judges = ExcludePerformanceTestUsersAsync(judges);
-            
+
             if (_settings.IsLive)
             {
                 judges = await ExcludeTestJudgesAsync(judges);
@@ -263,18 +304,18 @@ namespace UserApi.Services
 
             return judges.OrderBy(x => x.DisplayName);
         }
-        
+
         private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
         {
             var groupData = await GetGroupByNameAsync(groupName);
-            
+
             if (groupData == null)
             {
                 return Enumerable.Empty<UserResponse>();
             }
 
             var response = await GetJudgesAsync(groupData.Id);
-            
+
             return response.Select(x => new UserResponse
             {
                 FirstName = x.FirstName,
@@ -283,19 +324,19 @@ namespace UserApi.Services
                 DisplayName = x.DisplayName
             });
         }
-        
+
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
             var testJudges = await GetJudgesByGroupNameAsync(_settings.AdGroup.JudgesTestGroup);
-            
+
             return judgesList.Except(testJudges, CompareJudgeById);
         }
-        
+
         private static IEnumerable<UserResponse> ExcludePerformanceTestUsersAsync(IEnumerable<UserResponse> judgesList)
         {
             return judgesList.Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
         }
-        
+
         private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)
         {
             var users = new List<UserResponse>();
@@ -315,7 +356,7 @@ namespace UserApi.Services
 
                     var message = $"Failed to get users for group {groupId}";
                     var reason = await responseMessage.Content.ReadAsStringAsync();
-                    
+
                     throw new UserServiceException(message, reason);
                 }
 

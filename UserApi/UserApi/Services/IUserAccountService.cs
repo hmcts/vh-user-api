@@ -23,5 +23,6 @@ namespace UserApi.Services
         Task<User> GetUserByFilterAsync(string filter);
         Task<IEnumerable<UserResponse>> GetJudgesAsync();
         Task<string> UpdateUserPasswordAsync(string username);
+        Task<bool> IsUserAdminAsync(string principalId);
     }
 }

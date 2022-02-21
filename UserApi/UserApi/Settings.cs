@@ -19,6 +19,7 @@ namespace UserApi
         public string CaseType { get; set; }
         public string Administrator { get; set; }
         public string Judge { get; set; }
+        public string StaffMember { get; set; }
         public string JudgesTestGroup { get; set; }
         public string ProfessionalUser { get; set; }
         public string External { get; set; }
