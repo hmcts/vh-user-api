@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using UserApi.Caching;
@@ -174,6 +175,26 @@ namespace UserApi.Controllers
             if (userProfile == null) return NotFound();
 
             return Ok(userProfile);
+        }
+
+        /// <summary>
+        ///     Get Ejudiciary Judges from AD
+        /// </summary>
+        [HttpGet("judges", Name = "GetEjudiciaryJudges")]
+        [AllowAnonymous]
+        [OpenApiOperation("GetEjudiciaryJudges")]
+        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetEjudiciaryJudges()
+        {
+            var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
+
+            if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
+            {
+                return Ok(new List<UserResponse>());
+            }
+
+            return Ok(ejudiciaryJudges);
         }
 
         /// <summary>

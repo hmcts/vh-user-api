@@ -292,6 +292,12 @@ namespace UserApi.Services
             return users;
         }
 
+        public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync()
+        {
+            var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.JudicialOfficeHolder);
+            return judges.OrderBy(x => x.DisplayName);
+        }
+
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
         {
             var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.Judge);
@@ -314,15 +320,7 @@ namespace UserApi.Services
                 return Enumerable.Empty<UserResponse>();
             }
 
-            var response = await GetJudgesAsync(groupData.Id);
-
-            return response.Select(x => new UserResponse
-            {
-                FirstName = x.FirstName,
-                LastName = x.LastName,
-                Email = x.Email,
-                DisplayName = x.DisplayName
-            });
+            return await GetJudgesAsync(groupData.Id);
         }
 
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
@@ -341,7 +339,7 @@ namespace UserApi.Services
         {
             var users = new List<UserResponse>();
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?" +
-                            "$select=id,userPrincipalName,displayName,givenName,surname&$top=999";
+                            "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
 
             while (true)
             {
@@ -368,7 +366,10 @@ namespace UserApi.Services
                     FirstName = x.GivenName,
                     LastName = x.Surname,
                     DisplayName = x.DisplayName,
-                    Email = x.UserPrincipalName
+                    Email = x.UserPrincipalName,
+                    ContactEmail = x.OtherMails.FirstOrDefault(),
+                    TelephoneNumber = x.MobilePhone,
+                    Organisation = x.CompanyName
                 }));
 
                 if (!directoryObject.AdditionalData.ContainsKey("@odata.nextLink"))
