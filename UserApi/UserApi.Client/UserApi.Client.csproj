@@ -10,7 +10,7 @@
         <License>https://github.com/hmcts/vh-user-api/blob/master/LICENSE</License>
         <RepositoryUrl>https://github.com/hmcts/vh-user-api</RepositoryUrl>
         <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
-        <Version>1.35.0-beta-1</Version>
+        <Version>1.35.0-beta-2</Version>
     </PropertyGroup>
 
     <ItemGroup>

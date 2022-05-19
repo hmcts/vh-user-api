@@ -180,15 +180,16 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get Ejudiciary Judges from AD
         /// </summary>
-        [HttpGet("judges", Name = "GetEjudiciaryJudges")]
+        [HttpGet("ejudJudges", Name = "GetEjudiciaryJudges")]
         [AllowAnonymous]
         [OpenApiOperation("GetEjudiciaryJudges")]
         [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetEjudiciaryJudges()
         {
-            var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
-
+            var ejudiciaryJudges = await _userAccountService.GetEjudiciaryJudgesAsync();
+            //var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
+            
             if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
             {
                 return Ok(new List<UserResponse>());
