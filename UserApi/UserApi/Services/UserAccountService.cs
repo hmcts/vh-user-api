@@ -367,7 +367,7 @@ namespace UserApi.Services
                     LastName = x.Surname,
                     DisplayName = x.DisplayName,
                     Email = x.UserPrincipalName,
-                    ContactEmail = x.OtherMails.FirstOrDefault(),
+                    ContactEmail = x.OtherMails?.FirstOrDefault(),
                     TelephoneNumber = x.MobilePhone,
                     Organisation = x.CompanyName
                 }));
