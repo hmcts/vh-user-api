@@ -187,8 +187,7 @@ namespace UserApi.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetEjudiciaryJudges()
         {
-            var ejudiciaryJudges = await _userAccountService.GetEjudiciaryJudgesAsync();
-            //var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
+            var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
             
             if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
             {
