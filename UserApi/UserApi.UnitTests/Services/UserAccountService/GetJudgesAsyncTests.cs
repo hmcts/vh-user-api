@@ -35,7 +35,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
 
             _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?" +
-                         "$select=id,userPrincipalName,displayName,givenName,surname&$top=999";
+                         "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
         }
 
         [Test]

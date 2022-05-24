@@ -1,13 +1,13 @@
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.AspNetCore.Mvc;
+using NSwag.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.AspNetCore.Mvc;
-using NSwag.Annotations;
 using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -174,6 +174,25 @@ namespace UserApi.Controllers
             if (userProfile == null) return NotFound();
 
             return Ok(userProfile);
+        }
+
+        /// <summary>
+        ///     Get Ejudiciary Judges from AD
+        /// </summary>
+        [HttpGet("ejudJudges", Name = "GetEjudiciaryJudges")]
+        [OpenApiOperation("GetEjudiciaryJudges")]
+        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetEjudiciaryJudges()
+        {
+            var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
+            
+            if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
+            {
+                return Ok(new List<UserResponse>());
+            }
+
+            return Ok(ejudiciaryJudges);
         }
 
         /// <summary>

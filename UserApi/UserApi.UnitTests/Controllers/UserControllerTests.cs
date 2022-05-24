@@ -331,6 +331,57 @@ namespace UserApi.UnitTests.Controllers
             actualResponse.Count.Should().Be(0);
         }
 
+
+        [Test]
+        public async Task Should_get_ejudiciary_judges_for_group_by_group_id_from_api()
+        {
+            var response = new List<UserResponse>();
+            var user = new UserResponse
+            {
+                DisplayName = "firstname lastname",
+                FirstName = "firstname",
+                LastName = "lastname",
+                Email = "firstname.lastname@hearings.test.server.net"
+            };
+
+            response.Add(user);
+
+            user = new UserResponse
+            {
+                DisplayName = "firstname1 lastname1",
+                FirstName = "firstname1",
+                LastName = "lastname1",
+                Email = "firstname1.lastname1@hearings.test.server.net"
+            };
+            response.Add(user);
+
+            var userList = new List<UserResponse>()
+            {
+                new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" }
+            };
+
+            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
+                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
+                .ReturnsAsync(response.AsEnumerable());
+
+            var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudges();
+            var actualResponse = (List<UserResponse>)actionResult.Value;
+            actualResponse.Count.Should().Be(2);
+            actualResponse.FirstOrDefault().DisplayName.Should().BeSameAs(userList.FirstOrDefault().DisplayName);
+        }
+
+        [Test]
+        public async Task Should_get_empty_ejudiciary_judges_response_without_judges()
+        {
+            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
+                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
+                .ReturnsAsync((IEnumerable<UserResponse>)null);
+
+            var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudges();
+            var actualResponse = (List<UserResponse>)actionResult.Value;
+            actualResponse.Count.Should().Be(0);
+        }
+
         [Test]
         public async Task Should_return_bad_request_for_update_user()
         {
