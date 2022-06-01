@@ -202,7 +202,6 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("judgesbyusername", Name = "GetJudgesByUsername")]
         [OpenApiOperation("GetJudgesByUsername")]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetJudgesByUsername(string username)
