@@ -33,9 +33,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
             _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
-
-            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?" +
-                         "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
+            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members?$count=true" +
+                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
         }
 
         [Test]

@@ -20,6 +20,7 @@ namespace UserApi.Helper
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                client.DefaultRequestHeaders.Add("ConsistencyLevel", "eventual");
                 var httpRequestMessage =
                     new HttpRequestMessage(HttpMethod.Get, accessUri);
                 return await client.SendAsync(httpRequestMessage);

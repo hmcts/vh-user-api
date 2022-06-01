@@ -346,38 +346,37 @@ namespace UserApi.UnitTests.Controllers
 
             response.Add(user);
 
-            user = new UserResponse
+            var user2 = new UserResponse
             {
                 DisplayName = "firstname1 lastname1",
                 FirstName = "firstname1",
                 LastName = "lastname1",
                 Email = "firstname1.lastname1@hearings.test.server.net"
             };
-            response.Add(user);
+            response.Add(user2);
 
-            var userList = new List<UserResponse>()
-            {
-                new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" }
-            };
+            var term = "firstname";
+            _userAccountService.Setup(x => x.GetEjudiciaryJudgesAsync(term)).ReturnsAsync(response.Where(x => x.Email.Contains(term)).ToList());
 
-            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
-                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
-                .ReturnsAsync(response.AsEnumerable());
-
-            var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudges();
+            var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername(term);
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(2);
-            actualResponse.FirstOrDefault().DisplayName.Should().BeSameAs(userList.FirstOrDefault().DisplayName);
+            actualResponse[0].DisplayName.Should().BeSameAs(user.DisplayName);
+            actualResponse[1].DisplayName.Should().BeSameAs(user2.DisplayName);
+
+            term = "firstname1";
+            _userAccountService.Setup(x => x.GetEjudiciaryJudgesAsync(term)).ReturnsAsync(response.Where(x => x.Email.Contains(term)).ToList());
+
+            actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername(term);
+            actualResponse = (List<UserResponse>)actionResult.Value;
+            actualResponse.Count.Should().Be(1);
+            actualResponse[0].DisplayName.Should().BeSameAs(user2.DisplayName);
         }
 
         [Test]
         public async Task Should_get_empty_ejudiciary_judges_response_without_judges()
         {
-            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
-                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
-                .ReturnsAsync((IEnumerable<UserResponse>)null);
-
-            var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudges();
+            var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername("firstname1");
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(0);
         }

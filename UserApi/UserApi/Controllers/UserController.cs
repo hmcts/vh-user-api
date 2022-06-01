@@ -1,5 +1,6 @@
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using System;
@@ -65,6 +66,7 @@ namespace UserApi.Controllers
                 var adUserAccount =
                     await _userAccountService.CreateUserAsync(request.FirstName, request.LastName,
                         request.RecoveryEmail, request.IsTestUser);
+
                 var response = new NewUserResponse
                 {
                     UserId = adUserAccount.UserId,
@@ -177,26 +179,8 @@ namespace UserApi.Controllers
         }
 
         /// <summary>
-        ///     Get Ejudiciary Judges from AD
-        /// </summary>
-        [HttpGet("ejudJudges", Name = "GetEjudiciaryJudges")]
-        [OpenApiOperation("GetEjudiciaryJudges")]
-        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetEjudiciaryJudges()
-        {
-            var ejudiciaryJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetEjudiciaryJudgesAsync());
-            
-            if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
-            {
-                return Ok(new List<UserResponse>());
-            }
-
-            return Ok(ejudiciaryJudges);
-        }
-
-        /// <summary>
-        ///     Get Judges from AD
+        ///     DEPRECATED - Methods using this should use be replaced with the override version
+        ///     of this method that takes a username.
         /// </summary>
         [HttpGet("judges", Name = "GetJudges")]
         [OpenApiOperation("GetJudges")]
@@ -212,6 +196,45 @@ namespace UserApi.Controllers
             }
 
             return Ok(adJudges);
+        }
+
+        /// <summary>
+        ///     Gets a list of judges with the filtered username
+        /// </summary>
+        [HttpGet("judgesbyusername", Name = "GetJudgesByUsername")]
+        [OpenApiOperation("GetJudgesByUsername")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetJudgesByUsername(string username)
+        {
+            var adJudges = await _userAccountService.GetJudgesAsync(username);
+
+            if (adJudges == null || !adJudges.Any())
+            {
+                return Ok(new List<UserResponse>());
+            }
+
+            return Ok(adJudges);
+        }
+
+        /// <summary>
+        ///     Get Ejudiciary Judges from AD filtered by username
+        /// </summary>
+        [HttpGet("ejudJudges", Name = "GetEjudiciaryJudgesByUsername")]
+        [OpenApiOperation("GetEjudiciaryJudgesByUsername")]
+        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetEjudiciaryJudgesByUsername(string username)
+        {
+            var ejudiciaryJudges = await _userAccountService.GetEjudiciaryJudgesAsync(username);
+
+            if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
+            {
+                return Ok(new List<UserResponse>());
+            }
+
+            return Ok(ejudiciaryJudges);
         }
 
         /// <summary>
