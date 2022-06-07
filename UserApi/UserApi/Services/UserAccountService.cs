@@ -292,15 +292,9 @@ namespace UserApi.Services
             return users;
         }
 
-        public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync()
+        public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
         {
-            var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.JudicialOfficeHolder);
-            return judges.OrderBy(x => x.DisplayName);
-        }
-
-        public async Task<IEnumerable<UserResponse>> GetJudgesAsync()
-        {
-            var judges = await GetJudgesByGroupNameAsync(_settings.AdGroup.Judge);
+            var judges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.Judge, username);
             judges = ExcludePerformanceTestUsersAsync(judges);
 
             if (_settings.IsLive)
@@ -311,7 +305,13 @@ namespace UserApi.Services
             return judges.OrderBy(x => x.DisplayName);
         }
 
-        private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAsync(string groupName)
+        public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username)
+        {
+            var judges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.JudicialOfficeHolder, username);
+            return judges.OrderBy(x => x.DisplayName);
+        }
+
+        private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAndFilterAsync(string groupName, string filter = null)
         {
             var groupData = await GetGroupByNameAsync(groupName);
 
@@ -320,12 +320,12 @@ namespace UserApi.Services
                 return Enumerable.Empty<UserResponse>();
             }
 
-            return await GetJudgesAsync(groupData.Id);
+            return await GetJudgesAsyncByGroupIdAndUsername(groupData.Id, filter);
         }
 
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesByGroupNameAsync(_settings.AdGroup.JudgesTestGroup);
+            var testJudges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.JudgesTestGroup);
 
             return judgesList.Except(testJudges, CompareJudgeById);
         }
@@ -335,11 +335,14 @@ namespace UserApi.Services
             return judgesList.Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
         }
 
-        private async Task<IEnumerable<UserResponse>> GetJudgesAsync(string groupId)
+        private async Task<IEnumerable<UserResponse>> GetJudgesAsyncByGroupIdAndUsername(string groupId, string username = null)
         {
             var users = new List<UserResponse>();
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?" +
-                            "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
+
+            var filterQueryString = string.IsNullOrWhiteSpace(username) ? "" : $"&$filter=startswith(userPrincipalName, '{username}')";
+
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$count=true{filterQueryString}" +
+                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
 
             while (true)
             {
