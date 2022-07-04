@@ -8,7 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS publish
 WORKDIR /src
 COPY UserApi .
-RUN dotnet restore --configfile nuget.config "UserApi/UserApi.csproj"
+RUN dotnet restore --configfile nuget.sds.config "UserApi/UserApi.csproj"
 WORKDIR "/src/UserApi"
 RUN dotnet publish "UserApi.csproj" -c Release -o /app/publish
 
