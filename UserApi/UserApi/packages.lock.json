@@ -152,9 +152,9 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[8.2.0.14119, )",
-        "resolved": "8.2.0.14119",
-        "contentHash": "uq6tGr6guoDzeGjM/7kQWSTYUqv6RgPCVfzYoJg0jdVhIjNPQvSL0kMcugDziOWFP1OIv89kBD9LubVOMbCvvg=="
+        "requested": "[8.19.0.28253, )",
+        "resolved": "8.19.0.28253",
+        "contentHash": "u7CejPVtZnuZp2nQClK+NCCQCoXNcrCzlAojlNjVUJQVxKwEy7saYygfJWHzG0ihD9oq0tqUeW8K5cYo/N5/ug=="
       },
       "VH.Core.Configuration": {
         "type": "Direct",
@@ -2629,14 +2629,14 @@
         "dependencies": {
           "Microsoft.ApplicationInsights.AspNetCore": "2.12.0",
           "Microsoft.IdentityModel.Clients.ActiveDirectory": "5.2.0",
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "SonarAnalyzer.CSharp": "8.19.0.28253"
         }
       },
       "userapi.contract": {
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "12.0.3",
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "SonarAnalyzer.CSharp": "8.19.0.28253"
         }
       }
     }

@@ -71,9 +71,9 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[8.2.0.14119, )",
-        "resolved": "8.2.0.14119",
-        "contentHash": "uq6tGr6guoDzeGjM/7kQWSTYUqv6RgPCVfzYoJg0jdVhIjNPQvSL0kMcugDziOWFP1OIv89kBD9LubVOMbCvvg=="
+        "requested": "[8.19.0.28253, )",
+        "resolved": "8.19.0.28253",
+        "contentHash": "u7CejPVtZnuZp2nQClK+NCCQCoXNcrCzlAojlNjVUJQVxKwEy7saYygfJWHzG0ihD9oq0tqUeW8K5cYo/N5/ug=="
       },
       "Castle.Core": {
         "type": "Transitive",
@@ -2763,7 +2763,7 @@
           "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": "1.10.8",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "3.1.0",
           "NSwag.AspNetCore": "13.9.4",
-          "SonarAnalyzer.CSharp": "8.2.0.14119",
+          "SonarAnalyzer.CSharp": "8.19.0.28253",
           "UserApi.Common": "1.0.0",
           "UserApi.Contract": "1.0.0",
           "VH.Core.Configuration": "0.1.12",
@@ -2775,14 +2775,14 @@
         "dependencies": {
           "Microsoft.ApplicationInsights.AspNetCore": "2.12.0",
           "Microsoft.IdentityModel.Clients.ActiveDirectory": "5.2.0",
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "SonarAnalyzer.CSharp": "8.19.0.28253"
         }
       },
       "userapi.contract": {
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "12.0.3",
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "SonarAnalyzer.CSharp": "8.19.0.28253"
         }
       }
     }
