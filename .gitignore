@@ -205,6 +205,10 @@ Package.StoreAssociation.xml
 _pkginfo.txt
 *.appx
 
+# MacOS Desktop Services Store files
+.DS_Store
+*.DS_Store
+
 # Visual Studio cache files
 # files ending in .cache can be ignored
 *.[Cc]ache
