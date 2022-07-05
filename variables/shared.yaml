@@ -70,7 +70,7 @@ variables:
   - name: vhSQLServerName
     value: vh-infra-core-${{ parameters.env }}
   - name: UserApiDbName
-    value: vhbookings
+    value: vhusers
   - name: vhResourceGroup
     value: vh-infra-core-${{ parameters.env }}
 

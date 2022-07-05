@@ -27,6 +27,7 @@ java:
         - azuread--clientid
   environment:
     ASPNETCORE_URLS: http://+:8080
+    SERVICES__USERAPIRESOURCEID: http://vh-bookings-api.platform.hmcts.net
     DISABLEHTTPSREDIRECTION: true
     Logging__LogLevel__Default: debug
     Logging__LogLevel__System: debug
