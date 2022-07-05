@@ -158,6 +158,7 @@ namespace UserApi.UnitTests.Controllers
             _distributedCacheMock.Verify(x => x.GetOrAddAsync(It.IsAny<Func<Task<string>>>()));
         }
 
+        #if DEBUG
         [Test]
         public async Task should_return_the_application_version_from_assembly()
         {
@@ -169,6 +170,7 @@ namespace UserApi.UnitTests.Controllers
             response.AppVersion.FileVersion.Should().NotBeNullOrEmpty();
             response.AppVersion.InformationVersion.Should().NotBeNullOrEmpty();
         }
+        #endif
 
         [Test]
         public async Task Should_return_server_errors_if_access_to_user_and_group_unsuccessful()
