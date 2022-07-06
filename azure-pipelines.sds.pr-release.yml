@@ -318,7 +318,7 @@ stages:
 #####################################################
 # Deploy Helm Chart to QA. ##########################
   - stage: Install_Demo
-    displayName: Wait Helm Chart Demo AKS
+    displayName: Install Helm Chart Demo AKS
     dependsOn: Wait
     variables:
       - template: variables/qa.yaml
