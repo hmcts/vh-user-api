@@ -27,7 +27,7 @@ parameters:
 
 stages:
   - stage: pre_run_tasks
-    displayName:  ${{ variables.stagingTagName }} Pre-Release Tasks
+    displayName: Pre-Release Tasks
     variables:
       - template: variables/shared.yaml
       - ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
@@ -102,8 +102,8 @@ stages:
 
               $newTag= $recievedTag -replace "#{DATETIME}#", $date
               Write-Host "Tag after $newTag"
-              
-              Write-Host "##vso[task.setvariable variable=name]$newTag"
+
+              Write-Host "##vso[task.setvariable variable=name;isOutput=true]$newTag"
             displayName: Set Tag
             name: tag
 
