@@ -99,8 +99,10 @@ stages:
               Write-Host "Tag before $recievedTag"
               
               $date=$(Get-Date -Format yyyyMMddhhmm);
+              $commitId="$(Build.SourceVersion)"
+              $shorterCommitId=$commitId.SubString(0,7)
 
-              $newTag= $recievedTag -replace "#{DATETIME}#", $date
+              $newTag= $recievedTag -replace "#{DATETIME}#", $date -replace "#{SHORTCOMMITID}#", $shorterCommitId
               Write-Host "Tag after $newTag"
 
               Write-Host "##vso[task.setvariable variable=name;isOutput=true]$newTag"
