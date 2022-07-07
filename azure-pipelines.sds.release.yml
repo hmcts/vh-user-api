@@ -107,7 +107,7 @@ stages:
                   - 'latest'
                   - '${{ variables.releaseTagName }}'
                 - ${{ else }}:
-                  - '${{ variables.stagingTagName }}'
+                  - 'test'
 
 #####################################################
 # Deploy Nuget Packages. #########################
