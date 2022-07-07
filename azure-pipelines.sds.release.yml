@@ -106,8 +106,6 @@ stages:
                 - ${{ elseif contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
                   - 'latest'
                   - '${{ variables.releaseTagName }}'
-                - ${{ else }}:
-                  - 'test'
 
 #####################################################
 # Deploy Nuget Packages. #########################
