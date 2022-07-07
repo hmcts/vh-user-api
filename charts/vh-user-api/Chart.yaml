@@ -1,0 +1,13 @@
+---
+apiVersion: v2
+name: vh-user-api
+home: https://github.com/hmcts/vh-user-api
+version: 0.0.3
+description: Helm Chart for User API
+maintainers:
+  - name: VH Devops
+
+dependencies:
+  - name: java
+    version: 3.7.2
+    repository: https://hmctspublic.azurecr.io/helm/v1/repo/

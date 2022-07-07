@@ -1,0 +1,35 @@
+---
+java:
+  image: 'sdshmctspublic.azurecr.io/vh/user-api:latest'
+  applicationPort: 8080
+  replicas: 2
+  ingressHost: vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
+  releaseNameOverride: vh-user-api
+  readinessPath: /healthcheck/health
+  livenessPath: /healthcheck/health
+  livenessDelay: 360
+  livenessPeriod: 120
+  aadIdentityName: vh-aad-identity
+  keyVaults:
+    vh-infra-core:
+      excludeEnvironmentSuffix: false
+      resourceGroup: vh-infra-core-{{ .Values.global.environment }}
+      usePodIdentity: true
+      secrets:
+        - applicationinsights--instrumentationkey
+        - azuread--tenantid
+        - connectionstrings--rediscache
+    vh-user-api:
+      excludeEnvironmentSuffix: false
+      resourceGroup: vh-infra-core-{{ .Values.global.environment }}
+      usePodIdentity: true
+      secrets:
+        - azuread--clientsecret
+        - azuread--clientid
+  environment:
+    ASPNETCORE_URLS: http://+:8080
+    SERVICES__USERAPIRESOURCEID: http://vh-user-api.platform.hmcts.net
+    DISABLEHTTPSREDIRECTION: true
+    Logging__LogLevel__Default: debug
+    Logging__LogLevel__System: debug
+    Logging__LogLevel__Microsoft: debug

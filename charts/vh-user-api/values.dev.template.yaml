@@ -1,0 +1,8 @@
+---
+java:
+  image: '${IMAGE_NAME}'
+  ingressHost: ${SERVICE_FQDN}
+  releaseNameOverride: ${RELEASE_NAME}
+  environment:
+    SERVICES__USERAPIRESOURCEID: http://vh-user-api.dev.platform.hmcts.net
+

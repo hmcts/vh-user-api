@@ -1,0 +1,7 @@
+variables:
+  - name: env
+    value: stg 
+  - name: stagingTagName
+    value: "staging-$(Build.BuildNumber)"
+  - name: subDirectory
+    value: "/non-prod"
