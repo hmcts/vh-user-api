@@ -103,9 +103,11 @@ stages:
               imageTags:
                 - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
                   - '${{ variables.stagingTagName }}'
-                - ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
+                - ${{ elseif contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
                   - 'latest'
                   - '${{ variables.releaseTagName }}'
+                - ${{ else }}:
+                  - '${{ variables.stagingTagName }}'
 
 #####################################################
 # Deploy Nuget Packages. #########################
