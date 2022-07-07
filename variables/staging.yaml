@@ -2,6 +2,6 @@ variables:
   - name: env
     value: stg 
   - name: stagingTagName
-    value: "staging-$(Build.SourceVersion)-$(counter(format('{0:yyyyMMddhhmm}', pipeline.startTime), 100))"
+    value: "staging-$(Build.SourceVersion)-${{ counter(format('{0:yyyyMMddhhmm}', pipeline.startTime), 100) }}"
   - name: subDirectory
     value: "/non-prod"
