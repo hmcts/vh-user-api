@@ -2,6 +2,6 @@ variables:
   - name: env
     value: stg 
   - name: stagingTagName
-    value: "staging-#{SHORTCOMMITID}#-#{DATETIME}#-090909"
+    value: "staging-#{SHORTCOMMITID}#-#{DATETIME}#"
   - name: subDirectory
     value: "/non-prod"

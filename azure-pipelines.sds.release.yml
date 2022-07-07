@@ -10,7 +10,7 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref: master
+      ref: VIH-8971-sds-migrate
       endpoint: hmcts
 
 parameters:
@@ -93,21 +93,6 @@ stages:
               azureSubscription: ${{ variables.acrSubscription }}
               acrName: ${{ variables.acrName }}
               repositoryName:  ${{ variables.repositoryName }}
-            
-          - powershell: |
-              $recievedTag="${{ variables.stagingTagName }}"
-              Write-Host "Tag before $recievedTag"
-              
-              $date=$(Get-Date -Format yyyyMMddhhmm);
-              $commitId="$(Build.SourceVersion)"
-              $shorterCommitId=$commitId.SubString(0,7)
-
-              $newTag= $recievedTag -replace "#{DATETIME}#", $date -replace "#{SHORTCOMMITID}#", $shorterCommitId
-              Write-Host "Tag after $newTag"
-
-              Write-Host "##vso[task.setvariable variable=name;isOutput=true]$newTag"
-            displayName: Set Tag
-            name: tag
 
           - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
             parameters:
@@ -122,7 +107,7 @@ stages:
                   - 'latest'
                   - '${{ variables.releaseTagName }}'
                 - ${{ else }}:
-                  - '$(tag.name)'
+                  - '${{ variables.stagingTagName }}'
 
 #####################################################
 # Deploy Nuget Packages. #########################
