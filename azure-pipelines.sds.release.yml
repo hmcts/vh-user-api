@@ -27,7 +27,7 @@ parameters:
 
 stages:
   - stage: pre_run_tasks
-    displayName: Pre-Release Tasks
+    displayName: Pre-Release Tasks ${{ variables.stagingTagName }}
     variables:
       - template: variables/shared.yaml
       - ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
