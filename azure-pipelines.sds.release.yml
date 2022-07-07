@@ -27,7 +27,7 @@ parameters:
 
 stages:
   - stage: pre_run_tasks
-    displayName: Pre-Release Tasks ${{ variables.stagingTagName }}
+    displayName:  ${{ variables.stagingTagName }} Pre-Release Tasks
     variables:
       - template: variables/shared.yaml
       - ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
@@ -94,6 +94,19 @@ stages:
               acrName: ${{ variables.acrName }}
               repositoryName:  ${{ variables.repositoryName }}
             
+          - powershell: |
+              $recievedTag="${{ variables.stagingTagName }}"
+              Write-Host "Tag before $recievedTag"
+              
+              $date=$(Get-Date -Format yyyyMMddhhmm);
+
+              $newTag= $recievedTag -replace "#{DATETIME}#", $date
+              Write-Host "Tag after $newTag"
+              
+              Write-Host "##vso[task.setvariable variable=name]$newTag"
+            displayName: Set Tag
+            name: tag
+
           - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
             parameters:
               azureSubscription: ${{ variables.acrSubscription }}
@@ -107,7 +120,7 @@ stages:
                   - 'latest'
                   - '${{ variables.releaseTagName }}'
                 - ${{ else }}:
-                  - '${{ variables.stagingTagName }}'
+                  - '$(tag.name)'
 
 #####################################################
 # Deploy Nuget Packages. #########################
