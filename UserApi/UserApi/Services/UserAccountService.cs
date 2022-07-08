@@ -126,7 +126,7 @@ namespace UserApi.Services
             {
                 var queryResponse = await responseMessage.Content
                     .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
-                if (queryResponse.Value != null && queryResponse.Value.Any())
+                if (queryResponse != null && queryResponse.Value != null && queryResponse.Value.Any())
                 {
                     var adUser = queryResponse.Value[0];
                     return new User
