@@ -57,7 +57,13 @@ namespace UserApi.Services
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
 
-            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+            // To handle the race condition (Not foolproof) - call this again to make sure the user hasnt been created since the last check
+            user = await GetUserByFilterAsync(filter);
+            if (user == null)
+            {
+                return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+            }
+            throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
         }
 
         public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName)
@@ -120,7 +126,7 @@ namespace UserApi.Services
             {
                 var queryResponse = await responseMessage.Content
                     .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
-                if (queryResponse.Value != null && queryResponse.Value.Any())
+                if (queryResponse != null && queryResponse.Value != null && queryResponse.Value.Any())
                 {
                     var adUser = queryResponse.Value[0];
                     return new User
