@@ -28,7 +28,6 @@ java:
         - azuread--clientid
         - DefaultPassword
         - ReformEmail
-        - TestDefaultPassword
         - AdGroup--CaseType
         - AdGroup--Administrator
         - AdGroup--Judge
