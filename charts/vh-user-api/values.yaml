@@ -26,6 +26,30 @@ java:
       secrets:
         - azuread--clientsecret
         - azuread--clientid
+        - DefaultPassword
+        - Testing--ExistingGroups--0--Displayname
+        - Testing--ExistingGroups--0--GroupId
+        - Testing--ExistingGroups--1--Displayname
+        - Testing--ExistingGroups--1--Testing--ExistingGroups--0--GroupId
+        - Testing--ExistingUserDisplayname
+        - Testing--ExistingUserFirstname
+        - Testing--ExistingUserId
+        - Testing--ExistingUserLastname
+        - Testing--ExistingUserPrincipal
+        - Testing--ExistingEmail
+        - Testing--NewGroups--0--Displayname
+        - Testing--NewGroups--0--GroupId
+        - ReformEmail
+        - TestDefaultPassword
+        - AdGroup--CaseType
+        - AdGroup--Administrator
+        - AdGroup--Judge
+        - AdGroup--StaffMember
+        - AdGroup--ProfessionalUser
+        - AdGroup--JudgesTestGroup
+        - AdGroup--External
+        - AdGroup--JudicialOfficeHolder
+        - ZapConfiguration--BuildConfigMode
   environment:
     ASPNETCORE_URLS: http://+:8080
     SERVICES__USERAPIRESOURCEID: http://vh-user-api.platform.hmcts.net
