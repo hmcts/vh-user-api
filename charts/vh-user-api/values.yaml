@@ -26,6 +26,17 @@ java:
       secrets:
         - azuread--clientsecret
         - azuread--clientid
+        - DefaultPassword
+        - ReformEmail
+        - AdGroup--CaseType
+        - AdGroup--Administrator
+        - AdGroup--Judge
+        - AdGroup--StaffMember
+        - AdGroup--ProfessionalUser
+        - AdGroup--JudgesTestGroup
+        - AdGroup--External
+        - AdGroup--JudicialOfficeHolder
+        - ZapConfiguration--BuildConfigMode
   environment:
     ASPNETCORE_URLS: http://+:8080
     SERVICES__USERAPIRESOURCEID: http://vh-user-api.platform.hmcts.net
