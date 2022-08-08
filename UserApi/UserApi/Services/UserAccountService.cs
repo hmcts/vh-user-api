@@ -345,10 +345,8 @@ namespace UserApi.Services
         {
             var users = new List<UserResponse>();
 
-            var filterQueryString = string.IsNullOrWhiteSpace(username) ? "" : $"&$filter=startswith(userPrincipalName, '{username}')";
-
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members?$count=true{filterQueryString}" +
-                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?" + 
+                            "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
 
             while (true)
             {
@@ -370,7 +368,9 @@ namespace UserApi.Services
                 var directoryObject = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
                 var response = JsonConvert.DeserializeObject<List<User>>(directoryObject.AdditionalData["value"].ToString());
 
-                users.AddRange(response.Select(x => new UserResponse
+                users.AddRange(response
+                    .Where(x => username != null && x.UserPrincipalName.ToLower().Contains(username.ToLower()) || string.IsNullOrEmpty(username))
+                    .Select(x => new UserResponse
                 {
                     FirstName = x.GivenName,
                     LastName = x.Surname,
