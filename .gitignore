@@ -343,5 +343,3 @@ livesharp.config
 # MacOS Desktop Services Store files
 .DS_Store
 *.DS_Store
-*.orig
-.angulardoc.json
