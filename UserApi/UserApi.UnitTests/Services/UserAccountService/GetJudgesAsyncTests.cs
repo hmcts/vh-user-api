@@ -33,8 +33,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
             _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
-            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members?$count=true" +
-                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
+            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?" + 
+                "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
         }
 
         [Test]
@@ -307,6 +307,100 @@ namespace UserApi.UnitTests.Services.UserAccountService
             response.Should().NotBeNull();
             response.Message.Should().Be($"Failed to get users for group {_groupId}: {reason}");
             response.Reason.Should().Be(reason);
+        }
+
+        [Test]
+        public async Task Should_filter_judges_by_username()
+        {
+            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
+            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            
+            _graphQueryResponse.Value.Add(_group);
+            
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
+
+            var users = new List<User> 
+            { 
+                new User { Id = "Test1", DisplayName = "Judge 117", GivenName = "Judge", Surname = "117", UserPrincipalName = "judge_117@hmcts.net"},
+                new User { Id = "Test2", DisplayName = "Judge 23", GivenName = "Judge", Surname = "23", UserPrincipalName = "judge_23@hmcts.net" },
+                new User { Id = "Test3", DisplayName = "Judge 16", GivenName = "Judge", Surname = "16", UserPrincipalName = "judge_16@hmcts.net" }
+            };
+            
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+
+            Service = new UserApi.Services.UserAccountService
+            (
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
+                {
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
+                },
+                DistributedCache.Object
+            );
+
+            var response = (await Service.GetJudgesAsync("117")).ToList();
+
+            response.Count.Should().Be(1);
+            response.First().DisplayName.Should().Be("Judge 117");
+
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
+        }
+        
+        [Test]
+        public async Task Should_filter_judges_by_username_case_insensitive()
+        {
+            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
+            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            
+            _graphQueryResponse.Value.Add(_group);
+            
+            SecureHttpRequest
+                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
+
+            var users = new List<User> 
+            { 
+                new User { Id = "Test1", DisplayName = "Judge Alpha", GivenName = "Judge", Surname = "Alpha", UserPrincipalName = "judge_ALPHA@hmcts.net"},
+                new User { Id = "Test2", DisplayName = "Judge 23", GivenName = "Judge", Surname = "23", UserPrincipalName = "judge_23@hmcts.net" },
+                new User { Id = "Test3", DisplayName = "Judge 16", GivenName = "Judge", Surname = "16", UserPrincipalName = "judge_16@hmcts.net" }
+            };
+            
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+
+            Service = new UserApi.Services.UserAccountService
+            (
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
+                {
+                    IsLive = false,
+                    AdGroup = new AdGroup
+                    {
+                        Judge = JudgeGroupName
+                    }
+                },
+                DistributedCache.Object
+            );
+
+            var response = (await Service.GetJudgesAsync("JUDGE_alpha")).ToList();
+
+            response.Count.Should().Be(1);
+            response.First().DisplayName.Should().Be("Judge Alpha");
+
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
     }
 }
