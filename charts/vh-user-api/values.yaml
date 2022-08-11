@@ -24,6 +24,10 @@ java:
       resourceGroup: vh-infra-core-{{ .Values.global.environment }}
       usePodIdentity: true
       secrets:
+        - name: azuread--identifieruri
+          alias: azuread--VhUserApiResourceId
+        - name: azuread--identifieruri
+          alias: VhServices--UserApiResourceId
         - azuread--clientsecret
         - azuread--clientid
         - DefaultPassword
@@ -44,3 +48,12 @@ java:
     Logging__LogLevel__Default: debug
     Logging__LogLevel__System: debug
     Logging__LogLevel__Microsoft: debug
+    AdGroup__Administrator: VirtualRoomAdministrator
+    AdGroup__CaseType: CaseType
+    AdGroup__External: External
+    AdGroup__Judge: VirtualRoomJudge
+    AdGroup__JudgesTestGroup: TestAccount
+    AdGroup__JudicialOfficeHolder: JudicialOfficeHolder
+    AdGroup__ProfessionalUser: VirtualRoomProfessionalUser
+    AdGroup__StaffMember: Staff Member
+    ReformEmail: hearings.reform.hmcts.net
