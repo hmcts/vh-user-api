@@ -149,7 +149,7 @@ namespace UserApi.Controllers
         /// <summary>
         ///     Get user profile by email
         /// </summary>
-        [HttpGet("email/{email?}", Name = "GetUserByEmail")]
+        [HttpGet("email/{**email}", Name = "GetUserByEmail")]
         [OpenApiOperation("GetUserByEmail")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
