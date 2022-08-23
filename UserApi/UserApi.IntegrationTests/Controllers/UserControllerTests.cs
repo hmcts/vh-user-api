@@ -278,6 +278,21 @@ namespace UserApi.IntegrationTests.Controllers
             updatedUserResponse.LastName.Should().Be(updateUserRequest.LastName);
             updatedUserResponse.Email.Should().NotBe(username);
         }
+
+        [Test]
+        public async Task Should_get_user_by_email_containing_slash()
+        {
+            var email = "Automation02/Individual01@hmcts.net";
+            var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var userResponseModel = RequestHelper.Deserialise<UserProfile>(getResponse.Content
+                .ReadAsStringAsync().Result);
+            userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
+            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
+        }
         
         [TearDown]
         public async Task ClearUp()
