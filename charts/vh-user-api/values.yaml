@@ -32,6 +32,14 @@ java:
         - azuread--clientid
         - DefaultPassword
         - ReformEmail
+        - AdGroup--CaseType
+        - AdGroup--Administrator
+        - AdGroup--Judge
+        - AdGroup--StaffMember
+        - AdGroup--ProfessionalUser
+        - AdGroup--JudgesTestGroup
+        - AdGroup--External
+        - AdGroup--JudicialOfficeHolder
         - ZapConfiguration--BuildConfigMode
   environment:
     ASPNETCORE_URLS: http://+:8080
@@ -40,12 +48,12 @@ java:
     Logging__LogLevel__Default: debug
     Logging__LogLevel__System: debug
     Logging__LogLevel__Microsoft: debug
-    AdGroup__Administrator: avh VirtualRoomAdministrator
-    AdGroup__CaseType: avh CaseType
-    AdGroup__External: avh External
-    AdGroup__Judge: avh VirtualRoomJudge
-    AdGroup__JudgesTestGroup: avh TestAccount
-    AdGroup__JudicialOfficeHolder: avh JudicialOfficeHolder
-    AdGroup__ProfessionalUser: avh VirtualRoomProfessionalUser
-    AdGroup__StaffMember: avh Staff Member
+    AdGroup__Administrator: VirtualRoomAdministrator
+    AdGroup__CaseType: CaseType
+    AdGroup__External: External
+    AdGroup__Judge: VirtualRoomJudge
+    AdGroup__JudgesTestGroup: TestAccount
+    AdGroup__JudicialOfficeHolder: JudicialOfficeHolder
+    AdGroup__ProfessionalUser: VirtualRoomProfessionalUser
+    AdGroup__StaffMember: Staff Member
     ReformEmail: hearings.reform.hmcts.net
