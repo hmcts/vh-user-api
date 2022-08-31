@@ -62,7 +62,8 @@ namespace UserApi.UnitTests.Services
                 {
                     forceChangePasswordNextSignIn = true,
                     password = _defaultPassword
-                }
+                },
+                userType = "Guest"
             };
 
             var json = JsonConvert.SerializeObject(user);
