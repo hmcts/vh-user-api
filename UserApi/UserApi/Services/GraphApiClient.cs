@@ -74,7 +74,8 @@ namespace UserApi.Services
                 {
                     forceChangePasswordNextSignIn = !isTestUser,
                     password = newPassword
-                }
+                },
+                userType = "Guest"
             };
 
             var json = JsonConvert.SerializeObject(user);
