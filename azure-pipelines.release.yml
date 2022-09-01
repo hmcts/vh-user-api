@@ -138,7 +138,7 @@ extends:
               value: true
         - name: FeatureToggles:SdkKey
           value: vh-admin-web-Feature-Toggle
-    secret: true
+          secret: true
       acceptanceTestSettings:
         - name: VhServices:UserApiUrl
           value: $(user_api_url_staging)
