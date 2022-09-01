@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace UserApi
 {
+    [ExcludeFromCodeCoverage]
     public class Settings
     {
         public bool DisableHttpsRedirection { get; set; }
@@ -15,6 +18,7 @@ namespace UserApi
         public FeatureToggle FeatureToggle { get; set; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class AdGroup
     {
         public string CaseType { get; set; }
@@ -27,6 +31,7 @@ namespace UserApi
         public string JudicialOfficeHolder { get; set; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class FeatureToggle
     {
         public string SdkKey { get; set; }
