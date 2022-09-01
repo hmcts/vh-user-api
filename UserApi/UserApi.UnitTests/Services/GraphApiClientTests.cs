@@ -9,6 +9,7 @@ using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Testing.Common.Helpers;
+using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
@@ -20,6 +21,7 @@ namespace UserApi.UnitTests.Services
         private Mock<IGraphApiSettings> _graphApiSettings;
         private Mock<ISecureHttpRequest> _secureHttpRequest;
         private Mock<IPasswordService> _passwordService;
+        private Mock<IFeatureToggles> _featureToggles;
         private GraphApiClient _client;
         private string _baseUrl;
         private string _queryUrl;
@@ -36,12 +38,19 @@ namespace UserApi.UnitTests.Services
             _defaultPassword = settings.DefaultPassword;
             _baseUrl = $"{_graphApiSettings.Object.GraphApiBaseUri}/v1.0/{_graphApiSettings.Object.TenantId}";
             _queryUrl = $"{_baseUrl}/users";
-            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
+            _featureToggles = new Mock<IFeatureToggles>();
+            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, _featureToggles.Object);
         }
 
         [Test]
-        public async Task Should_create_user_successfully_and_return_NewAdUserAccount()
+        public async Task Should_create_user_successfully_with_sspr_toggled_on_and_return_NewAdUserAccount()
         {
+            var featureToggles = new Mock<IFeatureToggles>();
+            featureToggles.Setup(x => x.SsprToggle()).Returns(true);
+            
+            var settings = new Settings() { DefaultPassword = "TestPwd" };
+            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, featureToggles.Object);
+            
             var periodRegexString = "^\\.|\\.$";
             var username = ".TestTester.";
             var firstName = ".Test.";
@@ -62,7 +71,8 @@ namespace UserApi.UnitTests.Services
                 {
                     forceChangePasswordNextSignIn = true,
                     password = _defaultPassword
-                }
+                },
+                userType = "Guest"
             };
 
             var json = JsonConvert.SerializeObject(user);
@@ -71,7 +81,53 @@ namespace UserApi.UnitTests.Services
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.User(), HttpStatusCode.OK));
             _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
 
-            var response = await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
+            var response = await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
+
+            response.Should().NotBeNull();
+            response.OneTimePassword.Should().Be(_defaultPassword);
+            _secureHttpRequest.Verify(x => x.PostAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
+        }
+        
+        [Test]
+        public async Task Should_create_user_successfully_with_sspr_toggled_off_and_return_NewAdUserAccount()
+        {
+            var featureToggles = new Mock<IFeatureToggles>();
+            featureToggles.Setup(x => x.SsprToggle()).Returns(false);
+            
+            var settings = new Settings() { DefaultPassword = "TestPwd" };
+            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, featureToggles.Object);
+            
+            var periodRegexString = "^\\.|\\.$";
+            var username = ".TestTester.";
+            var firstName = ".Test.";
+            var lastName = "Tester";
+            var recoveryEmail = "test'tester@hmcts.net";
+            var displayName = $"{firstName} {lastName}";
+            var user = new
+            {
+                displayName,
+                givenName = firstName,
+                surname = lastName,
+                mailNickname = $"{Regex.Replace(firstName, periodRegexString, string.Empty)}.{Regex.Replace(lastName, periodRegexString, string.Empty)}"
+                    .ToLower(),
+                otherMails = new List<string> { recoveryEmail },
+                accountEnabled = true,
+                userPrincipalName = username,
+                passwordProfile = new
+                {
+                    forceChangePasswordNextSignIn = true,
+                    password = _defaultPassword
+                },
+                userType = "Member"
+            };
+
+            var json = JsonConvert.SerializeObject(user);
+
+            _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(),It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.User(), HttpStatusCode.OK));
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
+
+            var response = await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
 
             response.Should().NotBeNull();
             response.OneTimePassword.Should().Be(_defaultPassword);

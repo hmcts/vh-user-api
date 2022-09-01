@@ -105,6 +105,9 @@ parameters:
     value: $(adgroup-judicialofficeholder)
   - name: ZapConfiguration:BuildConfigMode
     value: $(zapConfiguration-buildConfigMode)
+  - name: FeatureToggle:SdkKey
+    value: vh-admin-web-Feature-Toggle
+    secret: true
 
 - name: appSettings
   type: object
@@ -154,6 +157,9 @@ parameters:
         value: false
       active:
         value: true
+  - name: FeatureToggle:SdkKey
+    value: vh-admin-web-Feature-Toggle
+    secret: true
 
 variables:
   - group: vh-domains-and-urls

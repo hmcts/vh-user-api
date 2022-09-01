@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Configuration;
 using UserApi.Caching;
+using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -22,6 +23,7 @@ namespace UserApi.IntegrationTests.Services
         private Mock<ICache> _distributedCache;
         private IPasswordService _passwordService;
         private NewAdUserAccount _createdAccount;
+        private IFeatureToggles _featureToggles;
 
         [SetUp]
         public void Setup()
@@ -34,8 +36,9 @@ namespace UserApi.IntegrationTests.Services
             var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
             _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
             _passwordService = new PasswordService();
+            _featureToggles = new FeatureToggles(settings.FeatureToggle.SdkKey);
             _identityServiceApiClient =
-                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
+                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings, _featureToggles);
             _distributedCache = new Mock<ICache>();
             _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient,
                 settings, _distributedCache.Object);
@@ -75,6 +78,52 @@ namespace UserApi.IntegrationTests.Services
             var unique = DateTime.Now.ToString("yyyyMMddhmmss");
             var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
             var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
+            var username = createdAccount.Username;
+            username.ToLower().Should().Contain(firstName.ToLower());
+            username.ToLower().Should().Contain(lastName.ToLower());
+
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
+        }
+
+        [Test]
+        public async Task should_create_user_when_sspr_toggled_off()
+        {
+            var settings = TestConfig.Instance.Settings;
+            var featureToggles = new Mock<IFeatureToggles>();
+            featureToggles.Setup(x => x.SsprToggle()).Returns(false);
+            var identityServiceApiClient =
+                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings, featureToggles.Object);
+            var service = new UserAccountService(_secureHttpRequest, _graphApiSettings, identityServiceApiClient,
+                settings, _distributedCache.Object);
+            
+            const string firstName = "Automatically";
+            const string lastName = "CreatedWithoutSspr";
+            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
+            var createdAccount = await service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
+            var username = createdAccount.Username;
+            username.ToLower().Should().Contain(firstName.ToLower());
+            username.ToLower().Should().Contain(lastName.ToLower());
+
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
+        }
+        
+        [Test]
+        public async Task should_create_user_when_sspr_toggled_on()
+        {
+            var settings = TestConfig.Instance.Settings;
+            var featureToggles = new Mock<IFeatureToggles>();
+            featureToggles.Setup(x => x.SsprToggle()).Returns(true);
+            var identityServiceApiClient =
+                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings, featureToggles.Object);
+            var service = new UserAccountService(_secureHttpRequest, _graphApiSettings, identityServiceApiClient,
+                settings, _distributedCache.Object);
+            
+            const string firstName = "Automatically";
+            const string lastName = "CreatedWithSspr";
+            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
+            var createdAccount = await service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
             var username = createdAccount.Username;
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());

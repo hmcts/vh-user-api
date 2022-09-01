@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Services.Models;
 using User = Microsoft.Graph.User;
@@ -26,19 +27,22 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IPasswordService _passwordService;
+        private readonly IFeatureToggles _featureToggles;
         private readonly string _baseUrl;
         private readonly string _testDefaultPassword;
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest,
             IGraphApiSettings graphApiSettings,
             IPasswordService passwordService,
-            Settings settings)
+            Settings settings,
+            IFeatureToggles featureToggles)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _passwordService = passwordService;
             _testDefaultPassword = settings.TestDefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
+            _featureToggles = featureToggles;
         }
 
         public async Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text)
@@ -74,7 +78,8 @@ namespace UserApi.Services
                 {
                     forceChangePasswordNextSignIn = !isTestUser,
                     password = newPassword
-                }
+                },
+                userType = _featureToggles.SsprToggle() ? UserType.Guest : UserType.Member
             };
 
             var json = JsonConvert.SerializeObject(user);
