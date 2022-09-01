@@ -136,7 +136,7 @@ extends:
               value: false
             active:
               value: true
-        - name: FeatureToggles:SdkKey
+        - name: FeatureToggle:SdkKey
           value: vh-admin-web-Feature-Toggle
           secret: true
       acceptanceTestSettings:
