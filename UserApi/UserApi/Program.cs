@@ -22,12 +22,14 @@ namespace UserApi
         {
             const string vhInfraCore = "/mnt/secrets/vh-infra-core";
             const string vhUserApi = "/mnt/secrets/vh-user-api";
+            const string vhAdminWeb = "/mnt/secrets/vh-admin-web";
 
             return Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((configBuilder) =>
                 {
                     configBuilder.AddAksKeyVaultSecretProvider(vhInfraCore);
                     configBuilder.AddAksKeyVaultSecretProvider(vhUserApi);
+                    configBuilder.AddAksKeyVaultSecretProvider(vhAdminWeb);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
