@@ -12,6 +12,7 @@ namespace UserApi
         public bool IsLive { get; set; }
         public string ReformEmail { get; set; }
         public AdGroup AdGroup { get; set; }
+        public FeatureToggle FeatureToggle { get; set; }
     }
 
     public class AdGroup
@@ -24,5 +25,10 @@ namespace UserApi
         public string ProfessionalUser { get; set; }
         public string External { get; set; }
         public string JudicialOfficeHolder { get; set; }
+    }
+
+    public class FeatureToggle
+    {
+        public string SdkKey { get; set; }
     }
 }

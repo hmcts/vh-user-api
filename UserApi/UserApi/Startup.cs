@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using UserApi.Common;
+using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Validations;
 
@@ -57,6 +58,7 @@ namespace UserApi
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
             services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
+            services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["FeatureToggles:SDK-Key"]));
         }
 
 
