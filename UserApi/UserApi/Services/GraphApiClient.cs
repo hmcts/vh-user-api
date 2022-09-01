@@ -59,8 +59,6 @@ namespace UserApi.Services
 
         public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false)
         {
-            var toggled = _featureToggles.SsprToggle();
-            
             var periodRegexString = "^\\.|\\.$";
 
             // the user object provided by the graph api nuget package is missing the otherMails property
