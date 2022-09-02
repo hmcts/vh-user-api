@@ -42,11 +42,12 @@ namespace UserApi.UnitTests.Services
             _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, _featureToggles.Object);
         }
 
-        [Test]
-        public async Task Should_create_user_successfully_with_sspr_toggled_on_and_return_NewAdUserAccount()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task Should_create_user_successfully_with_sspr_toggled_and_return_NewAdUserAccount(bool ssprFeatureEnabled)
         {
             var featureToggles = new Mock<IFeatureToggles>();
-            featureToggles.Setup(x => x.SsprToggle()).Returns(true);
+            featureToggles.Setup(x => x.SsprToggle()).Returns(ssprFeatureEnabled);
             
             var settings = new Settings() { DefaultPassword = "TestPwd" };
             var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, featureToggles.Object);
@@ -72,53 +73,7 @@ namespace UserApi.UnitTests.Services
                     forceChangePasswordNextSignIn = true,
                     password = _defaultPassword
                 },
-                userType = "Guest"
-            };
-
-            var json = JsonConvert.SerializeObject(user);
-
-            _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(),It.IsAny<StringContent>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.User(), HttpStatusCode.OK));
-            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
-
-            var response = await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
-
-            response.Should().NotBeNull();
-            response.OneTimePassword.Should().Be(_defaultPassword);
-            _secureHttpRequest.Verify(x => x.PostAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
-        }
-        
-        [Test]
-        public async Task Should_create_user_successfully_with_sspr_toggled_off_and_return_NewAdUserAccount()
-        {
-            var featureToggles = new Mock<IFeatureToggles>();
-            featureToggles.Setup(x => x.SsprToggle()).Returns(false);
-            
-            var settings = new Settings() { DefaultPassword = "TestPwd" };
-            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, featureToggles.Object);
-            
-            var periodRegexString = "^\\.|\\.$";
-            var username = ".TestTester.";
-            var firstName = ".Test.";
-            var lastName = "Tester";
-            var recoveryEmail = "test'tester@hmcts.net";
-            var displayName = $"{firstName} {lastName}";
-            var user = new
-            {
-                displayName,
-                givenName = firstName,
-                surname = lastName,
-                mailNickname = $"{Regex.Replace(firstName, periodRegexString, string.Empty)}.{Regex.Replace(lastName, periodRegexString, string.Empty)}"
-                    .ToLower(),
-                otherMails = new List<string> { recoveryEmail },
-                accountEnabled = true,
-                userPrincipalName = username,
-                passwordProfile = new
-                {
-                    forceChangePasswordNextSignIn = true,
-                    password = _defaultPassword
-                },
-                userType = "Member"
+                userType = ssprFeatureEnabled ? "Guest" : "Member"
             };
 
             var json = JsonConvert.SerializeObject(user);

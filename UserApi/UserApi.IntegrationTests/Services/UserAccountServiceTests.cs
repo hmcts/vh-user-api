@@ -85,12 +85,13 @@ namespace UserApi.IntegrationTests.Services
             await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
         }
 
-        [Test]
-        public async Task should_create_user_when_sspr_toggled_off()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task should_create_user_when_sspr_feature_toggled(bool ssprFeatureEnabled)
         {
             var settings = TestConfig.Instance.Settings;
             var featureToggles = new Mock<IFeatureToggles>();
-            featureToggles.Setup(x => x.SsprToggle()).Returns(false);
+            featureToggles.Setup(x => x.SsprToggle()).Returns(ssprFeatureEnabled);
             var identityServiceApiClient =
                 new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings, featureToggles.Object);
             var service = new UserAccountService(_secureHttpRequest, _graphApiSettings, identityServiceApiClient,
@@ -107,30 +108,7 @@ namespace UserApi.IntegrationTests.Services
 
             await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
         }
-        
-        [Test]
-        public async Task should_create_user_when_sspr_toggled_on()
-        {
-            var settings = TestConfig.Instance.Settings;
-            var featureToggles = new Mock<IFeatureToggles>();
-            featureToggles.Setup(x => x.SsprToggle()).Returns(true);
-            var identityServiceApiClient =
-                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings, featureToggles.Object);
-            var service = new UserAccountService(_secureHttpRequest, _graphApiSettings, identityServiceApiClient,
-                settings, _distributedCache.Object);
-            
-            const string firstName = "Automatically";
-            const string lastName = "CreatedWithSspr";
-            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
-            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
-            var createdAccount = await service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
-            var username = createdAccount.Username;
-            username.ToLower().Should().Contain(firstName.ToLower());
-            username.ToLower().Should().Contain(lastName.ToLower());
-
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
-        }
-
+   
         [Test]
         public void should_throw_exception_when_attempting_to_delete_nonexistent_user()
         {
