@@ -3,20 +3,6 @@
   As an api service
   I want to be able to retrieve or create ad users
 
-  @ignore @AddUser
-  Scenario: Create a new hearings reforms user account
-    Given I have a new hearings reforms user account request with a valid email
-    When I send the request to the endpoint
-    Then the response should have the status Created and success status True
-    And the user should be added
-
-  @ignore @AddUser
-  Scenario: Create a new hearings reforms test user account
-    Given I have a new hearings reforms test user account request with a valid email
-    When I send the request to the endpoint
-    Then the response should have the status Created and success status True
-    And the user should be added
-
   Scenario: Get user by AD user Id
     Given I have a get user by AD user Id request for an existing user
     When I send the request to the endpoint

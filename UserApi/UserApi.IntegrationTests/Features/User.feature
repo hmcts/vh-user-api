@@ -3,19 +3,6 @@
 	As an api service
 	I want to be able to retrieve or create ad users
 
-@ignore
-Scenario: Create a new hearings reforms user account
-	Given I have a new hearings reforms user account request with a valid email
-	When I send the request to the endpoint
-	Then the response should have the status Created and success status True
-	And the user should be added
-
-@ignore
-Scenario: User account created for an user with the same name as existing user
-	Given I have a new hearings reforms user account request with an existing email
-	When I send the request to the endpoint
-	Then the response should have the status Conflict and success status False
-
 Scenario: User account not created for an invalid user
 	Given I have a new hearings reforms user account request with an invalid email
 	When I send the request to the endpoint
