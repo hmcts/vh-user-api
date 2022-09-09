@@ -3,14 +3,14 @@
   As an api service
   I want to be able to retrieve or create ad users
 
-  @AddUser
+  @ignore @AddUser
   Scenario: Create a new hearings reforms user account
     Given I have a new hearings reforms user account request with a valid email
     When I send the request to the endpoint
     Then the response should have the status Created and success status True
     And the user should be added
 
-  @AddUser
+  @ignore @AddUser
   Scenario: Create a new hearings reforms test user account
     Given I have a new hearings reforms test user account request with a valid email
     When I send the request to the endpoint
@@ -47,6 +47,7 @@
     Then the response should have the status OK and success status True
     And the user details should be retrieved
 
+  @ignore
   Scenario: User account created for a user with the same name as existing user
     Given I have a new hearings reforms user account request with an existing name
     When I send the request to the endpoint
