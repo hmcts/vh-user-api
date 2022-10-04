@@ -35,32 +35,23 @@ java:
           alias: azuread--VhUserApiResourceId
         - name: azuread--identifieruri
           alias: VhServices--UserApiResourceId
-        - azuread--clientsecret
-        - azuread--clientid
-        - DefaultPassword
-        - ReformEmail
-        - AdGroup--CaseType
         - AdGroup--Administrator
-        - AdGroup--Judge
-        - AdGroup--StaffMember
-        - AdGroup--ProfessionalUser
-        - AdGroup--JudgesTestGroup
+        - AdGroup--CaseType
         - AdGroup--External
+        - AdGroup--Judge
+        - AdGroup--JudgesTestGroup
         - AdGroup--JudicialOfficeHolder
+        - AdGroup--ProfessionalUser
+        - AdGroup--StaffMember
+        - azuread--clientid
+        - azuread--clientsecret
+        - DefaultPassword
         - ZapConfiguration--BuildConfigMode
   environment:
     ASPNETCORE_URLS: http://+:8080
-    SERVICES__USERAPIRESOURCEID: http://vh-user-api.platform.hmcts.net
     DISABLEHTTPSREDIRECTION: true
     Logging__LogLevel__Default: debug
     Logging__LogLevel__System: debug
     Logging__LogLevel__Microsoft: debug
-    AdGroup__Administrator: VirtualRoomAdministrator
-    AdGroup__CaseType: CaseType
-    AdGroup__External: External
-    AdGroup__Judge: VirtualRoomJudge
-    AdGroup__JudgesTestGroup: TestAccount
-    AdGroup__JudicialOfficeHolder: JudicialOfficeHolder
-    AdGroup__ProfessionalUser: VirtualRoomProfessionalUser
-    AdGroup__StaffMember: Staff Member
     ReformEmail: hearings.reform.hmcts.net
+    VHSERVICES__USERAPIURL: https://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net/
