@@ -4,5 +4,4 @@ java:
   ingressHost: ${SERVICE_FQDN}
   releaseNameOverride: ${RELEASE_NAME}
   environment:
-    SERVICES__USERAPIRESOURCEID: http://vh-user-api.dev.platform.hmcts.net
-
+    VHSERVICES__USERAPIURL: https://${RELEASE_NAME}.dev.platform.hmcts.net/
