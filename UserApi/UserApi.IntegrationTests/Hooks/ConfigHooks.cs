@@ -12,6 +12,7 @@ using Testing.Common.Configuration;
 using UserApi.Common;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.Security;
+using ConfigurationManager = AcceptanceTests.Common.Configuration.ConfigurationManager;
 using Test = Testing.Common.Configuration.Test;
 
 namespace UserApi.IntegrationTests.Hooks
