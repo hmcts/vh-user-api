@@ -49,7 +49,6 @@ stages:
 
           - template: templates/sonarCloud/prepare.yml@azTemplates
             parameters:
-              dotnetCoreVersion: "6.x"
               ExtraProperties: |
                 sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)/Coverage/coverage.opencover.xml
                 sonar.coverage.exclusions=**/UserApi/Swagger/**,**/Program.cs,**/Startup.cs,**/Testing.Common/**,**/UserApi.Common/**,**/UserApi.IntegrationTests/**,**/UserApi.UnitTests/**,**/UserApi/Helper/**,**/UserApi/ConfigureServicesExtensions.cs,**/UserApi/Extensions/**
@@ -57,6 +56,7 @@ stages:
       
           - template: stages\dotnet-tests\unit-tests.yml@azTemplates
             parameters:
+              dotnetCoreVersion: "6.x"
               #vstsFeedId: 'Video Hearings/vh-packages'
               nugetConfigPath: ${{ variables.app_path }} # Temp - Change To SDS Feed When Possible.
               unitTestProjectPath: "${{ variables.app_path }}/${{ variables.app_path }}.UnitTests"
