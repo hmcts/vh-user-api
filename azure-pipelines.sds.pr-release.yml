@@ -49,6 +49,7 @@ stages:
 
           - template: templates/sonarCloud/prepare.yml@azTemplates
             parameters:
+              dotnetCoreVersion: "6.x"
               ExtraProperties: |
                 sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)/Coverage/coverage.opencover.xml
                 sonar.coverage.exclusions=**/UserApi/Swagger/**,**/Program.cs,**/Startup.cs,**/Testing.Common/**,**/UserApi.Common/**,**/UserApi.IntegrationTests/**,**/UserApi.UnitTests/**,**/UserApi/Helper/**,**/UserApi/ConfigureServicesExtensions.cs,**/UserApi/Extensions/**
