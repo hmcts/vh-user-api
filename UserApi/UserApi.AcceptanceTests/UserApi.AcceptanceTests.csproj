@@ -14,7 +14,7 @@
     <UserSecretsId>de27c4e5-a750-4ee5-af7e-592e4ee78ab2</UserSecretsId>
     <LangVersion>latestmajor</LangVersion>
   </PropertyGroup>
-
+  <PropertyGroup><ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.msbuild" Version="3.1.2">
       <PrivateAssets>all</PrivateAssets>
