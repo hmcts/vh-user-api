@@ -15,5 +15,5 @@ RUN dotnet publish "UserApi.csproj" -c Release -o /app/publish
 # Create Final Image.
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "UserApi.dll"]
