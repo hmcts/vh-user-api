@@ -11,6 +11,7 @@ using TechTalk.SpecFlow;
 using Testing.Common.Configuration;
 using UserApi.AcceptanceTests.Contexts;
 using UserApi.Common;
+using ConfigurationManager = AcceptanceTests.Common.Configuration.ConfigurationManager;
 
 namespace UserApi.AcceptanceTests.Hooks
 {

@@ -202,8 +202,10 @@ extends:
     PackageNuget: ${{ parameters.PackageNuget }}
     PackageApp: ${{ parameters.PackageApp }}
     PackageAcceptanceTests: ${{ parameters.PackageACTests }}
+    netVersion: '6.x'
     Test: ${{ or(parameters.RunUnitTests, parameters.RunIntegTests, parameters.RunMutationTests) }}
     testParameters:
+      netVersion: '6.x'
       coreProjectPath: UserApi/UserApi
       unitTestProjectPath: UserApi/UserApi.UnitTests
       integTestProjectPath: UserApi/UserApi.IntegrationTests
