@@ -135,7 +135,7 @@ stages:
         - job: PublishAcceptanceTests
           displayName: Publish Acceptance Tests 
           variables:
-            projectPath: "$(projectPath)/$(projectPath)"
+            projectPath: "$(app_path)/$(app_path)"
           steps:
           - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
             parameters:
