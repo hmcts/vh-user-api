@@ -210,6 +210,7 @@ stages:
           variables:
           - group: vh-user-api-tests
           - group: vh-user-groups
+          - group: vh-key-vault-vars
           steps:
           - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
             parameters:
