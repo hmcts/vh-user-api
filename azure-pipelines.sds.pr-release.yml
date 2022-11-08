@@ -135,12 +135,15 @@ stages:
         - job: PublishAcceptanceTests
           displayName: Publish Acceptance Tests 
           variables:
-            projectPath: UserApi/UserApi
+            projectPath: "$(projectPath)/$(projectPath)"
           steps:
           - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
             parameters:
+              netVersion: 6.x
               coreProjectPath: $(projectPath)
               nugetProjectPath: $(projectPath)
+              nugetConfigPath: $(app_path)
+              useNugetConfig: true
           
 
 #####################################################
