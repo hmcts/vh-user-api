@@ -20,7 +20,7 @@ variables:
     value: 'UserApi'
   - group: vh-user-api
   - name: run_acceptance_tests
-    value: false
+    value: true
 
 stages:
 #####################################################
