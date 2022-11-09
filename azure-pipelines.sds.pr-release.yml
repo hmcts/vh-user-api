@@ -5,7 +5,7 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref: master
+      ref: VIH-9999-remove-json-replace
       endpoint: hmcts
       
 trigger: none
@@ -135,7 +135,7 @@ stages:
         - job: PublishAcceptanceTests
           displayName: Publish Acceptance Tests 
           variables:
-            projectPath: "$(app_path)/$(app_path).AcceptanceTests"
+            projectPath: "$(app_path)/$(app_path)"
           steps:
           - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
             parameters:
