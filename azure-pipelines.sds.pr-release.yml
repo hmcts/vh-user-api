@@ -219,7 +219,7 @@ stages:
               environment: ${{ variables.env }}
               azureSubscription: ${{ variables.subscriptionName }}
               acceptanceTestSettings: #TODO: check Test Parameters
-                - name: Services:UserApiUrl
+                - name: VhServices:UserApiUrl
                   value: "https://vh-user-api.dev.platform.hmcts.net"
                 - name: ApplicationInsights:InstrumentationKey
                   value: applicationinsights--instrumentationkey
@@ -237,7 +237,7 @@ stages:
                   value: azuread--tenantid
                   keyVaultName: vh-infra-core-${{ variables.env }}
                   secret: true
-                - name: Services:UserApiResourceId
+                - name: VhServices:UserApiResourceId
                   value: azuread--identifieruri
                   keyVaultName: vh-user-api-${{ variables.env }}
                   secret: true
