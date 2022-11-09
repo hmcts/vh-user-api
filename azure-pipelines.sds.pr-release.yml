@@ -135,7 +135,7 @@ stages:
         - job: PublishAcceptanceTests
           displayName: Publish Acceptance Tests 
           variables:
-            projectPath: "$(app_path)/$(app_path)"
+            projectPath: "$(app_path)/$(app_path).AcceptanceTests"
           steps:
           - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
             parameters:
@@ -267,7 +267,7 @@ stages:
                 - name: Testing:NewGroups:0:GroupId
                   value: $(testing-newgroup-0-groupid)
                 - name: ReformEmail
-                  value: $(reformemail)
+                  value: $(reformemailAzureAd)
                 - name: TestDefaultPassword
                   value: $(testDefaultPassword)
                 - name: AdGroup:CaseType
