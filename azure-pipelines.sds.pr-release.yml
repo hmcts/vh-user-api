@@ -220,7 +220,7 @@ stages:
               azureSubscription: ${{ variables.subscriptionName }}
               acceptanceTestSettings: #TODO: check Test Parameters
                 - name: VhServices:UserApiUrl
-                  value: "https://vh-user-api.dev.platform.hmcts.net"
+                  value: "https://vh-user-api-pr-$(System.PullRequest.PullRequestNumber).dev.platform.hmcts.net"
                 - name: ApplicationInsights:InstrumentationKey
                   value: applicationinsights--instrumentationkey
                   keyVaultName: vh-infra-core-${{ variables.env }}
