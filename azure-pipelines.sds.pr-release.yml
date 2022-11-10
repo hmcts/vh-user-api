@@ -73,7 +73,7 @@ stages:
 # Pre Steps. ########################################
 # Build Docker Image & Generate EF Script. ##########
   - stage: Dock
-    displayName: Build UserApi API
+    displayName: Build User API
     variables: 
       - group: aks-cluster-info
       - template: variables/dev.yaml
