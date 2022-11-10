@@ -241,6 +241,10 @@ stages:
                   value: azuread--identifieruri
                   keyVaultName: vh-user-api-${{ variables.env }}
                   secret: true
+                - name: ConnectionStrings:RedisCache
+                  value: connectionstrings--rediscache
+                  keyVaultName: vh-user-api-${{ variables.env }}
+                  secret: true
                 - name: DefaultPassword
                   value: $(defaultPassword)
                 - name: Testing:ExistingGroups:0:Displayname
@@ -287,8 +291,6 @@ stages:
                   value: $(adgroup-external)
                 - name: AdGroup:JudicialOfficeHolder
                   value: $(adgroup-judicialofficeholder)
-                - name: ConnectionStrings:RedisCache
-                  value: $(connectionstrings-rediscache)
                 
 #####################################################
 # Deploy Nuget Packages. #########################
