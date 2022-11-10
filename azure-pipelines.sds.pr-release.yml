@@ -239,11 +239,11 @@ stages:
                   secret: true
                 - name: VhServices:UserApiResourceId
                   value: azuread--identifieruri
-                  keyVaultName: vh-infra-core-${{ variables.env }}
+                  keyVaultName: vh-user-api-${{ variables.env }}
                   secret: true
                 - name: ConnectionStrings:RedisCache
                   value: connectionstrings--rediscache
-                  keyVaultName: vh-user-api-${{ variables.env }}
+                  keyVaultName: vh-infra-core-${{ variables.env }}
                   secret: true
                 - name: DefaultPassword
                   value: $(defaultPassword)
