@@ -5,7 +5,7 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref:  VIH-9999-Update-replace-secrets
+      ref:  master
       endpoint: hmcts
       
 trigger: none
@@ -287,6 +287,8 @@ stages:
                   value: $(adgroup-external)
                 - name: AdGroup:JudicialOfficeHolder
                   value: $(adgroup-judicialofficeholder)
+                - name: ConnectionStrings:RedisCache
+                  value: $(connectionstrings-rediscache)
                 
 #####################################################
 # Deploy Nuget Packages. #########################
