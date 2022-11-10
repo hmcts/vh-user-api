@@ -148,7 +148,7 @@ stages:
           
 
 ####################################################
-# Deploy Helm Chart to Dev. ########################
+# Deploy Helm Chart to Dev. #########################
   - stage: Install
     dependsOn: Dock
     displayName: Deploy Helm Chart Dev AKS
