@@ -47,7 +47,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             response.Username.Should().Be(_newAdUserAccount.Username);
             response.UserId.Should().Be(_newAdUserAccount.UserId);
             response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
-            SecureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Exactly(2));
+            SecureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Exactly(1));
             IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail, false), Times.Once);
         }
 
