@@ -131,6 +131,10 @@ namespace UserApi.Services
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();
+                if(response.StatusCode == HttpStatusCode.BadRequest && message.Contains("ObjectConflict"))
+                {
+                    throw new UserExistsException("User with Mail already exists", "");
+                }
                 throw new IdentityServiceApiException("Failed to call API: " + response.StatusCode + "\r\n" + message);
             }
         }
