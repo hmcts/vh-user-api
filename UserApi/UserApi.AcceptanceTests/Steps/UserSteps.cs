@@ -59,7 +59,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have an existing user")]
         public void GivenIHaveAExistingUser()
         {
-            _context.Request = _context.Get(GetUserByAdUserName(_context.Config.TestSettings.ExistingUserPrincipal));
+            _context.Request = _context.Get(GetUserByAdUserId(_context.Config.TestSettings.ExistingUserId));
             _context.Response = _context.Client().Execute(_context.Request);
             var model = RequestHelper.Deserialise<UserProfile>(_context.Response.Content);
             _context.Test.NewUserId = model.UserId;
