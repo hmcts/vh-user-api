@@ -27,22 +27,19 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IPasswordService _passwordService;
-        private readonly IFeatureToggles _featureToggles;
         private readonly string _baseUrl;
         private readonly string _testDefaultPassword;
 
         public GraphApiClient(ISecureHttpRequest secureHttpRequest,
             IGraphApiSettings graphApiSettings,
             IPasswordService passwordService,
-            Settings settings,
-            IFeatureToggles featureToggles)
+            Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _passwordService = passwordService;
             _testDefaultPassword = settings.TestDefaultPassword;
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
-            _featureToggles = featureToggles;
         }
 
         public async Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text)
@@ -71,6 +68,7 @@ namespace UserApi.Services
                 surname = lastName,
                 mailNickname = $"{Regex.Replace(firstName, periodRegexString, string.Empty)}.{Regex.Replace(lastName, periodRegexString, string.Empty)}"
                     .ToLower(),
+                mail = recoveryEmail,
                 otherMails = new List<string> { recoveryEmail },
                 accountEnabled = true,
                 userPrincipalName = username,
@@ -79,7 +77,7 @@ namespace UserApi.Services
                     forceChangePasswordNextSignIn = !isTestUser,
                     password = newPassword
                 },
-                userType = _featureToggles.SsprToggle() ? UserType.Guest : UserType.Member
+                userType = UserType.Guest
             };
 
             var json = JsonConvert.SerializeObject(user);
@@ -133,6 +131,10 @@ namespace UserApi.Services
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();
+                if(response.StatusCode == HttpStatusCode.BadRequest && message.Contains("ObjectConflict"))
+                {
+                    throw new UserExistsException("User with Mail already exists", "");
+                }
                 throw new IdentityServiceApiException("Failed to call API: " + response.StatusCode + "\r\n" + message);
             }
         }

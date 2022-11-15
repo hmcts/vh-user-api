@@ -3,35 +3,11 @@
   As an api service
   I want to be able to retrieve or create ad users
 
-  Scenario: Get user by AD user Id
-    Given I have a get user by AD user Id request for an existing user
-    When I send the request to the endpoint
-    Then the response should have the status OK and success status True
-    And the user details should be retrieved
-
-  Scenario: Get user by user principal name
-    Given I have a get user by user principal name request for an existing user principal name
-    When I send the request to the endpoint
-    Then the response should have the status OK and success status True
-    And the user details should be retrieved
-
-  Scenario: Delete an AAD user
-    Given I have a new user
-    And I have a delete user request for the new user
-    When I send the request to the endpoint
-    Then the response should have the status NoContent and success status True
-
   Scenario: Update the password for an AAD user
-    Given I have a new user
+    Given I have an existing user
     And I have an update user request for the new user
     When I send the request to the endpoint
     Then the response should have the status Ok and success status True
-
-  Scenario: Get user profile by email
-    Given I have a get user profile by email request for an existing email
-    When I send the request to the endpoint
-    Then the response should have the status OK and success status True
-    And the user details should be retrieved
 
   Scenario: Get a list of judges from the AD
     Given I have a valid AD group id and request for a list of judges
@@ -46,7 +22,7 @@
     Then the response should have the status OK and success status True
 
   Scenario: Update an existing user
-    Given I have a new user
+    Given I have an existing user
     And I have an update user details request for the new user
     When I send the request to the endpoint
     Then the response should have the status Ok and success status True
