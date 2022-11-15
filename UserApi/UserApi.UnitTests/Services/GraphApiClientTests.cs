@@ -213,5 +213,25 @@ namespace UserApi.UnitTests.Services
 
             Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserPasswordAsync(UserName));
         }
+
+        [Test]
+        public void Should_get_object_conflict_code_when_user_exists_for_mail()
+        {
+            var settings = new Settings() { DefaultPassword = "TestPwd" };
+            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
+
+            var username = ".TestTester.";
+            var firstName = ".Test.";
+            var lastName = "Tester";
+            var recoveryEmail = "test'tester@hmcts.net";
+            var displayName = $"{firstName} {lastName}";
+            
+
+            _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("ObjectConflict", HttpStatusCode.BadRequest));
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
+
+            Assert.ThrowsAsync<UserExistsException>(() => client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail));
+        }
     }
 }
