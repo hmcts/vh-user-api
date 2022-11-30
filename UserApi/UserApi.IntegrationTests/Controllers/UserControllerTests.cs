@@ -63,6 +63,21 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
+        public async Task Should_return_objectconflict_when_crate_user_with_email_for_which_account_exists()
+        {
+            var email = $"Automation_{Name.First()}@hmcts.net";
+            var createUserModel = await CreateNewUser(email);
+            TestContext.WriteLine($"Response:{RequestHelper.Serialise(createUserModel)}");
+            createUserModel.Should().NotBeNull();
+            createUserModel.UserId.Should().NotBeNullOrEmpty();
+            createUserModel.OneTimePassword.Should().NotBeNullOrEmpty();
+
+            _newUserId = createUserModel.UserId;
+            var responseMessage = await CreateAdUser(email);
+            responseMessage.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        }
+
+        [Test]
         public async Task Should_get_user_by_id()
         {
             string userId = TestConfig.Instance.TestSettings.ExistingUserId;
@@ -173,7 +188,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_none_user_role_for_user_not_in_group()
         {
             // Create User
-            var createUserResponse = await CreateAdUser();
+            var createUserResponse = await CreateAdUser($"Automation_{Name.First()}@hmcts.net");
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel = RequestHelper.Deserialise<NewUserResponse>
@@ -201,7 +216,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_delete_user()
         {
             // Create User
-            var createUserResponse = await CreateAdUser();
+            var createUserResponse = await CreateAdUser($"Automation_{Name.First()}@hmcts.net");
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel = RequestHelper.Deserialise<NewUserResponse>
@@ -259,7 +274,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_return_ok_and_updated_user_when_updating_an_account_successfully()
         {
-            var existingUser = await CreateNewUser();
+            var existingUser = await CreateNewUser($"Automation_{Name.First()}@hmcts.net");
             var userId = Guid.Parse(existingUser.UserId);
             var username = existingUser.Username;
             var updateUserRequest = new UpdateUserAccountRequest
@@ -307,7 +322,7 @@ namespace UserApi.IntegrationTests.Controllers
             _newUserId = null;
         }
 
-        private async Task<HttpResponseMessage> CreateAdUser()
+        private async Task<HttpResponseMessage> CreateAdUser(string email)
         {
             return await SendPostRequestAsync
             (
@@ -316,7 +331,7 @@ namespace UserApi.IntegrationTests.Controllers
                 (
                     RequestHelper.Serialise(new CreateUserRequest
                     {
-                        RecoveryEmail = $"Automation_{Name.First()}@hmcts.net",
+                        RecoveryEmail = email,
                         FirstName = $"Automation_{Name.First()}",
                         LastName = $"Automation_{Name.Last()}"
                     }),
@@ -325,9 +340,9 @@ namespace UserApi.IntegrationTests.Controllers
             );
         }
 
-        private async Task<NewUserResponse> CreateNewUser()
+        private async Task<NewUserResponse> CreateNewUser(string email)
         {
-            var createUserResponse = await CreateAdUser();
+            var createUserResponse = await CreateAdUser(email);
             createUserResponse.IsSuccessStatusCode.Should().BeTrue();
             
             var createUserModel = RequestHelper.Deserialise<NewUserResponse>

@@ -26,6 +26,7 @@ namespace UserApi.AcceptanceTests.Steps
         {
             _context.Response.StatusCode.Should().Be(httpStatusCode, $"When {_context.Request.Method}ing to {_context.Request.Resource}");
             _context.Response.IsSuccessful.Should().Be(isSuccess);
+            _context.Test.NewUserId = string.Empty;
         }
     }
 }

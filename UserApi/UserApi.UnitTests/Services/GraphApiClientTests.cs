@@ -39,18 +39,13 @@ namespace UserApi.UnitTests.Services
             _baseUrl = $"{_graphApiSettings.Object.GraphApiBaseUri}/v1.0/{_graphApiSettings.Object.TenantId}";
             _queryUrl = $"{_baseUrl}/users";
             _featureToggles = new Mock<IFeatureToggles>();
-            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, _featureToggles.Object);
+            _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public async Task Should_create_user_successfully_with_sspr_toggled_and_return_NewAdUserAccount(bool ssprFeatureEnabled)
+        public async Task Should_create_user_successfully_with_sspr_and_return_NewAdUserAccount()
         {
-            var featureToggles = new Mock<IFeatureToggles>();
-            featureToggles.Setup(x => x.SsprToggle()).Returns(ssprFeatureEnabled);
-            
             var settings = new Settings() { DefaultPassword = "TestPwd" };
-            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings, featureToggles.Object);
+            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
             
             var periodRegexString = "^\\.|\\.$";
             var username = ".TestTester.";
@@ -65,6 +60,7 @@ namespace UserApi.UnitTests.Services
                 surname = lastName,
                 mailNickname = $"{Regex.Replace(firstName, periodRegexString, string.Empty)}.{Regex.Replace(lastName, periodRegexString, string.Empty)}"
                     .ToLower(),
+                mail = recoveryEmail,
                 otherMails = new List<string> { recoveryEmail },
                 accountEnabled = true,
                 userPrincipalName = username,
@@ -73,7 +69,7 @@ namespace UserApi.UnitTests.Services
                     forceChangePasswordNextSignIn = true,
                     password = _defaultPassword
                 },
-                userType = ssprFeatureEnabled ? "Guest" : "Member"
+                userType = "Guest"
             };
 
             var json = JsonConvert.SerializeObject(user);
@@ -216,6 +212,26 @@ namespace UserApi.UnitTests.Services
             _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns("TestPwd");
 
             Assert.ThrowsAsync<IdentityServiceApiException>(() => _client.UpdateUserPasswordAsync(UserName));
+        }
+
+        [Test]
+        public void Should_get_object_conflict_code_when_user_exists_for_mail()
+        {
+            var settings = new Settings() { DefaultPassword = "TestPwd" };
+            var client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
+
+            var username = ".TestTester.";
+            var firstName = ".Test.";
+            var lastName = "Tester";
+            var recoveryEmail = "test'tester@hmcts.net";
+            var displayName = $"{firstName} {lastName}";
+            
+
+            _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("ObjectConflict", HttpStatusCode.BadRequest));
+            _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
+
+            Assert.ThrowsAsync<UserExistsException>(() => client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail));
         }
     }
 }

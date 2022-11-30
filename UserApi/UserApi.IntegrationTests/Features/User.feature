@@ -36,11 +36,6 @@ Scenario: User account not retrieved for a nonexistent user
 	Then the response should have the status NotFound and success status False
 	And the error response message should contain 'user does not exist'
 	
-Scenario: Get user by user principal name
-	Given I have a get user by user principal name request for an existing user principal name
-	When I send the request to the endpoint
-	Then the response should have the status OK and success status True
-	And the user details should be retrieved
 
 Scenario: User account not retrieved for a nonexistent user principal name
 	Given I have a get user by user principal name request for a nonexistent user principal name
@@ -53,12 +48,6 @@ Scenario: User account not retrieved for an invalid user principal name
 	When I send the request to the endpoint
 	Then the response should have the status BadRequest and success status False
 	And the error response message should contain 'user principal name cannot be empty'
-
-Scenario: Delete an AAD user
-	Given I have a new user
-	And I have a delete user request for the new user
-	When I send the delete request to the endpoint with polling
-	Then the response should have the status NoContent and success status True
 
 Scenario: AAD user not deleted for a nonexistent user 
 	Given I have a delete user request for a nonexistent user
