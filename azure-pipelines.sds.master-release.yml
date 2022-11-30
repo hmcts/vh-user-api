@@ -76,6 +76,7 @@ stages:
 # Deploy Nuget Packages. ############################
 - stage: Push_Nuget
   displayName: Deploy Nuget Packages
+  dependsOn: Pre_Run_Tasks
   variables:
   - template: variables/shared.yaml
     parameters:
@@ -92,6 +93,7 @@ stages:
 # Push Helm Charts to Repo. #############
 - stage: Helm
   displayName: Push Helm Charts
+  dependsOn: Docker_Build_Push
   variables:
   - template: variables/staging.yaml
   - template: variables/shared.yaml
