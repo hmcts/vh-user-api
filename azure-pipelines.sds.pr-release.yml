@@ -209,7 +209,6 @@ stages:
           dependsOn: aks_push
           displayName: Acceptance Tests Dev
           variables:
-          - group: vh-key-vault-vars
           - group: vh-user-api
           - group: vh-user-api-tests
           - group: vh-user-groups
