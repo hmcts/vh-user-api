@@ -5,7 +5,7 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref: master
+      ref:  master
       endpoint: hmcts
       
 trigger: none
@@ -20,7 +20,7 @@ variables:
     value: 'UserApi'
   - group: vh-user-api
   - name: run_acceptance_tests
-    value: false
+    value: true
 
 stages:
 #####################################################
@@ -73,7 +73,7 @@ stages:
 # Pre Steps. ########################################
 # Build Docker Image & Generate EF Script. ##########
   - stage: Dock
-    displayName: Build UserApi API
+    displayName: Build User API
     variables: 
       - group: aks-cluster-info
       - template: variables/dev.yaml
@@ -133,18 +133,22 @@ stages:
       
       - ${{ if eq(variables.run_acceptance_tests, true) }}:
         - job: PublishAcceptanceTests
-          displayName: Publish Acceptance Tests 
+          dependsOn: package_nuget
+          displayName: Publish Acceptance Tests
           variables:
-            projectPath: UserApi/UserApi
+            projectPath: "$(app_path)/$(app_path)"
           steps:
           - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
             parameters:
+              netVersion: 6.x
               coreProjectPath: $(projectPath)
               nugetProjectPath: $(projectPath)
+              nugetConfigPath: $(app_path)
+              useNugetConfig: true
           
 
-#####################################################
-# Deploy Helm Chart to Dev. ######################### 
+####################################################
+# Deploy Helm Chart to Dev. #########################
   - stage: Install
     dependsOn: Dock
     displayName: Deploy Helm Chart Dev AKS
@@ -201,15 +205,22 @@ stages:
 
       - ${{ if eq(variables.run_acceptance_tests, true) }}:
         - job: AcceptanceTestsDev
+          pool: VH Self Hosted
+          dependsOn: aks_push
           displayName: Acceptance Tests Dev
+          variables:
+          - group: vh-key-vault-vars
+          - group: vh-user-api
+          - group: vh-user-api-tests
+          - group: vh-user-groups
           steps:
           - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
             parameters:
               environment: ${{ variables.env }}
               azureSubscription: ${{ variables.subscriptionName }}
               acceptanceTestSettings: #TODO: check Test Parameters
-                - name: Services:UserApiUrl
-                  value: "https://vh-user-api.dev.platform.hmcts.net"
+                - name: VhServices:UserApiUrl
+                  value: "https://vh-user-api-pr-$(System.PullRequest.PullRequestNumber).dev.platform.hmcts.net"
                 - name: ApplicationInsights:InstrumentationKey
                   value: applicationinsights--instrumentationkey
                   keyVaultName: vh-infra-core-${{ variables.env }}
@@ -226,9 +237,13 @@ stages:
                   value: azuread--tenantid
                   keyVaultName: vh-infra-core-${{ variables.env }}
                   secret: true
-                - name: Services:UserApiResourceId
+                - name: VhServices:UserApiResourceId
                   value: azuread--identifieruri
                   keyVaultName: vh-user-api-${{ variables.env }}
+                  secret: true
+                - name: ConnectionStrings:RedisCache
+                  value: connectionstrings--rediscache
+                  keyVaultName: vh-infra-core-${{ variables.env }}
                   secret: true
                 - name: DefaultPassword
                   value: $(defaultPassword)
@@ -257,7 +272,7 @@ stages:
                 - name: Testing:NewGroups:0:GroupId
                   value: $(testing-newgroup-0-groupid)
                 - name: ReformEmail
-                  value: $(reformemail)
+                  value: $(reformemailAzureAd)
                 - name: TestDefaultPassword
                   value: $(testDefaultPassword)
                 - name: AdGroup:CaseType
