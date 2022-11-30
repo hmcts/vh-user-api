@@ -22,5 +22,15 @@ namespace UserApi.AcceptanceTests.Steps
         {
             _context.Request = _context.Get(CheckServiceHealth);       
         }
+
+        [Then(@"the application version should be retrieved")]
+        public void ThenTheApplicationVersionShouldBeRetrieved()
+        {
+            var model = RequestHelper.Deserialise<UserApiHealthResponse>(_context.Response.Content);
+            model.Should().NotBeNull();
+            model.AppVersion.Should().NotBeNull();
+            model.AppVersion.FileVersion.Should().NotBeNull();
+            model.AppVersion.InformationVersion.Should().NotBeNull();
+        }
     }
 }

@@ -8,4 +8,4 @@ Scenario: Get the health of the user api
 	Given I have a get health request
 	When I send the request to the endpoint
 	Then the response should have the status OK and success status True
-	And the application version should be retrieved 
+	#And the application version should be retrieved 
