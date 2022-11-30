@@ -28,7 +28,7 @@ namespace UserApi.IntegrationTests.Services
             _graphApiSettings = new GraphApiSettings(new TokenProvider(config), config);
             _passwordService = new PasswordService();
             _featureToggles = new Mock<IFeatureToggles>();
-            _graphApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings, _featureToggles.Object);
+            _graphApiClient = new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
         }
 
         [Test]
