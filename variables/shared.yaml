@@ -8,6 +8,9 @@ parameters:
 
 variables:
 
+  - name: appName
+    value: UserApi
+
   - name: nuget_org_name
     value: 'Video Hearings/vh-packages'
   - name: nuget_feed_name
