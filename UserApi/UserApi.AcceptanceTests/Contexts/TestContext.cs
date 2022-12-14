@@ -34,7 +34,7 @@ namespace UserApi.AcceptanceTests.Contexts
             return request;
         }
 
-        public RestRequest Delete(string path) => new RestRequest(path, Method.DELETE);
+        //public RestRequest Delete(string path) => new RestRequest(path, Method.DELETE);
 
         public RestRequest Put(string path, object requestBody)
         {
