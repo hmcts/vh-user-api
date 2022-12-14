@@ -34,6 +34,8 @@ namespace UserApi.AcceptanceTests.Contexts
             return request;
         }
 
+        //Commented this as not testing anything on Delete
+
         //public RestRequest Delete(string path) => new RestRequest(path, Method.DELETE);
 
         public RestRequest Put(string path, object requestBody)
