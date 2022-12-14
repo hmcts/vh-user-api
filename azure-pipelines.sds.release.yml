@@ -20,6 +20,10 @@ parameters:
   - Staging
   - Prod
 
+pool: 
+  vmImage: ubuntu-22.04
+
+
 #####################################################
 # Generate Entity Framework Script. #################
 
@@ -50,8 +54,6 @@ stages:
     - stage: Approve_Helm_Release
       displayName: 'Approve Helm Release'
       dependsOn: pre_run_tasks
-      pool:
-        vmImage: 'ubuntu-latest'
       jobs:
         - job: waitForValidation
           displayName: 'Approve Helm Release'
