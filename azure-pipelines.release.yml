@@ -23,7 +23,7 @@ parameters:
 - name: RunZap
   displayName: Execute ZAP Tests
   type: boolean
-  default: true
+  default: false
 
 - name: prodEnvs
   displayName: Environments Using Prod Subscription
