@@ -18,7 +18,6 @@ parameters:
   type: object
   default:
   - Dev
-  - Test
   - Staging
 
 pool: 
