@@ -185,6 +185,7 @@ namespace UserApi.Controllers
         [OpenApiOperation("GetJudges")]
         [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [Obsolete("Use `judgesbyusername` instead.")]
         public async Task<IActionResult> GetJudges()
         {
             var adJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetJudgesAsync());
