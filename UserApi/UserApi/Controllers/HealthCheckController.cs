@@ -35,7 +35,7 @@ namespace UserApi.Controllers
         [HttpGet("health/liveness")]
         [OpenApiOperation("CheckServiceHealth")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        [ProducesResponseType(typeof(UserApiHealthResponse), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Health()
         {
             const bool SUCCESS = true;

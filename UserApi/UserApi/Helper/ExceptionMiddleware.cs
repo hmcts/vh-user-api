@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using UserApi.Common;
@@ -38,10 +39,15 @@ namespace UserApi.Helper
 
         private static Task HandleExceptionAsync(HttpContext context, int statusCode, Exception exception)
         {
-            context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
-
-            return context.Response.WriteAsync(exception.Message);
+            var sb = new StringBuilder(exception.Message);
+            var innerException = exception.InnerException;
+            while (innerException != null)
+            {
+                sb.Append($" {innerException.Message}");
+                innerException = innerException.InnerException;
+            }
+            return context.Response.WriteAsJsonAsync(sb.ToString());
         }
     }
 }

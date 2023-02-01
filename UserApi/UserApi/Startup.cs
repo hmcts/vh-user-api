@@ -55,7 +55,11 @@ namespace UserApi
             services.AddCustomTypes();
 
             RegisterAuth(services);
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+            services.AddMvc(options =>
+                {
+                    // globally add a [ProducesResponseType] to all endpoints for a consistent swagger doc and API client.
+                    options.Filters.Add(new ProducesResponseTypeAttribute(typeof(string), 500));
+                })
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
             services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
             services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["FeatureToggle:SdkKey"]));
@@ -70,7 +74,6 @@ namespace UserApi
             };
 
             services.AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = contractResolver;
