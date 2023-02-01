@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -43,6 +44,7 @@ namespace UserApi.Controllers
         [HttpPost(Name = "CreateUser")]
         [OpenApiOperation("CreateUser")]
         [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
         {
@@ -114,6 +116,7 @@ namespace UserApi.Controllers
         [HttpGet("userName/{userName?}", Name = "GetUserByAdUserName")]
         [OpenApiOperation("GetUserByAdUserName")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByUserName(string userName)
         {
@@ -152,6 +155,7 @@ namespace UserApi.Controllers
         [HttpGet("email/{**email}", Name = "GetUserByEmail")]
         [OpenApiOperation("GetUserByEmail")]
         [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
@@ -256,7 +260,6 @@ namespace UserApi.Controllers
         [HttpDelete( "username/{username}", Name = "DeleteUser")]
         [OpenApiOperation("DeleteUser")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> DeleteUser([FromRoute]string username)
         {
@@ -281,7 +284,7 @@ namespace UserApi.Controllers
         [HttpPatch( "username/{userId:Guid}", Name = "UpdateUserAccount")]
         [OpenApiOperation("UpdateUserAccount")]
         [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> UpdateUserAccount([FromRoute]Guid userId, [FromBody] UpdateUserAccountRequest payload)
         {
@@ -323,7 +326,7 @@ namespace UserApi.Controllers
         [HttpPatch(Name = "ResetUserPassword")]
         [OpenApiOperation("ResetUserPassword")]
         [ProducesResponseType(typeof(UpdateUserResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> ResetUserPassword([FromBody]string username)
         {

@@ -122,7 +122,7 @@ namespace UserApi.Controllers
         [HttpPatch("user/group", Name = "AddUserToGroup")]
         [OpenApiOperation("AddUserToGroup")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> AddUserToGroup(AddUserToGroupRequest request)
         {
