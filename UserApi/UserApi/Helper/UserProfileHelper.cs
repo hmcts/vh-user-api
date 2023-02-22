@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserApi.Contract.Responses;
+using UserApi.Mappers;
 using UserApi.Services;
 
 namespace UserApi.Helper
@@ -37,20 +38,7 @@ namespace UserApi.Helper
             var userRole = GetUserRole(groups).ToString();
             var caseTypes = groups.Where(IsCaseType).Select(x => x.DisplayName).ToList();
 
-            var response = new UserProfile
-            {
-                UserId = user.Id,
-                UserName = user.UserPrincipalName,
-                Email = user.Mail,
-                DisplayName = user.DisplayName,
-                FirstName = user.GivenName,
-                LastName = user.Surname,
-                UserRole = userRole,
-                CaseType = caseTypes,
-                IsUserAdmin = isUserAdmin
-            };
-
-            return response;
+            return GraphUserMapper.MapToUserProfile(user, userRole, caseTypes, isUserAdmin);
         }
 
         private UserRole GetUserRole(ICollection<Group> userGroups)

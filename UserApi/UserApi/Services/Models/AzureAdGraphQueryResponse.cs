@@ -18,6 +18,10 @@ namespace UserApi.Services.Models
         public string GivenName { get; set; }
         public string Surname { get; set; }
         public List<string> OtherMails { get; set; }
+        [JsonProperty("mobile")]
+        public string MobilePhone { get; set; }
+        [JsonProperty("mail")]
+        public string ContactEmail { get; set; }
     }
     
     public class UserAssignedRole

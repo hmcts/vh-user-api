@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UserApi.Caching;
@@ -13,6 +14,7 @@ using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
 using System.Text.RegularExpressions;
+using UserApi.Mappers;
 using Group = Microsoft.Graph.Group;
 
 namespace UserApi.Services
@@ -130,7 +132,8 @@ namespace UserApi.Services
                         UserPrincipalName = adUser.UserPrincipalName,
                         GivenName = adUser.GivenName,
                         Surname = adUser.Surname,
-                        Mail = adUser.OtherMails?.FirstOrDefault()
+                        Mail = adUser.OtherMails?.FirstOrDefault() ?? adUser.ContactEmail,
+                        MobilePhone = adUser.MobilePhone
                     };
                 }
                 else
@@ -364,16 +367,7 @@ namespace UserApi.Services
 
                 users.AddRange(response
                     .Where(x => username != null && x.UserPrincipalName.ToLower().Contains(username.ToLower()) || string.IsNullOrEmpty(username))
-                    .Select(x => new UserResponse
-                {
-                    FirstName = x.GivenName,
-                    LastName = x.Surname,
-                    DisplayName = x.DisplayName,
-                    Email = x.UserPrincipalName,
-                    ContactEmail = x.OtherMails?.FirstOrDefault(),
-                    TelephoneNumber = x.MobilePhone,
-                    Organisation = x.CompanyName
-                }));
+                    .Select(GraphUserMapper.MapToUserResponse));
 
                 if (!directoryObject.AdditionalData.ContainsKey("@odata.nextLink"))
                 {

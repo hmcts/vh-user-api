@@ -55,9 +55,10 @@ namespace UserApi
             services.AddCustomTypes();
 
             RegisterAuth(services);
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+            services.AddMvc()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
-            services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
+            services.AddApplicationInsightsTelemetry(options =>
+                options.ConnectionString = Configuration["ApplicationInsights:InstrumentationKey"]);
             services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["FeatureToggle:SdkKey"]));
         }
 
@@ -70,7 +71,6 @@ namespace UserApi
             };
 
             services.AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = contractResolver;
