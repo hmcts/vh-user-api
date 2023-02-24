@@ -45,15 +45,6 @@ namespace UserApi.Services
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail,
             bool isTestUser)
         {
-            var recoveryEmailText = recoveryEmail.Replace("'", "''");
-            var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
-            var user = await GetUserByFilterAsync(filter);
-            if (user != null)
-            {
-                // Avoid including the exact email to not leak it to logs
-                throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
-            }
-
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             var displayName = $"{firstName} {lastName}";
 

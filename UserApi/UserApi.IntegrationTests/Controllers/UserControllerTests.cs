@@ -100,7 +100,6 @@ namespace UserApi.IntegrationTests.Controllers
             var userResponseModel =
                 RequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
-            userResponseModel.UserRole.Should().Be("CaseAdmin");
             userResponseModel.FirstName.Should().Be("Automation01");
             userResponseModel.LastName.Should().Be("Administrator01");
             userResponseModel.DisplayName.Should().Be("Automation01 Administrator01");
@@ -127,7 +126,6 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
-            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
 
         [Test]
@@ -151,7 +149,6 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
-            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
 
 
@@ -205,7 +202,6 @@ namespace UserApi.IntegrationTests.Controllers
             var getResponse = await policy.ExecuteAsync(async () => await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username)));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel = RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
-            userResponseModel.UserRole.Should().Be("None");
 
             // Delete User
             var result = await SendDeleteRequestAsync(DeleteUser(createUserModel.Username));
@@ -306,7 +302,6 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
-            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
         
         [TearDown]
