@@ -7,7 +7,7 @@ namespace UserApi.Services
     public class InvalidEmailException : Exception
     {
         protected InvalidEmailException(SerializationInfo info, StreamingContext context) : base(info, context)
-        { }
+        {}
 
         public InvalidEmailException(string message, string email) : base(message)
         {
