@@ -10,7 +10,7 @@ namespace UserApi.Validations
             RuleFor(x => x.FirstName).NotEmpty().WithMessage(MissingFirstNameErrorMessage);
             RuleFor(x => x.LastName).NotEmpty().WithMessage(MissingLastNameErrorMessage);
             RuleFor(x => x.RecoveryEmail).NotEmpty().WithMessage(MissingEmailErrorMessage);
-            RuleFor(x => x.RecoveryEmail).EmailAddress().WithMessage(InvalidEmailErrorMessage);
+            RuleFor(x => x.RecoveryEmail).Must(x => x.IsValidEmail()).WithMessage(InvalidEmailErrorMessage);
         }
 
         public static string MissingFirstNameErrorMessage => "first name cannot be empty";

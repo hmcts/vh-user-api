@@ -32,7 +32,7 @@ namespace UserApi.UnitTests.ValidateArguments
         public async Task Should_return_email_error()
         {
             var request = BuildRequest();
-            request.RecoveryEmail = "badEmail";
+            request.RecoveryEmail = "badEmail.@email.com";
             var result = await _validator.ValidateAsync(request);
 
             result.IsValid.Should().BeFalse();
