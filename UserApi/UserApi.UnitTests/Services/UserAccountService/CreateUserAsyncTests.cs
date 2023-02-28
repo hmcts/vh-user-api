@@ -62,5 +62,17 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             response.Message.Should().Be("User with recovery email already exists");
         }
+
+        //Recovery email is not a valid email
+        [Test]
+        public void Should_return_recovery_email_is_not_valid()
+        {
+            var invalidRecoveryEmail = "email.@email.com";
+            Filter = $"otherMails/any(c:c eq '{invalidRecoveryEmail.Replace("'", "''")}')";
+
+            var response = Assert.ThrowsAsync<InvalidEmailException>(async () => await Service.CreateUserAsync("fName", "lName", invalidRecoveryEmail, false));
+
+            response.Message.Should().Be("Recovery email is not a valid email");
+        }
     }
 }
