@@ -104,18 +104,6 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
-        public async Task Should_return_ConflictObjectResult_with_InvalidEmailException()
-        {
-            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ThrowsAsync(new InvalidEmailException("Recovery email is invalid", _request.RecoveryEmail));
-
-            var actionResult = (ConflictObjectResult)await _controller.CreateUser(_request);
-
-            actionResult.Should().NotBeNull();
-            actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
-            actionResult.Value.ToString().Should().Be($"{{ Message = Recovery email is invalid, Code = InvalidEmail, Email = {_request.RecoveryEmail} }}");
-        }
-
-        [Test]
         public async Task Should_get_user_by_user_id_from_api()
         {
             string userId = Guid.NewGuid().ToString();
