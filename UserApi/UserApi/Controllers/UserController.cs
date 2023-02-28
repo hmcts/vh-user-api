@@ -88,7 +88,7 @@ namespace UserApi.Controllers
             {
                 return new ConflictObjectResult(new
                 {
-                    Message = "Recovery email is invalid",
+                    Message = e.Message,
                     Code = "InvalidEmail",
                     e.Email
                 });
