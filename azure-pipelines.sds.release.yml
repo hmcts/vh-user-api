@@ -27,17 +27,10 @@ pool:
 # Pre-RunTasks. #####################################
 stages:
 - ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
-  - stage: Pre_Run_Tasks
-    displayName: Pre-Release Tasks
-    variables:
-    - template: variables/shared.yaml
-    - template: variables/production.yaml
-        
   #####################################################
   # Approval Gate for Release. ########################
   - stage: Approve_Helm_Release
     displayName: 'Approve Helm Release'
-    dependsOn: Pre_Run_Tasks
     jobs:
     - job: waitForValidation
       displayName: 'Approve Helm Release'
