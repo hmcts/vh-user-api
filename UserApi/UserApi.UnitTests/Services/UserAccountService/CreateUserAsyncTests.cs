@@ -13,7 +13,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class CreateUserAsyncTests: UserAccountServiceTests
     {
-        private const string RecoveryEmail = "test'email@com";
+        private const string RecoveryEmail = "test'email@a.com";
         private NewAdUserAccount _newAdUserAccount;
 
         [SetUp]
