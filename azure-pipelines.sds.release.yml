@@ -27,26 +27,10 @@ pool:
 # Pre-RunTasks. #####################################
 stages:
 - ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
-  - stage: Pre_Run_Tasks
-    displayName: Pre-Release Tasks
-    variables:
-    - template: variables/shared.yaml
-    - template: variables/production.yaml
-    jobs:
-    - job: package_nuget
-      displayName: "Package Nuget Packages"
-      steps:
-      - template: templates\dotnet\package-nuget-packages.yml@azTemplates
-        parameters:
-          nugetProjectPath: 'UserApi/${{ variables.nuget_package_name }}'
-          vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
-          gitVersionConfigPath: ${{ variables.git_version_config_path }}
-        
   #####################################################
   # Approval Gate for Release. ########################
   - stage: Approve_Helm_Release
     displayName: 'Approve Helm Release'
-    dependsOn: Pre_Run_Tasks
     jobs:
     - job: waitForValidation
       displayName: 'Approve Helm Release'
@@ -93,24 +77,6 @@ stages:
           imageTags:
             - 'latest'
             - '${{ variables.releaseTagName }}'
-
-  #####################################################
-  # Deploy Nuget Packages. #########################
-  - stage: Push_Nuget
-    displayName: Deploy Nuget Packages
-    dependsOn: Approve_Helm_Release
-    variables:
-    - template: variables/demo.yaml
-    - template: variables/shared.yaml
-      parameters:
-        env: ${{ variables.env }}
-    jobs: 
-    - job: Publish_Nuget
-      displayName: Publish NuGet Packages
-      steps:
-      - template: templates\dotnet\push-nuget-packages.yml@azTemplates
-        parameters:
-          vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
 
   #########################################
   # Push Helm Charts to Repo. #############
