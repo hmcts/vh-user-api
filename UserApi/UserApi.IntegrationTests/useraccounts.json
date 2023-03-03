@@ -5,35 +5,35 @@
       "Firstname": "Automation01",
       "Lastname": "UA_CaseAdmin01",
       "DisplayName": "Automation01_UA_CaseAdmin01",
-      "AlternativeEmail": "g5@a.com"
+      "AlternativeEmail": "g5@email.com"
     },
     {
       "Role": "Individual",
       "Firstname": "Automation01",
       "Lastname": "UA_Individual01",
       "DisplayName": "Automation01_UA_Individual01",
-      "AlternativeEmail": "g2@a.com"
+      "AlternativeEmail": "g2@email.com"
     },
     {
       "Role": "Judge",
       "Firstname": "Automation01",
       "Lastname": "UA_Judge01",
       "DisplayName": "Automation01_UA_Judge01",
-      "AlternativeEmail": "g1@a.com"
+      "AlternativeEmail": "g1@email.com"
     },
     {
       "Role": "Representative",
       "Firstname": "Automation01",
       "Lastname": "UA_Representative01",
       "DisplayName": "Automation01_UA_Representative01",
-      "AlternativeEmail": "g3@a.com"
+      "AlternativeEmail": "g3@email.com"
     },
     {
       "Role": "VhOfficer",
       "Firstname": "Automation01",
       "Lastname": "UA_VideoHearingsOfficer01",
       "DisplayName": "Automation01_UA_VideoHearingsOfficer01",
-      "AlternativeEmail": "g4@a.com"
+      "AlternativeEmail": "g4@email.com"
     }
   ]
 }

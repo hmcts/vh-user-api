@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Mail;
 using System.Text.RegularExpressions;
 
 namespace UserApi.Validations
@@ -7,7 +6,6 @@ namespace UserApi.Validations
     /// <summary>Simple validator to check email formats</summary>
     public static class EmailValidation
     {
-        private static TimeSpan RegexTimeOut = TimeSpan.FromSeconds(4);
         private const string RegexPattern = @"^([!#-'*+/-9=?A-Z^-~-]+(\.[!#-'*+/-9=?A-Z^-~-]+)*)@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(?:[a-zA-Z0-9](?:\.[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
         /// <summary>
@@ -20,16 +18,9 @@ namespace UserApi.Validations
         {
             if (string.IsNullOrEmpty(email))
                 return false;
-            
-            try 
-            { 
-                var r = Regex.Match(email, RegexPattern, RegexOptions.None, RegexTimeOut);
-                return r.Success;
-            }
-            catch(RegexMatchTimeoutException)
-            {
-                return false;
-            }
+
+            var match = Regex.Match(email, RegexPattern);
+            return match.Success;
         }
     }
 }
