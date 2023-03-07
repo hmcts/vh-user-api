@@ -82,7 +82,18 @@ namespace UserApi.IntegrationTests.Services
 
             await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
         }
-   
+
+        [Test]
+        public void should_throw_exception_when_attempting_to_create_user_with_invalid_email()
+        {
+            const string firstName = "Automatically";
+            const string lastName = "Created";
+            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+            var recoveryEmail = $"{firstName}.{lastName}.{unique}.@{TestConfig.Instance.Settings.ReformEmail}";
+            var result = Assert.ThrowsAsync<InvalidEmailException>(() => _service.CreateUserAsync(firstName, lastName, recoveryEmail, false));
+            result.Email.Should().Be(recoveryEmail);
+        }
+
         [Test]
         public void should_throw_exception_when_attempting_to_delete_nonexistent_user()
         {
