@@ -12,6 +12,7 @@ using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
+using UserApi.Mappers;
 using UserApi.Services;
 using UserApi.Validations;
 
@@ -300,13 +301,7 @@ namespace UserApi.Controllers
             try
             {
                 var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName, payload.LastName);
-                var response = new UserResponse
-                {
-                    Email = user.UserPrincipalName,
-                    DisplayName = user.DisplayName,
-                    FirstName = user.GivenName,
-                    LastName = user.Surname
-                };
+                var response = GraphUserMapper.MapToUserResponse(user);
                 return Ok(response);
             }
             catch (UserDoesNotExistException e)
