@@ -84,6 +84,15 @@ namespace UserApi.Controllers
                     e.Username
                 });
             }
+            catch (InvalidEmailException e) 
+            {
+                return new ConflictObjectResult(new
+                {
+                    Message = e.Message,
+                    Code = "InvalidEmail",
+                    e.Email
+                });
+            }
         }
 
         /// <summary>
@@ -161,8 +170,8 @@ namespace UserApi.Controllers
                 ModelState.AddModelError(nameof(email), "email cannot be empty");
                 return BadRequest(ModelState);
             }
-            
-            if (!(new EmailAddressAttribute().IsValid(email)))
+
+            if (!email.IsValidEmail())
             {
                 ModelState.AddModelError(nameof(email), "email does not exist");
                 return NotFound(ModelState);

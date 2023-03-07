@@ -16,6 +16,7 @@ using UserApi.Services.Models;
 using System.Text.RegularExpressions;
 using UserApi.Mappers;
 using Group = Microsoft.Graph.Group;
+using UserApi.Validations;
 
 namespace UserApi.Services
 {
@@ -47,6 +48,11 @@ namespace UserApi.Services
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail,
             bool isTestUser)
         {
+            if (!recoveryEmail.IsValidEmail())
+            {
+                throw new InvalidEmailException("Recovery email is not a valid email", recoveryEmail);
+            }
+
             var recoveryEmailText = recoveryEmail.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
             var user = await GetUserByFilterAsync(filter);
