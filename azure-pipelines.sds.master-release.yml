@@ -46,7 +46,7 @@ stages:
   displayName: Docker Build & Push Image
   dependsOn: Pre_Run_Tasks
   variables:
-    - template: variables/staging.yaml
+    - template: variables/shared.yaml
     - template: variables/dev.yaml
   jobs:
   - job: Docker_Build
