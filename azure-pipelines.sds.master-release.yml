@@ -18,7 +18,6 @@ parameters:
   type: object
   default:
   - Dev
-  - Staging
 
 pool: 
   vmImage: ubuntu-22.04
@@ -30,7 +29,7 @@ stages:
   displayName: Pre-Release Tasks
   variables:
   - template: variables/shared.yaml
-  - template: variables/staging.yaml
+  - template: variables/dev.yaml
   jobs:
   - job: package_nuget
     displayName: "Package Nuget Packages"
@@ -41,20 +40,6 @@ stages:
           vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
           gitVersionConfigPath: ${{ variables.git_version_config_path }}
 
-  - job: PublishAcceptanceTests
-    dependsOn: package_nuget
-    displayName: Publish Acceptance Tests
-    variables:
-      projectPath: "${{ variables.appName }}/${{ variables.appName }}"
-    steps:
-    - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
-      parameters:
-        netVersion: 6.x
-        coreProjectPath: $(projectPath)
-        nugetProjectPath: $(projectPath)
-        nugetConfigPath: ${{ variables.appName }}
-        useNugetConfig: true
-
 #####################################################
 # Build Docker Image & Push. ########################
 - stage: Docker_Build_Push
@@ -62,7 +47,7 @@ stages:
   dependsOn: Pre_Run_Tasks
   variables:
     - template: variables/staging.yaml
-    - template: variables/shared.yaml
+    - template: variables/dev.yaml
   jobs:
   - job: Docker_Build
     displayName: "Docker Build and Push"
@@ -87,7 +72,7 @@ stages:
         repositoryName:  ${{ variables.repositoryName }}
         imageName: "${{ variables.imageName }}"
         imageTags:
-          - '${{ variables.stagingTagName }}'
+          - '${{ variables.devTagName }}'
 
 #####################################################
 # Deploy Nuget Packages. ############################
@@ -112,7 +97,7 @@ stages:
   displayName: Push Helm Charts
   dependsOn: Docker_Build_Push
   variables:
-  - template: variables/staging.yaml
+  - template: variables/dev.yaml
   - template: variables/shared.yaml
   - group: vh-github-app-credentials
   jobs:
@@ -134,118 +119,3 @@ stages:
         githubUsername: $(gh_app_name)
         githubEmail: "$(gh_app_app_id)+$(gh_app_name)[bot]@users.noreply.github.com"
         subDirectory: ${{ variables.subDirectory }}
-
-#########################################
-# Run Acceptance Tests on Staging. ######
-- stage: Run_Acceptance_Tests
-  displayName: "Run Acceptance Tests"
-  dependsOn: 
-  - Helm
-  - Docker_Build_Push
-  condition: succeeded('Helm')
-  variables:
-  - name: fullImageName
-    value: $[ stageDependencies.Docker_Build_Push.Docker_Build.outputs['pushImage.fullImageName'] ]
-  - template: variables/staging.yaml
-  - template: variables/shared.yaml
-    parameters:
-      env: stg
-  jobs:
-  - job: CheckDeployment
-    displayName: Check AKS Deployment
-    steps:
-    - template: templates\Containerisation\check-deployment.yaml@azTemplates
-      parameters: 
-        namespace: "vh"
-        deploymentName: ${{ variables.chartName }}
-        requiredImage: $(fullImageName)
-        subscriptionName: "${{ variables.subscriptionName }}"
-        env: ${{ variables.env }}
-        retries: 20
-        
-  - job: AcceptanceTestsStaging
-    pool: VH Self Hosted
-    dependsOn: CheckDeployment
-    displayName: Acceptance Tests Staging
-    variables:
-    - group: vh-user-api
-    - group: vh-user-api-tests
-    - group: vh-user-groups
-    steps:
-    - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
-      parameters:
-        environment: ${{ variables.env }}
-        azureSubscription: ${{ variables.subscriptionName }}
-        acceptanceTestSettings:
-        - name: VhServices:UserApiUrl
-          value: "https://vh-user-api.staging.platform.hmcts.net"
-        - name: ApplicationInsights:InstrumentationKey
-          value: applicationinsights--instrumentationkey
-          keyVaultName: vh-infra-core-${{ variables.env }}
-          secret: true
-        - name: AzureAd:ClientId
-          value: azuread--clientid
-          keyVaultName: vh-user-api-${{ variables.env }}
-          secret: true
-        - name: AzureAd:ClientSecret
-          value: azuread--clientsecret
-          keyVaultName: vh-user-api-${{ variables.env }}
-          secret: true
-        - name: AzureAd:TenantId
-          value: azuread--tenantid
-          keyVaultName: vh-infra-core-${{ variables.env }}
-          secret: true
-        - name: VhServices:UserApiResourceId
-          value: azuread--identifieruri
-          keyVaultName: vh-user-api-${{ variables.env }}
-          secret: true
-        - name: ConnectionStrings:RedisCache
-          value: connectionstrings--rediscache
-          keyVaultName: vh-infra-core-${{ variables.env }}
-          secret: true
-        - name: DefaultPassword
-          value: $(defaultPassword)
-        - name: Testing:ExistingGroups:0:Displayname
-          value: $(testing-existinggroups-0-displayname)
-        - name: Testing:ExistingGroups:0:GroupId
-          value: $(testing-existinggroups-0-groupid)
-        - name: Testing:ExistingGroups:1:Displayname
-          value: $(testing-existinggroups-1-displayname)
-        - name: Testing:ExistingGroups:1:GroupId
-          value: $(testing-existinggroups-1-groupid)
-        - name: Testing:ExistingUserDisplayname
-          value: $(testing-existinguserdisplayname)
-        - name: Testing:ExistingUserFirstname
-          value: $(testing-existinguserfirstname)
-        - name: Testing:ExistingUserId
-          value: $(testing-existinguserid)
-        - name: Testing:ExistingUserLastname
-          value: $(testing-existinguserlastname)
-        - name: Testing:ExistingUserPrincipal
-          value: $(testing-existinguserprincipal)
-        - name: Testing:ExistingEmail
-          value: $(testing-existingemail)
-        - name: Testing:NewGroups:0:Displayname
-          value: $(testing-newgroup-0-displayname)
-        - name: Testing:NewGroups:0:GroupId
-          value: $(testing-newgroup-0-groupid)
-        - name: ReformEmail
-          value: $(reformemailAzureAd)
-        - name: TestDefaultPassword
-          value: $(testDefaultPassword)
-        - name: AdGroup:CaseType
-          value: $(adgroup-casetype)
-        - name: AdGroup:Administrator
-          value: $(adgroup-administrator)
-        - name: AdGroup:Judge
-          value: $(adgroup-judge)
-        - name: AdGroup:StaffMember
-          value: $(adgroup-staffmember)
-        - name: AdGroup:ProfessionalUser
-          value: $(adgroup-professionaluser)
-        - name: AdGroup:JudgesTestGroup
-          value: $(adgroup-judgestestgroup)
-        - name: AdGroup:External
-          value: $(adgroup-external)
-        - name: AdGroup:JudicialOfficeHolder
-          value: $(adgroup-judicialofficeholder)
