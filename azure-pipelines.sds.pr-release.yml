@@ -5,315 +5,299 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref: master
+      ref: feature/vh-tests-inside-a-container
       endpoint: hmcts
-      
+
 trigger: none
 
 pr:
   - master
 
-pool: 
+pool:
   vmImage: ubuntu-22.04
 
-
 stages:
-####################################################
-# CI Build Checks. #################################
-- stage: CI_Build
-  displayName: CI Build
-  variables: 
-  - template: variables/shared.yaml
-  jobs:
-  - job: CI_Helm
-    displayName: "Helm CI"
-    steps:
-    - checkout: self
-
-    - template: templates\Containerisation\helm\helm-lint.yaml@azTemplates
-      parameters:
-        chartPath: ${{ variables.chartPath }}
-        chartValuesPath: ${{ variables.chartPath }}
-
-  - job: UnitTests
-    displayName: "Unit Tests"
-    steps:
-    - checkout: self
-
-    - template: templates/sonarCloud/prepare.yml@azTemplates
-      parameters:
-        ExtraProperties: |
-          sonar.cs.opencover.reportsPaths=$(Common.TestResultsDirectory)/Coverage/coverage.opencover.xml
-          sonar.coverage.exclusions=**/UserApi/Swagger/**,**/Program.cs,**/Startup.cs,**/Testing.Common/**,**/UserApi.Common/**,**/UserApi.IntegrationTests/**,**/UserApi.UnitTests/**,**/UserApi/Helper/**,**/UserApi/ConfigureServicesExtensions.cs,**/UserApi/Extensions/**
-          sonar.cpd.exclusions=**/Program.cs,**/Startup.cs,**/Testing.Common/**,**/UserApi/Swagger/**
-
-    - template: stages\dotnet-tests\unit-tests.yml@azTemplates
-      parameters:
-        #vstsFeedId: 'Video Hearings/vh-packages'
-        dotnetCoreVersion: '6.x'
-        nugetConfigPath: ${{ variables.appName }} # Temp - Change To SDS Feed When Possible.
-        unitTestProjectPath: "${{ variables.appName }}/${{ variables.appName }}.UnitTests"
-        coverletCoverageExclusions:
-          - "[UserApi.*Tests?]*"
-          - "[UserApi.API]Startup"
-          - "[UserApi.Common]*"
-          - "[Testing.Common]*"
-
-    - template: templates/sonarCloud/runAnalysis.yml@azTemplates
-
-####################################################
-# Pre Release Tasks. ###############################
-- stage: Pre_Release_Tasks
-  displayName: Pre-Release Tasks
-  variables: 
-  - template: variables/shared.yaml
-  jobs:
-  - job: package_nuget
-    displayName: "Package NuGet Packages"
-    steps:
-    - template: templates\dotnet\package-nuget-packages.yml@azTemplates
-      parameters:
-        nugetProjectPath: "${{ variables.appName }}/${{ variables.nuget_package_name }}"
-        vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
-        gitVersionConfigPath: ${{ variables.git_version_config_path }}
-
-  - job: PublishAcceptanceTests
-    dependsOn: package_nuget
-    displayName: Publish Acceptance Tests
+  ####################################################
+  # CI Build Checks. #################################
+  - stage: CI_Build
+    displayName: CI Build
     variables:
-      projectPath: "${{ variables.appName }}/${{ variables.appName }}"
-    steps:
-    - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
-      parameters:
-        netVersion: 6.x
-        coreProjectPath: $(projectPath)
-        nugetProjectPath: $(projectPath)
-        nugetConfigPath: ${{ variables.appName }}
-        useNugetConfig: true
+      - template: variables/shared.yaml
+    jobs:
+      - job: CI_Helm
+        displayName: "Helm CI"
+        steps:
+          - checkout: self
 
-#####################################################
-# Build Docker Image & Generate EF Script. ##########
-- stage: Dock
-  displayName: Docker Build & Push Image
-  variables: 
-  - group: aks-cluster-info
-  - template: variables/dev.yaml
-  - template: variables/shared.yaml
-    parameters:
-      env: ${{ variables.env }}
-  - group: vh-github-app-credentials
-  jobs:
-  - job: Dock
-    displayName: "Build and Push Image ${{ variables.git_repo_name }}"
-    steps:
-    - checkout: self
+          - template: templates\Containerisation\helm\helm-lint.yaml@azTemplates
+            parameters:
+              chartPath: ${{ variables.chartPath }}
+              chartValuesPath: ${{ variables.chartPath }}
 
-    - template: templates\Github\get-app-token.yaml@azTemplates
-      parameters:
-        privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
-        appId: $(gh_app_app_id)
+      - job: UnitTests
+        displayName: "Unit Tests"
+        steps:
+          - checkout: self
 
-    - template: templates\Github\bump-chart-versions.yaml@azTemplates
-      parameters:
-        chartName: ${{ variables.chartName }}
-        chartPath: $(Build.SourcesDirectory)
-        chartBranch: $(System.PullRequest.SourceBranch)
-        githubToken: $(githubappinstall.token)
-        githubUsername: $(gh_app_name)
-        githubEmail: "$(gh_app_app_id)+$(gh_app_name)[bot]@users.noreply.github.com"
-    
-    - bash: |
-        sed -i "s|</configuration>|<packageSourceCredentials><vh-packages><add key=\"Username\" value=\"PAT\" /><add key=\"ClearTextPassword\" value=\"$(System.AccessToken)\" /></vh-packages></packageSourceCredentials></configuration>|" nuget.sds.config
-      displayName: Add NuGet Feed Authentication
-      workingDirectory: ${{ variables.appName }}
+          - template: stages\dotnet-tests\unit-and-integration-tests-container.yml
+            parameters:
+              nugetConfigPath: nuget.sds.config
+              appName: ${{ variables.appName }}
+              dockerComposeTestFile: docker-compose.tests.yml
 
-    - template: templates\Containerisation\docker\docker-compose.yaml@azTemplates
-      parameters:
-        azureSubscription: ${{ variables.acrSubscription }}
-        acrName: ${{ variables.acrName }}
-        repositoryName:  ${{ variables.repositoryName }}
+  ####################################################
+  # Pre Release Tasks. ###############################
+  - stage: Pre_Release_Tasks
+    displayName: Pre-Release Tasks
+    variables:
+      - template: variables/shared.yaml
+    jobs:
+      - job: package_nuget
+        displayName: "Package NuGet Packages"
+        steps:
+          - template: templates\dotnet\package-nuget-packages.yml@azTemplates
+            parameters:
+              nugetProjectPath: "${{ variables.appName }}/${{ variables.nuget_package_name }}"
+              vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+              gitVersionConfigPath: ${{ variables.git_version_config_path }}
 
-    - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
-      parameters:
-        azureSubscription: ${{ variables.acrSubscription }}
-        acrName: ${{ variables.acrName }}
-        repositoryName:  ${{ variables.repositoryName }}
-        imageName: "${{ replace(variables.git_repo_name, '-', '') }}"
-        imageTags:
-          - '${{ variables.prTagName }}'
+      - job: PublishAcceptanceTests
+        dependsOn: package_nuget
+        displayName: Publish Acceptance Tests
+        variables:
+          projectPath: "${{ variables.appName }}/${{ variables.appName }}"
+        steps:
+          - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
+            parameters:
+              netVersion: 6.x
+              coreProjectPath: $(projectPath)
+              nugetProjectPath: $(projectPath)
+              nugetConfigPath: ${{ variables.appName }}
+              useNugetConfig: true
 
-#####################################################
-# Deploy Helm Chart to Dev. ######################### 
-- stage: Install
-  condition: and(not(failed()), not(canceled()))
-  displayName: Deploy Helm Chart Dev AKS
-  variables:
-  - group: vh-github-app-credentials
-  - template: variables/dev.yaml
-  - template: variables/shared.yaml
-    parameters:
-      env: ${{ variables.env }}
-  - name: dnsRecordName
-    value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
-  jobs:
-  - job: helm_uninstall
-    displayName: Uninstall Helm from Dev
-    steps:
-    - template: templates\Azure\Aks\get-active-cluster.yaml@azTemplates
-      parameters:
-        subscriptionName: "${{ variables.subscriptionName }}"
-        environment: ${{ variables.env }}
-      
-    - template: templates/Containerisation/helm/helm-uninstall.yaml@azTemplates
-      parameters:
-        namespace: 'vh'
-        releaseName: "${{ variables.chartName }}-${{ variables.prTagPrefix }}"
-        azureSubscription: "${{ variables.subscriptionName }}"
-        aksResourceGroupName: "$(aksCluster.resourceGroup)"
-        aksClusterName: "$(aksCluster.name)"
+  #####################################################
+  # Build Docker Image & Generate EF Script. ##########
+  - stage: Dock
+    displayName: Docker Build & Push Image
+    variables:
+      - group: aks-cluster-info
+      - template: variables/dev.yaml
+      - template: variables/shared.yaml
+        parameters:
+          env: ${{ variables.env }}
+      - group: vh-github-app-credentials
+    jobs:
+      - job: Dock
+        displayName: "Build and Push Image ${{ variables.git_repo_name }}"
+        steps:
+          - checkout: self
 
-  - job: aks_push
-    displayName: Deploy To Dev AKS
-    dependsOn: helm_uninstall
-    steps:
-    - template: templates\Azure\Aks\get-active-cluster.yaml@azTemplates
-      parameters:
-        subscriptionName: "${{ variables.subscriptionName }}"
-        environment: ${{ variables.env }}
-    - template: templates/Containerisation/helm/helm-install.yaml@azTemplates
-      parameters:
-        privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
-        appId: $(gh_app_app_id)
-        envValuesTemplatePath: ${{ variables.envValuesTemplatePath }}
-        envValuesPath: ${{ variables.envValuesPath }}
-        acrName: ${{ variables.acrName }}
-        repositoryName: ${{ variables.repositoryName }}
-        prTagName: ${{ variables.prTagName }}
-        releaseName: "${{ variables.chartName }}-${{ variables.prTagPrefix }}"
-        dnsRecordName: ${{ variables.dnsRecordName }}
-        dnsZone: ${{ variables.dnsZone }}
-        env: ${{ variables.env }}
-        chartName: ${{ variables.chartName }}
-        chartPath: ${{ variables.chartPath }}
-        subscriptionName: "${{ variables.subscriptionName }}"
-        aksResourceGroupName: "$(aksCluster.resourceGroup)"
-        aksClusterName: "$(aksCluster.name)"
-        dnsSubscriptionName: "${{ variables.dnsZoneSubscription }}"
-        dnsResourceGroupName: "${{ variables.dnsZoneResourceGroup }}"
-                
-##################################################
-# Deploy Nuget Packages. #########################
-- stage: Push_Nuget
-  dependsOn: Dock
-  displayName: Deploy NuGet Packages
-  variables:
-  - template: variables/dev.yaml
-  - template: variables/shared.yaml
-    parameters:
-      env: ${{ variables.env }}
-  jobs: 
-  - job: Publish_Nuget
-    displayName: Publish NuGet Packages
-    steps:
-    - template: templates\dotnet\push-nuget-packages.yml@azTemplates
-      parameters:
-        vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+          - template: templates\Github\get-app-token.yaml@azTemplates
+            parameters:
+              privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
+              appId: $(gh_app_app_id)
 
-##################################################
-# Run Acceptance Tests. ##########################
-- stage: Acceptance_Tests_Dev
-  dependsOn: Install
-  condition: succeeded('Install')
-  displayName: Acceptance Tests Dev
-  variables:
-  - group: vh-user-api
-  - group: vh-user-api-tests
-  - group: vh-user-groups
-  - template: variables/dev.yaml
-  - template: variables/shared.yaml
-    parameters:
-      env: ${{ variables.env }}
-  - name: dnsRecordName
-    value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
-  jobs:
-  - job: AcceptanceTestsDev
-    pool: VH Self Hosted
+          - template: templates\Github\bump-chart-versions.yaml@azTemplates
+            parameters:
+              chartName: ${{ variables.chartName }}
+              chartPath: $(Build.SourcesDirectory)
+              chartBranch: $(System.PullRequest.SourceBranch)
+              githubToken: $(githubappinstall.token)
+              githubUsername: $(gh_app_name)
+              githubEmail: "$(gh_app_app_id)+$(gh_app_name)[bot]@users.noreply.github.com"
+
+          - bash: |
+              sed -i "s|</configuration>|<packageSourceCredentials><vh-packages><add key=\"Username\" value=\"PAT\" /><add key=\"ClearTextPassword\" value=\"$(System.AccessToken)\" /></vh-packages></packageSourceCredentials></configuration>|" nuget.sds.config
+            displayName: Add NuGet Feed Authentication
+            workingDirectory: ${{ variables.appName }}
+
+          - template: templates\Containerisation\docker\docker-compose.yaml@azTemplates
+            parameters:
+              azureSubscription: ${{ variables.acrSubscription }}
+              acrName: ${{ variables.acrName }}
+              repositoryName: ${{ variables.repositoryName }}
+
+          - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
+            parameters:
+              azureSubscription: ${{ variables.acrSubscription }}
+              acrName: ${{ variables.acrName }}
+              repositoryName: ${{ variables.repositoryName }}
+              imageName: "${{ replace(variables.git_repo_name, '-', '') }}"
+              imageTags:
+                - "${{ variables.prTagName }}"
+
+  #####################################################
+  # Deploy Helm Chart to Dev. #########################
+  - stage: Install
+    condition: and(not(failed()), not(canceled()))
+    displayName: Deploy Helm Chart Dev AKS
+    variables:
+      - group: vh-github-app-credentials
+      - template: variables/dev.yaml
+      - template: variables/shared.yaml
+        parameters:
+          env: ${{ variables.env }}
+      - name: dnsRecordName
+        value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
+    jobs:
+      - job: helm_uninstall
+        displayName: Uninstall Helm from Dev
+        steps:
+          - template: templates\Azure\Aks\get-active-cluster.yaml@azTemplates
+            parameters:
+              subscriptionName: "${{ variables.subscriptionName }}"
+              environment: ${{ variables.env }}
+
+          - template: templates/Containerisation/helm/helm-uninstall.yaml@azTemplates
+            parameters:
+              namespace: "vh"
+              releaseName: "${{ variables.chartName }}-${{ variables.prTagPrefix }}"
+              azureSubscription: "${{ variables.subscriptionName }}"
+              aksResourceGroupName: "$(aksCluster.resourceGroup)"
+              aksClusterName: "$(aksCluster.name)"
+
+      - job: aks_push
+        displayName: Deploy To Dev AKS
+        dependsOn: helm_uninstall
+        steps:
+          - template: templates\Azure\Aks\get-active-cluster.yaml@azTemplates
+            parameters:
+              subscriptionName: "${{ variables.subscriptionName }}"
+              environment: ${{ variables.env }}
+          - template: templates/Containerisation/helm/helm-install.yaml@azTemplates
+            parameters:
+              privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
+              appId: $(gh_app_app_id)
+              envValuesTemplatePath: ${{ variables.envValuesTemplatePath }}
+              envValuesPath: ${{ variables.envValuesPath }}
+              acrName: ${{ variables.acrName }}
+              repositoryName: ${{ variables.repositoryName }}
+              prTagName: ${{ variables.prTagName }}
+              releaseName: "${{ variables.chartName }}-${{ variables.prTagPrefix }}"
+              dnsRecordName: ${{ variables.dnsRecordName }}
+              dnsZone: ${{ variables.dnsZone }}
+              env: ${{ variables.env }}
+              chartName: ${{ variables.chartName }}
+              chartPath: ${{ variables.chartPath }}
+              subscriptionName: "${{ variables.subscriptionName }}"
+              aksResourceGroupName: "$(aksCluster.resourceGroup)"
+              aksClusterName: "$(aksCluster.name)"
+              dnsSubscriptionName: "${{ variables.dnsZoneSubscription }}"
+              dnsResourceGroupName: "${{ variables.dnsZoneResourceGroup }}"
+
+  ##################################################
+  # Deploy Nuget Packages. #########################
+  - stage: Push_Nuget
+    dependsOn: Dock
+    displayName: Deploy NuGet Packages
+    variables:
+      - template: variables/dev.yaml
+      - template: variables/shared.yaml
+        parameters:
+          env: ${{ variables.env }}
+    jobs:
+      - job: Publish_Nuget
+        displayName: Publish NuGet Packages
+        steps:
+          - template: templates\dotnet\push-nuget-packages.yml@azTemplates
+            parameters:
+              vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+
+  ##################################################
+  # Run Acceptance Tests. ##########################
+  - stage: Acceptance_Tests_Dev
+    dependsOn: Install
+    condition: succeeded('Install')
     displayName: Acceptance Tests Dev
-    steps:
-    - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
-      parameters:
-        environment: ${{ variables.env }}
-        azureSubscription: ${{ variables.subscriptionName }}
-        acceptanceTestSettings:
-          - name: VhServices:UserApiUrl
-            value: "https://vh-user-api-pr-$(System.PullRequest.PullRequestNumber).dev.platform.hmcts.net"
-          - name: ApplicationInsights:InstrumentationKey
-            value: applicationinsights--instrumentationkey
-            keyVaultName: vh-infra-core-${{ variables.env }}
-            secret: true
-          - name: AzureAd:ClientId
-            value: azuread--clientid
-            keyVaultName: vh-user-api-${{ variables.env }}
-            secret: true
-          - name: AzureAd:ClientSecret
-            value: azuread--clientsecret
-            keyVaultName: vh-user-api-${{ variables.env }}
-            secret: true
-          - name: AzureAd:TenantId
-            value: azuread--tenantid
-            keyVaultName: vh-infra-core-${{ variables.env }}
-            secret: true
-          - name: VhServices:UserApiResourceId
-            value: azuread--identifieruri
-            keyVaultName: vh-user-api-${{ variables.env }}
-            secret: true
-          - name: ConnectionStrings:RedisCache
-            value: connectionstrings--rediscache
-            keyVaultName: vh-infra-core-${{ variables.env }}
-            secret: true
-          - name: DefaultPassword
-            value: $(defaultPassword)
-          - name: Testing:ExistingGroups:0:Displayname
-            value: $(testing-existinggroups-0-displayname)
-          - name: Testing:ExistingGroups:0:GroupId
-            value: $(testing-existinggroups-0-groupid)
-          - name: Testing:ExistingGroups:1:Displayname
-            value: $(testing-existinggroups-1-displayname)
-          - name: Testing:ExistingGroups:1:GroupId
-            value: $(testing-existinggroups-1-groupid)
-          - name: Testing:ExistingUserDisplayname
-            value: $(testing-existinguserdisplayname)
-          - name: Testing:ExistingUserFirstname
-            value: $(testing-existinguserfirstname)
-          - name: Testing:ExistingUserId
-            value: $(testing-existinguserid)
-          - name: Testing:ExistingUserLastname
-            value: $(testing-existinguserlastname)
-          - name: Testing:ExistingUserPrincipal
-            value: $(testing-existinguserprincipal)
-          - name: Testing:ExistingEmail
-            value: $(testing-existingemail)
-          - name: Testing:NewGroups:0:Displayname
-            value: $(testing-newgroup-0-displayname)
-          - name: Testing:NewGroups:0:GroupId
-            value: $(testing-newgroup-0-groupid)
-          - name: ReformEmail
-            value: $(reformemailAzureAd)
-          - name: TestDefaultPassword
-            value: $(testDefaultPassword)
-          - name: AdGroup:CaseType
-            value: $(adgroup-casetype)
-          - name: AdGroup:Administrator
-            value: $(adgroup-administrator)
-          - name: AdGroup:Judge
-            value: $(adgroup-judge)
-          - name: AdGroup:StaffMember
-            value: $(adgroup-staffmember)
-          - name: AdGroup:ProfessionalUser
-            value: $(adgroup-professionaluser)
-          - name: AdGroup:JudgesTestGroup
-            value: $(adgroup-judgestestgroup)
-          - name: AdGroup:External
-            value: $(adgroup-external)
-          - name: AdGroup:JudicialOfficeHolder
-            value: $(adgroup-judicialofficeholder)
+    variables:
+      - group: vh-user-api
+      - group: vh-user-api-tests
+      - group: vh-user-groups
+      - template: variables/dev.yaml
+      - template: variables/shared.yaml
+        parameters:
+          env: ${{ variables.env }}
+      - name: dnsRecordName
+        value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
+    jobs:
+      - job: AcceptanceTestsDev
+        pool: VH Self Hosted
+        displayName: Acceptance Tests Dev
+        steps:
+          - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
+            parameters:
+              environment: ${{ variables.env }}
+              azureSubscription: ${{ variables.subscriptionName }}
+              acceptanceTestSettings:
+                - name: VhServices:UserApiUrl
+                  value: "https://vh-user-api-pr-$(System.PullRequest.PullRequestNumber).dev.platform.hmcts.net"
+                - name: ApplicationInsights:InstrumentationKey
+                  value: applicationinsights--instrumentationkey
+                  keyVaultName: vh-infra-core-${{ variables.env }}
+                  secret: true
+                - name: AzureAd:ClientId
+                  value: azuread--clientid
+                  keyVaultName: vh-user-api-${{ variables.env }}
+                  secret: true
+                - name: AzureAd:ClientSecret
+                  value: azuread--clientsecret
+                  keyVaultName: vh-user-api-${{ variables.env }}
+                  secret: true
+                - name: AzureAd:TenantId
+                  value: azuread--tenantid
+                  keyVaultName: vh-infra-core-${{ variables.env }}
+                  secret: true
+                - name: VhServices:UserApiResourceId
+                  value: azuread--identifieruri
+                  keyVaultName: vh-user-api-${{ variables.env }}
+                  secret: true
+                - name: ConnectionStrings:RedisCache
+                  value: connectionstrings--rediscache
+                  keyVaultName: vh-infra-core-${{ variables.env }}
+                  secret: true
+                - name: DefaultPassword
+                  value: $(defaultPassword)
+                - name: Testing:ExistingGroups:0:Displayname
+                  value: $(testing-existinggroups-0-displayname)
+                - name: Testing:ExistingGroups:0:GroupId
+                  value: $(testing-existinggroups-0-groupid)
+                - name: Testing:ExistingGroups:1:Displayname
+                  value: $(testing-existinggroups-1-displayname)
+                - name: Testing:ExistingGroups:1:GroupId
+                  value: $(testing-existinggroups-1-groupid)
+                - name: Testing:ExistingUserDisplayname
+                  value: $(testing-existinguserdisplayname)
+                - name: Testing:ExistingUserFirstname
+                  value: $(testing-existinguserfirstname)
+                - name: Testing:ExistingUserId
+                  value: $(testing-existinguserid)
+                - name: Testing:ExistingUserLastname
+                  value: $(testing-existinguserlastname)
+                - name: Testing:ExistingUserPrincipal
+                  value: $(testing-existinguserprincipal)
+                - name: Testing:ExistingEmail
+                  value: $(testing-existingemail)
+                - name: Testing:NewGroups:0:Displayname
+                  value: $(testing-newgroup-0-displayname)
+                - name: Testing:NewGroups:0:GroupId
+                  value: $(testing-newgroup-0-groupid)
+                - name: ReformEmail
+                  value: $(reformemailAzureAd)
+                - name: TestDefaultPassword
+                  value: $(testDefaultPassword)
+                - name: AdGroup:CaseType
+                  value: $(adgroup-casetype)
+                - name: AdGroup:Administrator
+                  value: $(adgroup-administrator)
+                - name: AdGroup:Judge
+                  value: $(adgroup-judge)
+                - name: AdGroup:StaffMember
+                  value: $(adgroup-staffmember)
+                - name: AdGroup:ProfessionalUser
+                  value: $(adgroup-professionaluser)
+                - name: AdGroup:JudgesTestGroup
+                  value: $(adgroup-judgestestgroup)
+                - name: AdGroup:External
+                  value: $(adgroup-external)
+                - name: AdGroup:JudicialOfficeHolder
+                  value: $(adgroup-judicialofficeholder)
