@@ -224,12 +224,12 @@ stages:
     - task: ManualValidation@0
       timeoutInMinutes: 10080 # 7 days 
       inputs:
-        instructions: 'Please Approve for Helm Release...'
+        instructions: 'Please Approve for Production Release...'
         onTimeout: 'reject'
 
   #####################################################
   # Build Docker Image & Push. ########################
-  - stage: Docker_Build_Push
+  - stage: Docker_Build_Push_Prod
     displayName: Docker Build & Push Image
     dependsOn: Approve_Production_Release
     variables:
