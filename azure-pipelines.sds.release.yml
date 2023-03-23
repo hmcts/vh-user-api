@@ -53,7 +53,7 @@ stages:
 - stage: Docker_Build_Push
   displayName: Docker Build & Push Image
   dependsOn: 
-    - PublishAcceptanceTests
+    - Pre_Release_Tasks
   variables:
   - template: variables/staging.yaml
   - template: variables/shared.yaml
