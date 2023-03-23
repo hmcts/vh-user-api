@@ -127,7 +127,7 @@ stages:
     parameters:
       env: ${{ variables.env }}
   - name: dnsRecordName
-    value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
+    value: vh-${{ variables.git_repo_name }}
   jobs:
   - job: AcceptanceTestsStg
     pool: VH Self Hosted
@@ -139,7 +139,7 @@ stages:
         azureSubscription: ${{ variables.subscriptionName }}
         acceptanceTestSettings:
           - name: VhServices:UserApiUrl
-            value: "https://vh-user-api-staging.platform.hmcts.net"
+            value: "https://vh-user-api.staging.platform.hmcts.net"
           - name: ApplicationInsights:InstrumentationKey
             value: applicationinsights--instrumentationkey
             keyVaultName: vh-infra-core-${{ variables.env }}
