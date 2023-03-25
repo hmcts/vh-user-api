@@ -10,6 +10,7 @@ dotnet test --no-build UserApi.IntegrationTests/UserApi.IntegrationTests.csproj 
 ```
 
 ## Generate HTML Report
+## Generate HTML Report
 
 Under the unit test project directory
 
