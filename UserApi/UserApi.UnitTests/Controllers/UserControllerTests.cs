@@ -104,6 +104,17 @@ namespace UserApi.UnitTests.Controllers
         }
 
         [Test]
+        public async Task Should_return_ConflictObjectResult_with_InvalidEmailException()
+        {
+            _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ThrowsAsync(new InvalidEmailException("Recovery email is not a valid email", _request.RecoveryEmail));
+            var actionResult = (ConflictObjectResult)await _controller.CreateUser(_request);
+
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
+            actionResult.Value.ToString().Should().Be($"{{ Message = Recovery email is not a valid email, Code = InvalidEmail, Email = {_request.RecoveryEmail} }}");
+        }
+
+        [Test]
         public async Task Should_get_user_by_user_id_from_api()
         {
             string userId = Guid.NewGuid().ToString();
@@ -169,7 +180,6 @@ namespace UserApi.UnitTests.Controllers
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
             ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage(nameof(userId), "user does not exist");
         }
-
 
         [Test]
         public async Task Should_get_user_by_user_name_from_api()
@@ -277,7 +287,10 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_badrequest_with_invalid_email()
         {
-            var email = "invalid@email@com";
+            const string firstName = "Automatically";
+            const string lastName = "Created";
+            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+            var email = $"{firstName}.{lastName}.{unique}.@hearings.reform.hmcts.net"; // dot before @ is invalid email formatting
 
             var actionResult = (NotFoundObjectResult)await _controller.GetUserByEmail(email);
             actionResult.Should().NotBeNull();

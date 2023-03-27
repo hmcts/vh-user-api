@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Services.Models;
 using User = Microsoft.Graph.User;

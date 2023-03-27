@@ -11,9 +11,9 @@ using UserApi.Services.Models;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
-    public class CreateUserAsyncTests: UserAccountServiceTests
+    public class CreateUserAsyncTests : UserAccountServiceTests
     {
-        private const string RecoveryEmail = "test'email@com";
+        private const string RecoveryEmail = "test'email@a.com";
         private NewAdUserAccount _newAdUserAccount;
 
         [SetUp]
@@ -24,7 +24,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             _newAdUserAccount = new NewAdUserAccount { Username = "TestUser", UserId = "TestUserId", OneTimePassword = "OTPwd" };
             IdentityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(_newAdUserAccount); 
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(_newAdUserAccount);
         }
 
         [Test]
@@ -48,6 +48,18 @@ namespace UserApi.UnitTests.Services.UserAccountService
             response.UserId.Should().Be(_newAdUserAccount.UserId);
             response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
             IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail, false), Times.Once);
+        }
+
+        //Recovery email is not a valid email
+        [Test]
+        public void Should_return_recovery_email_is_not_valid()
+        {
+            var invalidRecoveryEmail = "email.@email.com";
+            Filter = $"otherMails/any(c:c eq '{invalidRecoveryEmail.Replace("'", "''")}')";
+
+            var response = Assert.ThrowsAsync<InvalidEmailException>(async () => await Service.CreateUserAsync("fName", "lName", invalidRecoveryEmail, false));
+
+            response.Message.Should().Be("Recovery email is not a valid email");
         }
     }
 }

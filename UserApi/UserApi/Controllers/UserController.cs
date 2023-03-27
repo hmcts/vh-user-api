@@ -12,6 +12,7 @@ using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
+using UserApi.Mappers;
 using UserApi.Services;
 using UserApi.Validations;
 
@@ -81,6 +82,15 @@ namespace UserApi.Controllers
                     Message = "User already exists",
                     Code = "UserExists",
                     e.Username
+                });
+            }
+            catch (InvalidEmailException e) 
+            {
+                return new ConflictObjectResult(new
+                {
+                    Message = e.Message,
+                    Code = "InvalidEmail",
+                    e.Email
                 });
             }
         }
@@ -160,8 +170,8 @@ namespace UserApi.Controllers
                 ModelState.AddModelError(nameof(email), "email cannot be empty");
                 return BadRequest(ModelState);
             }
-            
-            if (!(new EmailAddressAttribute().IsValid(email)))
+
+            if (!email.IsValidEmail())
             {
                 ModelState.AddModelError(nameof(email), "email does not exist");
                 return NotFound(ModelState);
@@ -300,13 +310,7 @@ namespace UserApi.Controllers
             try
             {
                 var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName, payload.LastName);
-                var response = new UserResponse
-                {
-                    Email = user.UserPrincipalName,
-                    DisplayName = user.DisplayName,
-                    FirstName = user.GivenName,
-                    LastName = user.Surname
-                };
+                var response = GraphUserMapper.MapToUserResponse(user);
                 return Ok(response);
             }
             catch (UserDoesNotExistException e)

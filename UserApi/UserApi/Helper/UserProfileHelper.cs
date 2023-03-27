@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UserApi.Contract.Responses;
+using UserApi.Mappers;
 using UserApi.Services;
 
 namespace UserApi.Helper
@@ -22,17 +23,7 @@ namespace UserApi.Helper
                 return null;
             }
 
-            var response = new UserProfile
-            {
-                UserId = user.Id,
-                UserName = user.UserPrincipalName,
-                Email = user.Mail,
-                DisplayName = user.DisplayName,
-                FirstName = user.GivenName,
-                LastName = user.Surname,
-            };
-
-            return response;
+            return GraphUserMapper.MapToUserProfile(user);
         }
     }
 }
