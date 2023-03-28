@@ -158,18 +158,6 @@ namespace UserApi.UnitTests.Controllers
             _distributedCacheMock.Verify(x => x.GetOrAddAsync(It.IsAny<Func<Task<string>>>()));
         }
 
-        /* [Test]
-        public async Task should_return_the_application_version_from_assembly()
-        {
-            var result = await _controller.Health();
-
-            var typedResult = (ObjectResult)result;
-            typedResult.StatusCode.Should().Be((int)HttpStatusCode.OK);
-            var response = (UserApiHealthResponse)typedResult.Value;
-            response.AppVersion.FileVersion.Should().NotBeNullOrEmpty();
-            response.AppVersion.InformationVersion.Should().NotBeNullOrEmpty();
-        } */
-
         [Test]
         public async Task Should_return_server_errors_if_access_to_user_and_group_unsuccessful()
         {

@@ -6,7 +6,6 @@ using NUnit.Framework;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Configuration;
 using UserApi.Caching;
-using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;

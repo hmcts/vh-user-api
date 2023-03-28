@@ -8,7 +8,6 @@ using UserApi.Helper;
 using UserApi.Services;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using FizzWare.NBuilder;
 
 namespace UserApi.UnitTests.Helpers
 {

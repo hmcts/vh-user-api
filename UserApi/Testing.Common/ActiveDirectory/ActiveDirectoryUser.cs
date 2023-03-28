@@ -51,7 +51,7 @@ namespace Testing.Common.ActiveDirectory
             var response = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
-                throw new Exception($"Failed to execute {method} on {url}, got response {result.StatusCode}: {response}");
+                throw new InvalidOperationException($"Failed to execute {method} on {url}, got response {result.StatusCode}: {response}");
             }
 
             return response;
