@@ -27,14 +27,12 @@ namespace UserApi.Controllers
         private readonly ICache _distributedCache;
         private readonly IUserAccountService _userAccountService;
         private const string Separator = "; ";
-        private readonly Settings _settings;
 
         public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache, Settings settings)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
             _distributedCache = distributedCache;
-            _settings = settings;
         }
 
         /// <summary>
