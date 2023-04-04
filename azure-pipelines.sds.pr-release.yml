@@ -8,6 +8,9 @@ resources:
       ref: master
       endpoint: hmcts
       
+trigger: 
+  - PlaceHolder
+      
 pr:
   - master
 
