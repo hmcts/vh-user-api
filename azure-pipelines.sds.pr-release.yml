@@ -8,8 +8,6 @@ resources:
       ref: master
       endpoint: hmcts
       
-trigger: none
-
 pr:
   - master
 
