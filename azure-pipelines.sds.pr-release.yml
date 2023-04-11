@@ -45,7 +45,7 @@ stages:
               appName: ${{ variables.appName }}
               dockerComposeTestFile: docker-compose.tests.yml
               sonarExtraProperties: |
-                sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml  
+                sonar.cs.opencover.reportsPaths=$(System.DefaultWorkingDirectory)/coverage.opencover.xml
                 sonar.exclusions=**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**
 
   ####################################################
