@@ -7,7 +7,19 @@ resources:
       name: hmcts/azure-devops-templates
       ref: master
       endpoint: hmcts
-      
+
+parameters:
+- name: pr_number
+  type: string
+  default: ""
+
+variables: 
+- name: pr_number
+  ${{ if( eq($(System.PullRequest.PullRequestNumber),"" ) }}:
+    value: ${{ parameters.pr_number }}
+  ${{ else }}:
+    value: $(System.PullRequest.PullRequestNumber)
+
 trigger: none
 
 pr:
