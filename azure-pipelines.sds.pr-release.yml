@@ -15,7 +15,7 @@ parameters:
 
 variables: 
 - name: pr_number
-  ${{ if eq(length(parameters.pr_number)), 0 }}:
+  ${{ if eq(length(parameters.pr_number), 0) }}:
     value: $(System.PullRequest.PullRequestNumber)
   ${{ else }}:
     value: ${{ parameters.pr_number }}
