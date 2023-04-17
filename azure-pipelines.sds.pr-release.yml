@@ -41,7 +41,6 @@ stages:
     displayName: "Helm CI"
     steps:
     - checkout: self
-    - script:  echo ${{ variables.pr_number }}
     - template: templates\Containerisation\helm\helm-lint.yaml@azTemplates
       parameters:
         chartPath: ${{ variables.chartPath }}
@@ -166,6 +165,7 @@ stages:
   - template: variables/shared.yaml
     parameters:
       env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
   - name: dnsRecordName
     value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
   jobs:
@@ -224,6 +224,7 @@ stages:
   - template: variables/shared.yaml
     parameters:
       env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
   jobs: 
   - job: Publish_Nuget
     displayName: Publish NuGet Packages
@@ -246,6 +247,7 @@ stages:
   - template: variables/shared.yaml
     parameters:
       env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
   - name: dnsRecordName
     value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
   jobs:
