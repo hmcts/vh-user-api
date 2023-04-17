@@ -113,6 +113,7 @@ stages:
   - template: variables/shared.yaml
     parameters:
       env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
   - group: vh-github-app-credentials
   jobs:
   - job: Dock
@@ -258,7 +259,7 @@ stages:
         azureSubscription: ${{ variables.subscriptionName }}
         acceptanceTestSettings:
           - name: VhServices:UserApiUrl
-            value: "https://vh-user-api-pr-$(System.PullRequest.PullRequestNumber).dev.platform.hmcts.net"
+            value: "https://vh-user-api-pr-${{ variables.pr_number }}.dev.platform.hmcts.net"
           - name: ApplicationInsights:InstrumentationKey
             value: applicationinsights--instrumentationkey
             keyVaultName: vh-infra-core-${{ variables.env }}
