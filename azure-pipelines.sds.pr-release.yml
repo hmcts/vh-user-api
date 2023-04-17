@@ -11,11 +11,11 @@ resources:
 parameters:
 - name: pr_number
   type: string
-  default: ""
+  default: ' '
 
 variables: 
 - name: pr_number
-  ${{ if eq(length(parameters.pr_number), 0) }}:
+  ${{ if eq(parameters.pr_number, ' ') }}:
     value: $(System.PullRequest.PullRequestNumber)
   ${{ else }}:
     value: ${{ parameters.pr_number }}
