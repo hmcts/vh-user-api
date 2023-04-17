@@ -39,9 +39,9 @@ stages:
   jobs:
   - job: CI_Helm
     displayName: "Helm CI"
-    steps:
+    steps: echo ${{ variables.pr_number }}
     - checkout: self
-
+    - script: echo 
     - template: templates\Containerisation\helm\helm-lint.yaml@azTemplates
       parameters:
         chartPath: ${{ variables.chartPath }}
