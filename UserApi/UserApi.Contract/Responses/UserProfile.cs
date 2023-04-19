@@ -35,21 +35,6 @@ namespace UserApi.Contract.Responses
         public string LastName { get; set; }
         
         /// <summary>
-        /// The user's role (one of UserRole)
-        /// </summary>
-        public string UserRole { get; set; }
-        
-        /// <summary>
-        /// The user's assigned case types
-        /// </summary>
-        public List<string> CaseType { get; set; }
-        
-        /// <summary>
-        /// The user has the Administrator role assignment 
-        /// </summary>
-        public bool IsUserAdmin { get; set; }
-        
-        /// <summary>
         /// The user's contact telephone number
         /// </summary>
         public string TelephoneNumber { get; set; }

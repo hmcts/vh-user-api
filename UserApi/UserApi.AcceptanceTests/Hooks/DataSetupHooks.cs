@@ -55,15 +55,5 @@ namespace UserApi.AcceptanceTests.Hooks
             }
             context.Test.NewGroupId = null;
         }
-
-        //Commented after scenario as the new user test has been removed.  This can be deleted if not used in future.
-        
-        /*[AfterScenario]
-        public static async Task NewUserClearUp(TestContext context)
-        {
-            if (string.IsNullOrWhiteSpace(context.Test.NewUserId)) return;
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(context.Test.NewUserId, context.Tokens.GraphApiBearerToken);
-            context.Test.NewUserId = null;
-        }*/
     }
 }

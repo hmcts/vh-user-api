@@ -25,7 +25,6 @@ namespace UserApi.IntegrationTests.Steps
     public sealed class UserSteps : BaseSteps
     {
         private readonly TestContext _testContext;
-        private UserRole? _userRole;
         private NewUserResponse _newUser;
 
         public UserSteps(TestContext testContext)
@@ -84,7 +83,6 @@ namespace UserApi.IntegrationTests.Steps
             {
                 case Scenario.Existing:
                 {
-                    _userRole = userRole;
                     _testContext.Uri = GetUserByAdUserId(GetExistingUserIdForRole(userRole));
                     break;
                 }
@@ -250,13 +248,6 @@ namespace UserApi.IntegrationTests.Steps
             model.LastName.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
             model.UserName.Should().NotBeNullOrEmpty();
-            if(_userRole != null)
-            {
-                if(_userRole == UserRole.Individual || _userRole == UserRole.Representative)
-                    model.Email.Should().NotBeNullOrEmpty();
-
-                model.UserRole.Should().Be(_userRole.ToString());
-            }
         }
 
         [Then(@"the response should be empty")]

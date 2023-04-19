@@ -11,7 +11,7 @@ using UserApi.Services.Models;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
-    public class CreateUserAsyncTests: UserAccountServiceTests
+    public class CreateUserAsyncTests : UserAccountServiceTests
     {
         private const string RecoveryEmail = "test'email@a.com";
         private NewAdUserAccount _newAdUserAccount;
@@ -24,7 +24,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             _newAdUserAccount = new NewAdUserAccount { Username = "TestUser", UserId = "TestUserId", OneTimePassword = "OTPwd" };
             IdentityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(_newAdUserAccount); 
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(_newAdUserAccount);
         }
 
         [Test]
@@ -47,20 +47,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             response.Username.Should().Be(_newAdUserAccount.Username);
             response.UserId.Should().Be(_newAdUserAccount.UserId);
             response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
-            SecureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Exactly(1));
             IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail, false), Times.Once);
-        }
-
-        [Test]
-        public void Should_return_user_already_exists_with_recovery_email()
-        {
-            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
-
-
-            var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail, false));
-
-
-            response.Message.Should().Be("User with recovery email already exists");
         }
 
         //Recovery email is not a valid email

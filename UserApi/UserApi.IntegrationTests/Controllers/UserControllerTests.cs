@@ -10,7 +10,6 @@ using AcceptanceTests.Common.Api.Helpers;
 using Faker;
 using FluentAssertions;
 using NUnit.Framework;
-using Polly;
 using Testing.Common.Configuration;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
@@ -100,7 +99,6 @@ namespace UserApi.IntegrationTests.Controllers
             var userResponseModel =
                 RequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
-            userResponseModel.UserRole.Should().Be("CaseAdmin");
             userResponseModel.FirstName.Should().Be("Automation01");
             userResponseModel.LastName.Should().Be("Administrator01");
             userResponseModel.DisplayName.Should().Be("Automation01 Administrator01");
@@ -127,7 +125,6 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
-            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
 
         [Test]
@@ -151,7 +148,6 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
-            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
 
 
@@ -184,33 +180,6 @@ namespace UserApi.IntegrationTests.Controllers
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
         
-        [Test]
-        public async Task Should_get_none_user_role_for_user_not_in_group()
-        {
-            // Create User
-            var createUserResponse = await CreateAdUser($"Automation_{Name.First()}@hmcts.net");
-            
-            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
-            (
-                createUserResponse.Content.ReadAsStringAsync().Result
-            );
-
-            const int RETRIES = 5;
-
-            var policy = Policy
-                .HandleResult<HttpResponseMessage>(message => !message.IsSuccessStatusCode)
-                .WaitAndRetryAsync(RETRIES, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-            
-            var getResponse = await policy.ExecuteAsync(async () => await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username)));
-            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel = RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
-            userResponseModel.UserRole.Should().Be("None");
-
-            // Delete User
-            var result = await SendDeleteRequestAsync(DeleteUser(createUserModel.Username));
-            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        }
         
         [Test]
         public async Task Should_delete_user()
@@ -306,7 +275,6 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
-            userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
         
         [TearDown]

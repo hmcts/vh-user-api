@@ -28,10 +28,10 @@ namespace UserApi.IntegrationTests.Controllers
                 .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
 
-            GetClientAccessTokenForBookHearingApi();
+            GetClientAccessTokenForApi();
         }
 
-        private void GetClientAccessTokenForBookHearingApi()
+        private void GetClientAccessTokenForApi()
         {
             var azureAdConfig = TestConfig.Instance.AzureAd;
             var vhServicesConfig = TestConfig.Instance.VhServices;
