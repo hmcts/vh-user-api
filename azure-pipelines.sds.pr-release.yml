@@ -255,6 +255,9 @@ stages:
     pool: VH Self Hosted
     displayName: Acceptance Tests Dev
     steps:
+    - bash: |
+       printenv
+
     - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
       parameters:
         environment: ${{ variables.env }}
