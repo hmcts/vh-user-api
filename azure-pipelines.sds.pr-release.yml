@@ -287,7 +287,7 @@ stages:
             keyVaultName: vh-infra-core-${{ variables.env }}
             secret: true
           - name: DefaultPassword
-            value: $(defaultPassword)
+            value: $(PasswordTesting)
           - name: Testing:ExistingGroups:0:Displayname
             value: $(testing-existinggroups-0-displayname)
           - name: Testing:ExistingGroups:0:GroupId
