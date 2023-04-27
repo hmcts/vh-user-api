@@ -7,7 +7,19 @@ resources:
       name: hmcts/azure-devops-templates
       ref: master
       endpoint: hmcts
-      
+
+parameters:
+- name: pr_number
+  type: string
+  default: ' '
+
+variables: 
+- name: pr_number
+  ${{ if eq(parameters.pr_number, ' ') }}:
+    value: $(System.PullRequest.PullRequestNumber)
+  ${{ else }}:
+    value: ${{ parameters.pr_number }}
+
 trigger: none
 
 pr:
@@ -20,6 +32,7 @@ pool:
 stages:
 ####################################################
 # CI Build Checks. #################################
+<<<<<<< HEAD
 # - stage: CI_Build
 #   displayName: CI Build
 #   variables: 
@@ -34,6 +47,21 @@ stages:
 #       parameters:
 #         chartPath: ${{ variables.chartPath }}
 #         chartValuesPath: ${{ variables.chartPath }}
+=======
+- stage: CI_Build
+  displayName: CI Build
+  variables: 
+  - template: variables/shared.yaml
+  jobs:
+  - job: CI_Helm
+    displayName: "Helm CI"
+    steps:
+    - checkout: self
+    - template: templates\Containerisation\helm\helm-lint.yaml@azTemplates
+      parameters:
+        chartPath: ${{ variables.chartPath }}
+        chartValuesPath: ${{ variables.chartPath }}
+>>>>>>> master
 
 #   - job: UnitTests
 #     displayName: "Unit Tests"
@@ -93,6 +121,7 @@ stages:
 
 #####################################################
 # Build Docker Image & Generate EF Script. ##########
+<<<<<<< HEAD
 # - stage: Dock
 #   displayName: Docker Build & Push Image
 #   variables: 
@@ -107,6 +136,23 @@ stages:
 #     displayName: "Build and Push Image ${{ variables.git_repo_name }}"
 #     steps:
 #     - checkout: self
+=======
+- stage: Dock
+  displayName: Docker Build & Push Image
+  variables: 
+  - group: aks-cluster-info
+  - template: variables/dev.yaml
+  - template: variables/shared.yaml
+    parameters:
+      env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
+  - group: vh-github-app-credentials
+  jobs:
+  - job: Dock
+    displayName: "Build and Push Image ${{ variables.git_repo_name }}"
+    steps:
+    - checkout: self
+>>>>>>> master
 
 #     - template: templates\Github\get-app-token.yaml@azTemplates
 #       parameters:
@@ -144,6 +190,7 @@ stages:
 
 #####################################################
 # Deploy Helm Chart to Dev. ######################### 
+<<<<<<< HEAD
 # - stage: Install
 #   condition: and(not(failed()), not(canceled()))
 #   displayName: Deploy Helm Chart Dev AKS
@@ -163,6 +210,28 @@ stages:
 #       parameters:
 #         subscriptionName: "${{ variables.subscriptionName }}"
 #         environment: ${{ variables.env }}
+=======
+- stage: Install
+  condition: and(not(failed()), not(canceled()))
+  displayName: Deploy Helm Chart Dev AKS
+  variables:
+  - group: vh-github-app-credentials
+  - template: variables/dev.yaml
+  - template: variables/shared.yaml
+    parameters:
+      env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
+  - name: dnsRecordName
+    value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
+  jobs:
+  - job: helm_uninstall
+    displayName: Uninstall Helm from Dev
+    steps:
+    - template: templates\Azure\Aks\get-active-cluster.yaml@azTemplates
+      parameters:
+        subscriptionName: "${{ variables.subscriptionName }}"
+        environment: ${{ variables.env }}
+>>>>>>> master
       
 #     - template: templates/Containerisation/helm/helm-uninstall.yaml@azTemplates
 #       parameters:
@@ -203,6 +272,7 @@ stages:
                 
 ##################################################
 # Deploy Nuget Packages. #########################
+<<<<<<< HEAD
 # - stage: Push_Nuget
 #   dependsOn: Dock
 #   displayName: Deploy NuGet Packages
@@ -218,6 +288,24 @@ stages:
 #     - template: templates\dotnet\push-nuget-packages.yml@azTemplates
 #       parameters:
 #         vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+=======
+- stage: Push_Nuget
+  dependsOn: Dock
+  displayName: Deploy NuGet Packages
+  variables:
+  - template: variables/dev.yaml
+  - template: variables/shared.yaml
+    parameters:
+      env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
+  jobs: 
+  - job: Publish_Nuget
+    displayName: Publish NuGet Packages
+    steps:
+    - template: templates\dotnet\push-nuget-packages.yml@azTemplates
+      parameters:
+        vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+>>>>>>> master
 
 ##################################################
 # Run Acceptance Tests. ##########################
@@ -233,6 +321,7 @@ stages:
   - template: variables/shared.yaml
     parameters:
       env: ${{ variables.env }}
+      prNumber: ${{ variables.pr_number }}
   - name: dnsRecordName
     value: vh-${{ variables.git_repo_name }}-${{ variables.prTagPrefix }}
   jobs:
@@ -248,7 +337,7 @@ stages:
         azureSubscription: ${{ variables.subscriptionName }}
         acceptanceTestSettings:
           - name: VhServices:UserApiUrl
-            value: "https://vh-user-api-pr-$(System.PullRequest.PullRequestNumber).dev.platform.hmcts.net"
+            value: "https://vh-user-api-pr-${{ variables.pr_number }}.dev.platform.hmcts.net"
           - name: ApplicationInsights:InstrumentationKey
             value: applicationinsights--instrumentationkey
             keyVaultName: vh-infra-core-${{ variables.env }}
