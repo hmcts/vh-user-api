@@ -253,8 +253,8 @@ stages:
     pool: VH Self Hosted
     displayName: Acceptance Tests Dev
     steps:
-    - bash: |
-        printenv
+    - pwsh: |
+        Get-ChildItem Env:
     - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
       parameters:
         environment: ${{ variables.env }}
