@@ -140,11 +140,10 @@ namespace UserApi
             app.UseAuthorization();
             app.UseAuthentication();
             app.UseCors("CorsPolicy");
-
-            app.UseEndpoints(endpoints => { endpoints.MapDefaultControllerRoute(); });
             
-            app.UseMiddleware<LogRequestMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
+            
+            app.UseEndpoints(endpoints => { endpoints.MapDefaultControllerRoute(); });
         }
     }
 }

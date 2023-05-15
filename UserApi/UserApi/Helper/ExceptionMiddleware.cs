@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using UserApi.Common;
@@ -26,22 +27,27 @@ namespace UserApi.Helper
             {
                 ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "400 Exception",
                     ex, null, null);
-                await HandleExceptionAsync(httpContext, (int) HttpStatusCode.BadRequest, ex);
+                await HandleExceptionAsync(httpContext, HttpStatusCode.BadRequest, ex);
             }
             catch (Exception ex)
             {
                 ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "API Exception",
                     ex, null, null);
-                await HandleExceptionAsync(httpContext, (int) HttpStatusCode.InternalServerError, ex);
+                await HandleExceptionAsync(httpContext, HttpStatusCode.InternalServerError, ex);
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, int statusCode, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, Exception exception)
         {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = statusCode;
-
-            return context.Response.WriteAsync(exception.Message);
+            context.Response.StatusCode = (int) statusCode;
+            var sb = new StringBuilder(exception.Message);
+            var innerException = exception.InnerException;
+            while (innerException != null)
+            {
+                sb.Append($" {innerException.Message}");
+                innerException = innerException.InnerException;
+            }
+            return context.Response.WriteAsJsonAsync(sb.ToString());
         }
     }
 }

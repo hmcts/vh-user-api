@@ -173,10 +173,6 @@ trigger:
     - release/*
     - hotfix/*
 
-pr:
-  branches:
-    include:
-    - master
 
 resources:
   repositories:

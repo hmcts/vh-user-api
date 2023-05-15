@@ -1,6 +1,7 @@
 name: $(Date:yyyyMMddHHmm)-$(Rev:r)
 
-trigger: none
+trigger:
+  - release/*
 
 pr: none
 
@@ -12,97 +13,280 @@ resources:
       ref: master
       endpoint: hmcts
 
-parameters:
-- name: environment
-  type: object
-  default:
-  - Demo
-  - Prod
-
 pool: 
   vmImage: ubuntu-22.04
 
+#####################################################
+# Pre-Release Tasks. ################################
+stages:
+- stage: Pre_Release_Tasks
+  displayName: Pre-Release Tasks
+  variables: 
+  - template: variables/shared.yaml
+  jobs:
+  - job: package_nuget
+    displayName: "Package NuGet Packages"
+    steps:
+    - template: templates\dotnet\package-nuget-packages.yml@azTemplates
+      parameters:
+        nugetProjectPath: "${{ variables.appName }}/${{ variables.nuget_package_name }}"
+        vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+        gitVersionConfigPath: ${{ variables.git_version_config_path }}
+
+  - job: PublishAcceptanceTests
+    dependsOn: package_nuget
+    displayName: Publish Acceptance Tests
+    variables:
+      projectPath: "${{ variables.appName }}/${{ variables.appName }}"
+    steps:
+    - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
+      parameters:
+        netVersion: 6.x
+        coreProjectPath: $(projectPath)
+        nugetProjectPath: $(projectPath)
+        nugetConfigPath: ${{ variables.appName }}
+        useNugetConfig: true
+
 
 #####################################################
-# Pre-RunTasks. #####################################
-stages:
-- ${{ if contains(variables['Build.SourceBranch'], 'refs/heads/release') }}:
-  #####################################################
-  # Approval Gate for Release. ########################
-  - stage: Approve_Helm_Release
-    displayName: 'Approve Helm Release'
-    jobs:
-    - job: waitForValidation
-      displayName: 'Approve Helm Release'
-      pool: server
-      timeoutInMinutes: 4320
-      steps:
-      - task: ManualValidation@0
-        timeoutInMinutes: 1440 
-        inputs:
-          instructions: 'Please Approve for Helm Release...'
-          onTimeout: 'reject'
+# Build Docker Image & Push. ########################
+- stage: Docker_Build_Push
+  displayName: Docker Build & Push Image
+  dependsOn: 
+    - Pre_Release_Tasks
+  variables:
+  - template: variables/staging.yaml
+  - template: variables/shared.yaml
+  jobs:
+  - job: Docker_Build
+    displayName: "Docker Build and Push"
+    steps:
+    - checkout: self
 
-  #####################################################
-  # Build Docker Image & Push. ########################
-  - stage: Docker_Build_Push
-    displayName: Docker Build & Push Image
-    dependsOn: Approve_Helm_Release
-    variables:
-    - template: variables/production.yaml
-    - template: variables/shared.yaml
-    jobs:
-    - job: Docker_Build
-      displayName: "Docker Build and Push"
-      steps:
-      - checkout: self
-      
-      - bash: |
-          sed -i "s|</configuration>|<packageSourceCredentials><vh-packages><add key=\"Username\" value=\"PAT\" /><add key=\"ClearTextPassword\" value=\"$(System.AccessToken)\" /></vh-packages></packageSourceCredentials></configuration>|" nuget.config
-        displayName: Add NuGet Feed Authentication
-        workingDirectory: UserApi
+    - bash: |
+        sed -i "s|</configuration>|<packageSourceCredentials><vh-packages><add key=\"Username\" value=\"PAT\" /><add key=\"ClearTextPassword\" value=\"$(System.AccessToken)\" /></vh-packages></packageSourceCredentials></configuration>|" nuget.sds.config
+      displayName: Add NuGet Feed Authentication
+      workingDirectory: ${{ variables.appName }}
+  
+    - template: templates\Containerisation\docker\docker-compose.yaml@azTemplates
+      parameters:
+        azureSubscription: ${{ variables.acrSubscription }}
+        acrName: ${{ variables.acrName }}
+        repositoryName:  ${{ variables.repositoryName }}
+
+    - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
+      parameters:
+        azureSubscription: ${{ variables.acrSubscription }}
+        acrName: ${{ variables.acrName }}
+        repositoryName:  ${{ variables.repositoryName }}
+        imageName: "${{ variables.imageName }}"
+        imageTags:
+          - '${{ variables.stagingTagName }}'
+
+#########################################
+# Push Helm Charts to Repo. #############
+- stage: Helm_Staging
+  displayName: Push Helm Charts
+  dependsOn: 
+    - Docker_Build_Push
+  variables:
+  - template: variables/staging.yaml
+  - template: variables/shared.yaml
+  - group: vh-github-app-credentials
+  jobs:
+  - job: Helm
+    displayName: "Helm Push"
+    steps:
+    - checkout: self
+
+    - template: templates\Github\get-app-token.yaml@azTemplates
+      parameters:
+        privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
+        appId: $(gh_app_app_id)
+
+    - template: templates\Github\push-to-helm-chart-repo.yaml@azTemplates
+      parameters:
+        chartName: ${{ variables.chartName }}
+        chartPath: ${{ variables.chartPath }}
+        githubToken: $(githubappinstall.token)
+        githubUsername: $(gh_app_name)
+        githubEmail: "$(gh_app_app_id)+$(gh_app_name)[bot]@users.noreply.github.com"
+        subDirectory: ${{ variables.subDirectory }}
+
+##################################################
+# Run Acceptance Tests. ##########################
+- stage: Acceptance_Tests_Staging
+  dependsOn: Helm_Staging
+  displayName: Acceptance Tests Stg
+  variables:
+  - group: vh-user-api
+  - group: vh-user-api-tests
+  - group: vh-user-groups
+  - template: variables/staging.yaml
+  - template: variables/shared.yaml
+    parameters:
+      env: ${{ variables.env }}
+  - name: dnsRecordName
+    value: vh-${{ variables.git_repo_name }}
+  jobs:
+  - job: AcceptanceTestsStg
+    pool: VH Self Hosted
+    displayName: Acceptance Tests Staging
+    steps:
+    - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
+      parameters:
+        environment: ${{ variables.env }}
+        azureSubscription: ${{ variables.subscriptionName }}
+        acceptanceTestSettings:
+          - name: VhServices:UserApiUrl
+            value: "https://vh-user-api.staging.platform.hmcts.net"
+          - name: ApplicationInsights:InstrumentationKey
+            value: applicationinsights--instrumentationkey
+            keyVaultName: vh-infra-core-${{ variables.env }}
+            secret: true
+          - name: AzureAd:ClientId
+            value: azuread--clientid
+            keyVaultName: vh-user-api-${{ variables.env }}
+            secret: true
+          - name: AzureAd:ClientSecret
+            value: azuread--clientsecret
+            keyVaultName: vh-user-api-${{ variables.env }}
+            secret: true
+          - name: AzureAd:TenantId
+            value: azuread--tenantid
+            keyVaultName: vh-infra-core-${{ variables.env }}
+            secret: true
+          - name: VhServices:UserApiResourceId
+            value: azuread--identifieruri
+            keyVaultName: vh-user-api-${{ variables.env }}
+            secret: true
+          - name: ConnectionStrings:RedisCache
+            value: connectionstrings--rediscache
+            keyVaultName: vh-infra-core-${{ variables.env }}
+            secret: true
+          - name: DefaultPassword
+            value: $(defaultPassword)
+          - name: Testing:ExistingGroups:0:Displayname
+            value: $(testing-existinggroups-0-displayname)
+          - name: Testing:ExistingGroups:0:GroupId
+            value: $(testing-existinggroups-0-groupid)
+          - name: Testing:ExistingGroups:1:Displayname
+            value: $(testing-existinggroups-1-displayname)
+          - name: Testing:ExistingGroups:1:GroupId
+            value: $(testing-existinggroups-1-groupid)
+          - name: Testing:ExistingUserDisplayname
+            value: $(testing-existinguserdisplayname)
+          - name: Testing:ExistingUserFirstname
+            value: $(testing-existinguserfirstname)
+          - name: Testing:ExistingUserId
+            value: $(testing-existinguserid)
+          - name: Testing:ExistingUserLastname
+            value: $(testing-existinguserlastname)
+          - name: Testing:ExistingUserPrincipal
+            value: $(testing-existinguserprincipal)
+          - name: Testing:ExistingEmail
+            value: $(testing-existingemail)
+          - name: Testing:NewGroups:0:Displayname
+            value: $(testing-newgroup-0-displayname)
+          - name: Testing:NewGroups:0:GroupId
+            value: $(testing-newgroup-0-groupid)
+          - name: ReformEmail
+            value: $(reformemailAzureAd)
+          - name: TestDefaultPassword
+            value: $(testDefaultPassword)
+          - name: AdGroup:CaseType
+            value: $(adgroup-casetype)
+          - name: AdGroup:Administrator
+            value: $(adgroup-administrator)
+          - name: AdGroup:Judge
+            value: $(adgroup-judge)
+          - name: AdGroup:StaffMember
+            value: $(adgroup-staffmember)
+          - name: AdGroup:ProfessionalUser
+            value: $(adgroup-professionaluser)
+          - name: AdGroup:JudgesTestGroup
+            value: $(adgroup-judgestestgroup)
+          - name: AdGroup:External
+            value: $(adgroup-external)
+          - name: AdGroup:JudicialOfficeHolder
+            value: $(adgroup-judicialofficeholder)
+
+#####################################################
+# Approve Release to Production ######################
+- stage: Approve_Production_Release
+  displayName: 'Approve Production Release'
+  jobs:
+  - job: waitForValidation
+    displayName: 'Approve Production Release'
+    pool: server
+    timeoutInMinutes: 10080 # 7 days
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 10080 # 7 days 
+      inputs:
+        instructions: 'Please Approve for Production Release...'
+        onTimeout: 'reject'
+
+#####################################################
+# Build Docker Image & Push. ########################
+- stage: Docker_Build_Push_Prod
+  displayName: Docker Build & Push Image
+  dependsOn: Approve_Production_Release
+  variables:
+  - template: variables/production.yaml
+  - template: variables/shared.yaml
+  jobs:
+  - job: Docker_Build
+    displayName: "Docker Build and Push"
+    steps:
+    - checkout: self
     
-      - template: templates\Containerisation\docker\docker-compose.yaml@azTemplates
-        parameters:
-          azureSubscription: ${{ variables.acrSubscription }}
-          acrName: ${{ variables.acrName }}
-          repositoryName:  ${{ variables.repositoryName }}
+    - bash: |
+        sed -i "s|</configuration>|<packageSourceCredentials><vh-packages><add key=\"Username\" value=\"PAT\" /><add key=\"ClearTextPassword\" value=\"$(System.AccessToken)\" /></vh-packages></packageSourceCredentials></configuration>|" nuget.sds.config
+      displayName: Add NuGet Feed Authentication
+      workingDirectory: UserApi
+  
+    - template: templates\Containerisation\docker\docker-compose.yaml@azTemplates
+      parameters:
+        azureSubscription: ${{ variables.acrSubscription }}
+        acrName: ${{ variables.acrName }}
+        repositoryName:  ${{ variables.repositoryName }}
 
-      - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
-        parameters:
-          azureSubscription: ${{ variables.acrSubscription }}
-          acrName: ${{ variables.acrName }}
-          repositoryName:  ${{ variables.repositoryName }}
-          imageName: "${{ variables.imageName }}"
-          imageTags:
-            - 'latest'
-            - '${{ variables.releaseTagName }}'
+    - template: templates\Containerisation\docker\docker-push-azure.yaml@azTemplates
+      parameters:
+        azureSubscription: ${{ variables.acrSubscription }}
+        acrName: ${{ variables.acrName }}
+        repositoryName:  ${{ variables.repositoryName }}
+        imageName: "${{ variables.imageName }}"
+        imageTags:
+          - 'latest'
+          - '${{ variables.releaseTagName }}'
 
-  #########################################
-  # Push Helm Charts to Repo. #############
-  - stage: Helm
-    displayName: Push Helm Charts
-    dependsOn: Docker_Build_Push
-    variables:
-    - template: variables/production.yaml
-    - template: variables/shared.yaml
-    - group: vh-github-app-credentials
-    jobs:
-    - job: Helm
-      displayName: "Helm Push"
-      steps:
-      - checkout: self
+#########################################
+# Push Helm Charts to Repo. #############
+- stage: Helm
+  displayName: Push Helm Charts
+  dependsOn: Docker_Build_Push_Prod
+  variables:
+  - template: variables/production.yaml
+  - template: variables/shared.yaml
+  - group: vh-github-app-credentials
+  jobs:
+  - job: Helm
+    displayName: "Helm Push"
+    steps:
+    - checkout: self
 
-      - template: templates\Github\get-app-token.yaml@azTemplates
-        parameters:
-          privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
-          appId: $(gh_app_app_id)
+    - template: templates\Github\get-app-token.yaml@azTemplates
+      parameters:
+        privateKeyFileName: ${{ variables.gh_app_private_key_file_name }}
+        appId: $(gh_app_app_id)
 
-      - template: templates\Github\push-to-helm-chart-repo.yaml@azTemplates
-        parameters:
-          chartName: ${{ variables.chartName }}
-          chartPath: ${{ variables.chartPath }}
-          githubToken: $(githubappinstall.token)
-          githubUsername: $(gh_app_name)
-          githubEmail: "$(gh_app_app_id)+$(gh_app_name)[bot]@users.noreply.github.com"
-          subDirectory: ${{ variables.subDirectory }}
+    - template: templates\Github\push-to-helm-chart-repo.yaml@azTemplates
+      parameters:
+        chartName: ${{ variables.chartName }}
+        chartPath: ${{ variables.chartPath }}
+        githubToken: $(githubappinstall.token)
+        githubUsername: $(gh_app_name)
+        githubEmail: "$(gh_app_app_id)+$(gh_app_name)[bot]@users.noreply.github.com"
+        subDirectory: ${{ variables.subDirectory }}
