@@ -2324,8 +2324,8 @@
       },
       "VH.Core.Configuration": {
         "type": "Transitive",
-        "resolved": "0.1.12",
-        "contentHash": "uoDl/7HSRkueoe8e2uwPD1qCz1wuY0Tdzqf4HdQALuiK2qWXmFq/JYvnIl0g0IZmY4B1zsn7KKTOLvI4PMttuQ==",
+        "resolved": "0.1.13",
+        "contentHash": "fEtq8dy7GbJ8eUDc5kmwg3Ze+6C7JEPSHlmvz22W8UPX/x7ujBTr5MqUdpKNQganaHalt/6DHfHi+gxlPSUjiw==",
         "dependencies": {
           "Microsoft.AspNetCore.Http.Connections.Common": "3.1.10",
           "Microsoft.AspNetCore.Mvc.Core": "2.2.5",
@@ -2381,7 +2381,7 @@
           "SonarAnalyzer.CSharp": "[8.2.0.14119, )",
           "UserApi.Common": "[1.0.0, )",
           "UserApi.Contract": "[1.0.0, )",
-          "VH.Core.Configuration": "[0.1.12, )",
+          "VH.Core.Configuration": "[0.1.13, )",
           "ZymLabs.NSwag.FluentValidation": "[0.4.0, )"
         }
       },
