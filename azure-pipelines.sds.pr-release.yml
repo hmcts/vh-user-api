@@ -54,12 +54,12 @@ stages:
           - template: templates/dotnet/build-test-analyse.yml@azTemplates
             parameters:
               nugetConfigPath: nuget.config
+              vstsFeedId: "cf3711aa-2aed-4f62-81a8-2afaee0ce26d"
               appName: ${{ variables.appName }}
               dockerComposeTestFile: docker-compose.tests.yml
               sonarExtraProperties: |
                 sonar.cs.opencover.reportsPaths=$(System.DefaultWorkingDirectory)/coverage.opencover.xml
                 sonar.exclusions=**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**
-              vstsFeedId: 'cf3711aa-2aed-4f62-81a8-2afaee0ce26d'
               
   ####################################################
   # Pre Release Tasks. ###############################
@@ -139,7 +139,7 @@ stages:
               azureSubscription: ${{ variables.acrSubscription }}
               acrName: ${{ variables.acrName }}
               repositoryName: ${{ variables.repositoryName }}
-              imageName: "${{ replace(variables.git_repo_name, '-', '') }}"
+              imageName: "${{ replace(variables.git_repo_name, "-', '') }}"
               imageTags:
                 - "${{ variables.prTagName }}"
 
