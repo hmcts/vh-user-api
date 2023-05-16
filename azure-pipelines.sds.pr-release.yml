@@ -23,7 +23,7 @@ variables:
 trigger: none
 
 pr:
-  - master
+  - vh-sds-nuget-feed-migration
 
 pool:
   vmImage: ubuntu-22.04
@@ -59,7 +59,8 @@ stages:
               sonarExtraProperties: |
                 sonar.cs.opencover.reportsPaths=$(System.DefaultWorkingDirectory)/coverage.opencover.xml
                 sonar.exclusions=**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**
-
+              vstsFeedId: 'cf3711aa-2aed-4f62-81a8-2afaee0ce26d'
+              
   ####################################################
   # Pre Release Tasks. ###############################
   - stage: Pre_Release_Tasks
