@@ -54,7 +54,6 @@ stages:
           - template: templates/dotnet/build-test-analyse.yml@azTemplates
             parameters:
               nugetConfigPath: nuget.config
-              vstsFeedId: "cf3711aa-2aed-4f62-81a8-2afaee0ce26d"
               appName: ${{ variables.appName }}
               dockerComposeTestFile: docker-compose.tests.yml
               sonarExtraProperties: |
