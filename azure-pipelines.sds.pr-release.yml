@@ -139,7 +139,7 @@ stages:
               azureSubscription: ${{ variables.acrSubscription }}
               acrName: ${{ variables.acrName }}
               repositoryName: ${{ variables.repositoryName }}
-              imageName: "${{ replace(variables.git_repo_name, "-', '') }}"
+              imageName: "${{ replace(variables.git_repo_name, '-', '') }}"
               imageTags:
                 - "${{ variables.prTagName }}"
 
