@@ -70,7 +70,7 @@ namespace UserApi.Services
 
         public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName)
         {
-            var filter = $"objectId  eq '{userId}'";
+            var filter = $"id  eq '{userId}'";
             var user = await GetUserByFilterAsync(filter);
             if (user == null)
             {
@@ -121,8 +121,8 @@ namespace UserApi.Services
 
         public async Task<User> GetUserByFilterAsync(string filter)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUriWindows}{_graphApiSettings.TenantId}/users?$filter={filter}&api-version=1.6";
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessTokenWindows, accessUri);
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/users?$filter={filter}&$select=id,displayName,userPrincipalName,givenName,surname,otherMails,contactEmail,mobilePhone";
+            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {

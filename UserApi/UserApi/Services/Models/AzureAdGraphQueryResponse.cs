@@ -12,13 +12,14 @@ namespace UserApi.Services.Models
 
     public class AzureAdGraphUserResponse
     {
+        [JsonProperty("id")]
         public string ObjectId { get; set; }
         public string UserPrincipalName { get; set; }
         public string DisplayName { get; set; }
         public string GivenName { get; set; }
         public string Surname { get; set; }
         public List<string> OtherMails { get; set; }
-        [JsonProperty("mobile")]
+        [JsonProperty("mobilePhone")]
         public string MobilePhone { get; set; }
         [JsonProperty("mail")]
         public string ContactEmail { get; set; }

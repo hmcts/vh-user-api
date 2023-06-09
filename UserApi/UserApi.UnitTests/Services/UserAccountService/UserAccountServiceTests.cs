@@ -93,7 +93,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings, DistributedCache.Object);
         }
 
-        protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={Filter}&api-version=1.6";
+        protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/users?$filter={Filter}";
         
 
         [Test]
