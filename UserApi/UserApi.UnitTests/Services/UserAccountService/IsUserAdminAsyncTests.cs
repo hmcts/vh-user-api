@@ -22,13 +22,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [TestCase("OTHER_ROLE_ID", false)]
         public async Task Checks_if_user_is_administrator(string userRoleId, bool expectedResult)
         {
-            var assignedUserRole = new AzureAdGraphQueryResponse<UserAssignedRole>
+            var assignedUserRole = new GraphQueryResponse<UserAssignedRole>
             {
                 Context = string.Empty,
                 Value = new List<UserAssignedRole> { new UserAssignedRole { RoleDefinitionId = userRoleId } }
             };
 
-            var userAdminRole = new AzureAdGraphQueryResponse<RoleDefinition>
+            var userAdminRole = new GraphQueryResponse<RoleDefinition>
             {
                 Context = string.Empty,
                 Value = new List<RoleDefinition> { new RoleDefinition { Id = "ADMIN_ROLE_ID" } }
@@ -50,13 +50,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [TestCase(HttpStatusCode.NotFound, HttpStatusCode.NotFound)]
         public async Task Shoulld_return_negative_result_when_graph_api_returns_no_resource(HttpStatusCode userRoleStatusCode, HttpStatusCode adminRoleStatusCode)
         {
-            var assignedUserRole = new AzureAdGraphQueryResponse<UserAssignedRole>
+            var assignedUserRole = new GraphQueryResponse<UserAssignedRole>
             {
                 Context = string.Empty,
                 Value = new List<UserAssignedRole>()
             };
 
-            var userAdminRole = new AzureAdGraphQueryResponse<RoleDefinition>
+            var userAdminRole = new GraphQueryResponse<RoleDefinition>
             {
                 Context = string.Empty,
                 Value = new List<RoleDefinition> { new RoleDefinition { Id = "ADMIN_ROLE_ID" } }
@@ -77,10 +77,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public void Should_throw_exception_on_other_responses()
         {
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserRoleEndpoint))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(default(AzureAdGraphQueryResponse<UserAssignedRole>), HttpStatusCode.BadRequest));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(default(GraphQueryResponse<UserAssignedRole>), HttpStatusCode.BadRequest));
 
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserAdminRoleEndpoint))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(default(AzureAdGraphQueryResponse<RoleDefinition>), HttpStatusCode.InternalServerError));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(default(GraphQueryResponse<RoleDefinition>), HttpStatusCode.InternalServerError));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.IsUserAdminAsync(PrincipalId));
 

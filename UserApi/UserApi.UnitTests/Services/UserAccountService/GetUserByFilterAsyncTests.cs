@@ -21,20 +21,20 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_return_user_by_given_filter()
         {
-            AzureAdGraphQueryResponse.Value.Add(new AzureAdGraphUserResponse() { ObjectId = "2" });
+            GraphQueryResponse.Value.Add(new GraphUserResponse() { Id = "2" });
 
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(GraphQueryResponse, HttpStatusCode.OK));
 
             var response = await Service.GetUserByFilterAsync(Filter);
 
             response.Should().NotBeNull();
-            response.Id.Should().Be(AzureAdGraphUserResponse.ObjectId);
-            response.DisplayName.Should().Be(AzureAdGraphUserResponse.DisplayName);
-            response.GivenName.Should().Be(AzureAdGraphUserResponse.GivenName);
-            response.Surname.Should().Be(AzureAdGraphUserResponse.Surname);
+            response.Id.Should().Be(GraphUserResponse.Id);
+            response.DisplayName.Should().Be(GraphUserResponse.DisplayName);
+            response.GivenName.Should().Be(GraphUserResponse.GivenName);
+            response.Surname.Should().Be(GraphUserResponse.Surname);
             response.Mail.Should().BeNull();
-            response.UserPrincipalName.Should().Be(AzureAdGraphUserResponse.UserPrincipalName);
+            response.UserPrincipalName.Should().Be(GraphUserResponse.UserPrincipalName);
         }
         
         [Test]

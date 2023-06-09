@@ -18,7 +18,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
     {
         private const string JudgeGroupName = "Judge";
         private readonly string _groupId = "Test123";
-        private GraphQueryResponse _graphQueryResponse;
+        private GraphQueryResponse<Group> _graphQueryResponse;
         private string _judgesGroup;
         private string _judgesTestGroup;
         private string _accessUri;
@@ -27,7 +27,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public void TestInitialize()
         {
-            _graphQueryResponse = new GraphQueryResponse() { Value = new List<Group>() };
+            _graphQueryResponse = new GraphQueryResponse<Group>() { Value = new List<Group>() };
             _group = new Group() { Id = _groupId };
 
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";

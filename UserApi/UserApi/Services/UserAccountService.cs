@@ -121,19 +121,20 @@ namespace UserApi.Services
 
         public async Task<User> GetUserByFilterAsync(string filter)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/users?$filter={filter}&$select=id,displayName,userPrincipalName,givenName,surname,otherMails,contactEmail,mobilePhone";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/users?$filter={filter}&" +
+                            "$select=id,displayName,userPrincipalName,givenName,surname,otherMails,contactEmail,mobilePhone";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
                 var queryResponse = await responseMessage.Content
-                    .ReadAsAsync<AzureAdGraphQueryResponse<AzureAdGraphUserResponse>>();
+                    .ReadAsAsync<GraphQueryResponse<GraphUserResponse>>();
                 if (queryResponse != null && queryResponse.Value != null && queryResponse.Value.Any())
                 {
                     var adUser = queryResponse.Value[0];
                     return new User
                     {
-                        Id = adUser.ObjectId,
+                        Id = adUser.Id,
                         DisplayName = adUser.DisplayName,
                         UserPrincipalName = adUser.UserPrincipalName,
                         GivenName = adUser.GivenName,
@@ -172,7 +173,7 @@ namespace UserApi.Services
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse>();
+                var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse<Group>>();
                 return queryResponse.Value?.FirstOrDefault();
             }
 
@@ -208,9 +209,9 @@ namespace UserApi.Services
             
             var adminRoleUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
 
-            var userAssignedRoles = (await ExecuteRequest<AzureAdGraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri))?.Value;
+            var userAssignedRoles = (await ExecuteRequest<GraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri))?.Value;
 
-            var adminRole = (await ExecuteRequest<AzureAdGraphQueryResponse<RoleDefinition>>(adminRoleUri))?.Value[0];
+            var adminRole = (await ExecuteRequest<GraphQueryResponse<RoleDefinition>>(adminRoleUri))?.Value[0];
 
             if (userAssignedRoles == null || adminRole == null) return false;
 

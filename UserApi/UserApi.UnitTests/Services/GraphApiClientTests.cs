@@ -93,7 +93,7 @@ namespace UserApi.UnitTests.Services
             _queryUrl += $"?$filter={filter}";
 
             var user = new Microsoft.Graph.User() { UserPrincipalName = "TestUser" };
-            var azureAdGraphQueryResponse = new AzureAdGraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user } };
+            var azureAdGraphQueryResponse = new GraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user } };
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
 
