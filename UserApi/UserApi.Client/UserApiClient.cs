@@ -81,7 +81,7 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task CheckServiceHealthAsync();
+        System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealthAsync();
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -89,14 +89,14 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task CheckServiceHealthAsync(System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealthAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Run a health check of the service
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task CheckServiceHealth2Async();
+        System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealth2Async();
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -104,7 +104,7 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task CheckServiceHealth2Async(System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealth2Async(System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Create a new hearings reforms user account
@@ -180,6 +180,7 @@ namespace UserApi.Client
         /// <br/>of this method that takes a username.
         /// </summary>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
+        [System.Obsolete]
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<UserResponse>> GetJudgesAsync();
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -188,6 +189,7 @@ namespace UserApi.Client
         /// <br/>of this method that takes a username.
         /// </summary>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
+        [System.Obsolete]
         System.Threading.Tasks.Task<System.Collections.Generic.ICollection<UserResponse>> GetJudgesAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
@@ -357,6 +359,16 @@ namespace UserApi.Client
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -537,6 +549,16 @@ namespace UserApi.Client
                             return objectResponse_.Object;
                         }
                         else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
                         if (status_ == 404)
                         {
                             var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
@@ -628,22 +650,22 @@ namespace UserApi.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -670,7 +692,7 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task CheckServiceHealthAsync()
+        public virtual System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealthAsync()
         {
             return CheckServiceHealthAsync(System.Threading.CancellationToken.None);
         }
@@ -681,7 +703,7 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task CheckServiceHealthAsync(System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealthAsync(System.Threading.CancellationToken cancellationToken)
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/HealthCheck/health");
@@ -693,6 +715,7 @@ namespace UserApi.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -717,13 +740,22 @@ namespace UserApi.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            return;
+                            var objectResponse_ = await ReadObjectResponseAsync<UserApiHealthResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
                         }
                         else
                         if (status_ == 500)
                         {
-                            string responseText_ = ( response_.Content == null ) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            throw new UserApiException("A server side error occurred.", status_, responseText_, headers_, null);
+                            var objectResponse_ = await ReadObjectResponseAsync<UserApiHealthResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<UserApiHealthResponse>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -750,7 +782,7 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task CheckServiceHealth2Async()
+        public virtual System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealth2Async()
         {
             return CheckServiceHealth2Async(System.Threading.CancellationToken.None);
         }
@@ -761,7 +793,7 @@ namespace UserApi.Client
         /// </summary>
         /// <returns>Error if fails, otherwise OK status</returns>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task CheckServiceHealth2Async(System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<UserApiHealthResponse> CheckServiceHealth2Async(System.Threading.CancellationToken cancellationToken)
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/health/liveness");
@@ -773,6 +805,7 @@ namespace UserApi.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -797,13 +830,22 @@ namespace UserApi.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            return;
+                            var objectResponse_ = await ReadObjectResponseAsync<UserApiHealthResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
                         }
                         else
                         if (status_ == 500)
                         {
-                            string responseText_ = ( response_.Content == null ) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            throw new UserApiException("A server side error occurred.", status_, responseText_, headers_, null);
+                            var objectResponse_ = await ReadObjectResponseAsync<UserApiHealthResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<UserApiHealthResponse>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -893,14 +935,24 @@ namespace UserApi.Client
                             return objectResponse_.Object;
                         }
                         else
-                        if (status_ == 404)
+                        if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 409)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<NewUserErrorResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<NewUserErrorResponse>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -992,12 +1044,12 @@ namespace UserApi.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -1091,12 +1143,12 @@ namespace UserApi.Client
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1178,14 +1230,24 @@ namespace UserApi.Client
                             return objectResponse_.Object;
                         }
                         else
-                        if (status_ == 404)
+                        if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1267,6 +1329,16 @@ namespace UserApi.Client
                             return objectResponse_.Object;
                         }
                         else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
                         if (status_ == 404)
                         {
                             var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
@@ -1301,6 +1373,7 @@ namespace UserApi.Client
         /// <br/>of this method that takes a username.
         /// </summary>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
+        [System.Obsolete]
         public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<UserResponse>> GetJudgesAsync()
         {
             return GetJudgesAsync(System.Threading.CancellationToken.None);
@@ -1312,6 +1385,7 @@ namespace UserApi.Client
         /// <br/>of this method that takes a username.
         /// </summary>
         /// <exception cref="UserApiException">A server side error occurred.</exception>
+        [System.Obsolete]
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<UserResponse>> GetJudgesAsync(System.Threading.CancellationToken cancellationToken)
         {
             var urlBuilder_ = new System.Text.StringBuilder();
@@ -1355,16 +1429,6 @@ namespace UserApi.Client
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             return objectResponse_.Object;
-                        }
-                        else
-                        if (status_ == 404)
-                        {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1450,16 +1514,6 @@ namespace UserApi.Client
                             return objectResponse_.Object;
                         }
                         else
-                        if (status_ == 404)
-                        {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
-                        }
-                        else
                         {
                             var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
                             throw new UserApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
@@ -1541,16 +1595,6 @@ namespace UserApi.Client
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             return objectResponse_.Object;
-                        }
-                        else
-                        if (status_ == 404)
-                        {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1700,16 +1744,6 @@ namespace UserApi.Client
                             return;
                         }
                         else
-                        if (status_ == 400)
-                        {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
-                        }
-                        else
                         if (status_ == 404)
                         {
                             var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
@@ -1813,22 +1847,22 @@ namespace UserApi.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ValidationProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<ValidationProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<string>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new UserApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new UserApiException<ProblemDetails>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new UserApiException<string>("A server side error occurred.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {

@@ -36,6 +36,7 @@ namespace UserApi.Controllers
         [HttpGet("group", Name = "GetGroupByName")]
         [OpenApiOperation("GetGroupByName")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupByName([FromQuery] string name)
         {
@@ -96,6 +97,7 @@ namespace UserApi.Controllers
         [HttpGet("user/{userId?}/groups", Name = "GetGroupsForUser")]
         [OpenApiOperation("GetGroupsForUser")]
         [ProducesResponseType(typeof(List<GroupsResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupsForUser(string userId)
         {
@@ -122,8 +124,8 @@ namespace UserApi.Controllers
         [HttpPatch("user/group", Name = "AddUserToGroup")]
         [OpenApiOperation("AddUserToGroup")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> AddUserToGroup(AddUserToGroupRequest request)
         {
             var result = new AddUserToGroupRequestValidation().Validate(request);
@@ -145,7 +147,7 @@ namespace UserApi.Controllers
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"Group not found '{request.GroupName}'",
                     SeverityLevel.Error));
-                return NotFound();
+                return NotFound(ModelState);
             }
 
             var user = new User
