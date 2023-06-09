@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -29,7 +28,8 @@ namespace UserApi.Controllers
         private const string Separator = "; ";
         private readonly Settings _settings;
 
-        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient, ICache distributedCache, Settings settings)
+        public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient,
+            ICache distributedCache, Settings settings)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
@@ -43,8 +43,9 @@ namespace UserApi.Controllers
         /// <param name="request">Details of a new user</param>
         [HttpPost(Name = "CreateUser")]
         [OpenApiOperation("CreateUser")]
-        [ProducesResponseType(typeof(NewUserResponse), (int)HttpStatusCode.Created)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(NewUserResponse), (int) HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(NewUserErrorResponse), (int) HttpStatusCode.Conflict)]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
         {
             var result = new CreateUserRequestValidation().Validate(request);
@@ -77,20 +78,20 @@ namespace UserApi.Controllers
             }
             catch (UserExistsException e)
             {
-                return new ConflictObjectResult(new
+                return new ConflictObjectResult(new NewUserErrorResponse
                 {
                     Message = "User already exists",
                     Code = "UserExists",
-                    e.Username
+                    Username = e.Username
                 });
             }
-            catch (InvalidEmailException e) 
+            catch (InvalidEmailException e)
             {
-                return new ConflictObjectResult(new
+                return new ConflictObjectResult(new NewUserErrorResponse
                 {
                     Message = e.Message,
                     Code = "InvalidEmail",
-                    e.Email
+                    Email = e.Email
                 });
             }
         }
@@ -100,8 +101,8 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("{userId}", Name = "GetUserByAdUserId")]
         [OpenApiOperation("GetUserByAdUserId")]
-        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByAdUserId(string userId)
         {
             var filterText = userId.Replace("'", "''");
@@ -123,8 +124,9 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("userName/{userName?}", Name = "GetUserByAdUserName")]
         [OpenApiOperation("GetUserByAdUserName")]
-        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByUserName(string userName)
         {
             if (string.IsNullOrEmpty(userName))
@@ -161,8 +163,9 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("email/{**email}", Name = "GetUserByEmail")]
         [OpenApiOperation("GetUserByEmail")]
-        [ProducesResponseType(typeof(UserProfile), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -193,8 +196,8 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("judges", Name = "GetJudges")]
         [OpenApiOperation("GetJudges")]
-        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
+        [Obsolete("Use GetJudgesByUsername instead. This method will be removed in a future release.")]
         public async Task<IActionResult> GetJudges()
         {
             var adJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetJudgesAsync());
@@ -212,8 +215,7 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("judgesbyusername", Name = "GetJudgesByUsername")]
         [OpenApiOperation("GetJudgesByUsername")]
-        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
         public async Task<IActionResult> GetJudgesByUsername(string username)
         {
             var adJudges = await _userAccountService.GetJudgesAsync(username);
@@ -231,8 +233,7 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("ejudJudges", Name = "GetEjudiciaryJudgesByUsername")]
         [OpenApiOperation("GetEjudiciaryJudgesByUsername")]
-        [ProducesResponseType(typeof(List<UserResponse>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
         public async Task<IActionResult> GetEjudiciaryJudgesByUsername(string username)
         {
             var ejudiciaryJudges = await _userAccountService.GetEjudiciaryJudgesAsync(username);
@@ -250,7 +251,7 @@ namespace UserApi.Controllers
         /// </summary>
         [HttpGet("judges/cache", Name = "RefreshJudgeCache")]
         [OpenApiOperation("RefreshJudgeCache")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
         public async Task<IActionResult> RefreshJudgeCache()
         {
             await _distributedCache.RefreshCacheAsync(() => _userAccountService.GetJudgesAsync());
@@ -262,12 +263,11 @@ namespace UserApi.Controllers
         /// Delete an AAD user
         /// </summary>
         /// <returns>NoContent</returns>
-        [HttpDelete( "username/{username}", Name = "DeleteUser")]
+        [HttpDelete("username/{username}", Name = "DeleteUser")]
         [OpenApiOperation("DeleteUser")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteUser([FromRoute]string username)
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
+        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        public async Task<IActionResult> DeleteUser([FromRoute] string username)
         {
             try
             {
@@ -287,12 +287,13 @@ namespace UserApi.Controllers
         /// <param name="userId">AD Object ID for user</param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        [HttpPatch( "username/{userId:Guid}", Name = "UpdateUserAccount")]
+        [HttpPatch("username/{userId:Guid}", Name = "UpdateUserAccount")]
         [OpenApiOperation("UpdateUserAccount")]
-        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> UpdateUserAccount([FromRoute]Guid userId, [FromBody] UpdateUserAccountRequest payload)
+        [ProducesResponseType(typeof(UserResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int) HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateUserAccount([FromRoute] Guid userId,
+            [FromBody] UpdateUserAccountRequest payload)
         {
             var result = await new UpdateUserAccountRequestValidation().ValidateAsync(payload);
             if (!result.IsValid)
@@ -306,10 +307,11 @@ namespace UserApi.Controllers
                     SeverityLevel.Error));
                 return BadRequest(ModelState);
             }
-            
+
             try
             {
-                var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName, payload.LastName);
+                var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName,
+                    payload.LastName);
                 var response = GraphUserMapper.MapToUserResponse(user);
                 return Ok(response);
             }
@@ -318,7 +320,7 @@ namespace UserApi.Controllers
                 return NotFound(e.Message);
             }
         }
-        
+
         /// <summary>
         ///     Reset password for an AAD user
         /// </summary>
@@ -326,9 +328,9 @@ namespace UserApi.Controllers
         [HttpPatch(Name = "ResetUserPassword")]
         [OpenApiOperation("ResetUserPassword")]
         [ProducesResponseType(typeof(UpdateUserResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ResetUserPassword([FromBody]string username)
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ResetUserPassword([FromBody] string username)
         {
             if (string.IsNullOrWhiteSpace(username))
             {
@@ -344,10 +346,10 @@ namespace UserApi.Controllers
             {
                 return NotFound();
             }
-            
+
             var password = await _userAccountService.UpdateUserPasswordAsync(userProfile.UserName);
-            
-            return Ok(new UpdateUserResponse{NewPassword = password});
+
+            return Ok(new UpdateUserResponse {NewPassword = password});
         }
     }
 }

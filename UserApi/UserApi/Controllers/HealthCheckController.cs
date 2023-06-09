@@ -34,8 +34,8 @@ namespace UserApi.Controllers
         [HttpGet("HealthCheck/health")]
         [HttpGet("health/liveness")]
         [OpenApiOperation("CheckServiceHealth")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        [ProducesResponseType(typeof(UserApiHealthResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(UserApiHealthResponse), (int) HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Health()
         {
             const bool SUCCESS = true;
@@ -56,7 +56,7 @@ namespace UserApi.Controllers
                 response.UserAccessHealth.Data = e.Data;
                 response.UserAccessHealth.ErrorMessage = e.Message;
             }
-           
+
             try
             {
                 //Check if group by name end point is accessible
@@ -73,7 +73,8 @@ namespace UserApi.Controllers
 
             try
             {
-                await _distributedCache.GetOrAddAsync(() => Task.FromResult(JObject.FromObject(new object()).ToString()));
+                await _distributedCache.GetOrAddAsync(
+                    () => Task.FromResult(JObject.FromObject(new object()).ToString()));
                 response.DistributedCacheHealth.Successful = true;
             }
             catch (Exception ex)
@@ -83,7 +84,9 @@ namespace UserApi.Controllers
                 response.DistributedCacheHealth.ErrorMessage = ex.Message;
             }
 
-            return response.HealthCheckSuccessful ? Ok(response) : StatusCode((int)HttpStatusCode.InternalServerError, response);
+            return response.HealthCheckSuccessful
+                ? Ok(response)
+                : StatusCode((int) HttpStatusCode.InternalServerError, response);
         }
 
         private ApplicationVersion GetApplicationVersion()
@@ -91,7 +94,8 @@ namespace UserApi.Controllers
             var applicationVersion = new ApplicationVersion()
             {
                 FileVersion = GetExecutingAssemblyAttribute<AssemblyFileVersionAttribute>(a => a.Version),
-                InformationVersion = GetExecutingAssemblyAttribute<AssemblyInformationalVersionAttribute>(a => a.InformationalVersion)
+                InformationVersion =
+                    GetExecutingAssemblyAttribute<AssemblyInformationalVersionAttribute>(a => a.InformationalVersion)
             };
 
             return applicationVersion;
@@ -99,7 +103,7 @@ namespace UserApi.Controllers
 
         private string GetExecutingAssemblyAttribute<T>(Func<T, string> value) where T : Attribute
         {
-            T attribute = (T)Attribute.GetCustomAttribute(Assembly.GetExecutingAssembly(), typeof(T));
+            T attribute = (T) Attribute.GetCustomAttribute(Assembly.GetExecutingAssembly(), typeof(T));
             return attribute == null ? null : value.Invoke(attribute);
         }
     }
