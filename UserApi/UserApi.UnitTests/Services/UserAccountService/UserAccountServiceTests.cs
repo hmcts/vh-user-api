@@ -28,8 +28,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
         protected GraphApiSettings GraphApiSettings;
         protected Mock<IIdentityServiceApiClient> IdentityServiceApiClient;
         protected UserApi.Services.UserAccountService Service;
-        protected AzureAdGraphUserResponse AzureAdGraphUserResponse;
-        protected AzureAdGraphQueryResponse<AzureAdGraphUserResponse> AzureAdGraphQueryResponse;
+        protected GraphUserResponse GraphUserResponse;
+        protected GraphQueryResponse<GraphUserResponse> GraphQueryResponse;
         private Settings _settings;
         protected string Filter;
         protected DirectoryObject DirectoryObject;
@@ -57,16 +57,16 @@ namespace UserApi.UnitTests.Services.UserAccountService
             GraphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
             IdentityServiceApiClient = new Mock<IIdentityServiceApiClient>();
 
-            AzureAdGraphUserResponse = new AzureAdGraphUserResponse()
+            GraphUserResponse = new GraphUserResponse()
             {
-                ObjectId = "1",
+                Id = "1",
                 DisplayName = "T Tester",
                 GivenName = "Test",
                 Surname = "Tester",
                 OtherMails = new List<string>(),
                 UserPrincipalName = "TestUser"
             };
-            AzureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse> { Value = new List<AzureAdGraphUserResponse> { AzureAdGraphUserResponse } };
+            GraphQueryResponse = new GraphQueryResponse<GraphUserResponse> { Value = new List<GraphUserResponse> { GraphUserResponse } };
 
             var additionalData = new Dictionary<string, object>();
 
@@ -93,8 +93,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings, DistributedCache.Object);
         }
 
-        protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUriWindows}{GraphApiSettings.TenantId}/users?$filter={Filter}&api-version=1.6";
-        
+        protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/users?$filter={Filter}&" + 
+                                      "$select=id,displayName,userPrincipalName,givenName,surname,otherMails,contactEmail,mobilePhone";
 
         [Test]
         public async Task Should_increment_the_username()
@@ -172,7 +172,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_filter_users()
         {
-            var serialised = JsonConvert.SerializeObject(AzureAdGraphQueryResponse);
+            var serialised = JsonConvert.SerializeObject(GraphQueryResponse);
             var response = new HttpResponseMessage();
             response.StatusCode = HttpStatusCode.OK;
             response.Content = new StringContent(serialised);
@@ -193,8 +193,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_filter_users_and_return_null_if_no_users()
         {
-            AzureAdGraphQueryResponse = new AzureAdGraphQueryResponse<AzureAdGraphUserResponse>();
-            var serialised = JsonConvert.SerializeObject(AzureAdGraphQueryResponse);
+            GraphQueryResponse = new GraphQueryResponse<GraphUserResponse>();
+            var serialised = JsonConvert.SerializeObject(GraphQueryResponse);
             var response = new HttpResponseMessage();
             response.StatusCode = HttpStatusCode.OK;
             response.Content = new StringContent(serialised);

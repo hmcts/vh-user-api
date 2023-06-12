@@ -49,7 +49,7 @@ namespace UserApi.Services
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
 
-            var result = await response.Content.ReadAsAsync<AzureAdGraphQueryResponse<User>>();
+            var result = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
             return result.Value.Select(user => user.UserPrincipalName);
         }
 

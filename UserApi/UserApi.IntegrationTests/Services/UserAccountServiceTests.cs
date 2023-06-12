@@ -122,7 +122,7 @@ namespace UserApi.IntegrationTests.Services
             var id = Guid.Parse(_createdAccount.UserId);
             await _service.UpdateUserAccountAsync(id, newFirstName, newLastName);
 
-            var filter = $"objectId  eq '{_createdAccount.UserId}'";
+            var filter = $"id  eq '{_createdAccount.UserId}'";
             var updatedUser = await _service.GetUserByFilterAsync(filter);
             
             updatedUser.GivenName.Should().Be(newFirstName);
