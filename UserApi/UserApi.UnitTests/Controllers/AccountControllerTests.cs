@@ -72,7 +72,7 @@ namespace UserApi.UnitTests.Controllers
         {
             _userAccountService.Setup(u => u.GetGroupByNameAsync(request.GroupName)).ReturnsAsync((Group)null);
 
-            var actionResult = (NotFoundResult)await _controller.AddUserToGroup(request);
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);

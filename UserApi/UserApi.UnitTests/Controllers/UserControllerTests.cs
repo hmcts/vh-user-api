@@ -100,7 +100,10 @@ namespace UserApi.UnitTests.Controllers
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
-            actionResult.Value.ToString().Should().Be("{ Message = User already exists, Code = UserExists, Username = TestUser }");
+            var actualResponse = (NewUserErrorResponse) actionResult.Value;
+            actualResponse.Message.Should().Be("User already exists");
+            actualResponse.Code.Should().Be("UserExists");
+            actualResponse.Username.Should().Be("TestUser");
         }
 
         [Test]
@@ -111,7 +114,10 @@ namespace UserApi.UnitTests.Controllers
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
-            actionResult.Value.ToString().Should().Be($"{{ Message = Recovery email is not a valid email, Code = InvalidEmail, Email = {_request.RecoveryEmail} }}");
+            var actualResponse = (NewUserErrorResponse) actionResult.Value;
+            actualResponse.Message.Should().Be("Recovery email is not a valid email");
+            actualResponse.Code.Should().Be("InvalidEmail");
+            actualResponse.Email.Should().Be(_request.RecoveryEmail);
         }
 
         [Test]
