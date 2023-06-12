@@ -13,7 +13,6 @@ namespace UserApi.UnitTests.Helpers
         private Mock<ITokenProvider> _tokenProvider;
         private AzureAdConfiguration _azureAdConfiguration;
         private const string Token = "testAccessToken";
-        private static string GraphApiBaseUriWindows => "https://graph.windows.net/";
 
         [SetUp]
         public void TestInitialize()
@@ -41,17 +40,6 @@ namespace UserApi.UnitTests.Helpers
             accessToken.Should().NotBeNullOrEmpty();
             accessToken.Should().Be(Token);
             _tokenProvider.Verify(t => t.GetClientAccessToken(It.IsAny<string>(), It.IsAny<string>(), _azureAdConfiguration.GraphApiBaseUri), Times.Once);
-        }
-
-        [Test]
-        public void Should_return_access_token_windows_string()
-        {
-
-            var accessToken = _graphApiSettings.AccessTokenWindows;
-
-            accessToken.Should().NotBeNullOrEmpty();
-            accessToken.Should().Be(Token);
-            _tokenProvider.Verify(t => t.GetClientAccessToken(It.IsAny<string>(), It.IsAny<string>(), GraphApiBaseUriWindows), Times.Once);
         }
     }
 }

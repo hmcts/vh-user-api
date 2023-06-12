@@ -20,7 +20,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public new void Setup()
         {
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(GraphQueryResponse, HttpStatusCode.OK));
 
             _newAdUserAccount = new NewAdUserAccount { Username = "TestUser", UserId = "TestUserId", OneTimePassword = "OTPwd" };
             IdentityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
@@ -36,9 +36,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
 
-            AzureAdGraphQueryResponse.Value = new List<AzureAdGraphUserResponse>();
+            GraphQueryResponse.Value = new List<GraphUserResponse>();
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(AzureAdGraphQueryResponse, HttpStatusCode.OK));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(GraphQueryResponse, HttpStatusCode.OK));
 
 
             var response = await Service.CreateUserAsync("fName", "lName", RecoveryEmail, false);

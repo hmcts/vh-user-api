@@ -106,7 +106,7 @@ namespace UserApi.Controllers
         public async Task<IActionResult> GetUserByAdUserId(string userId)
         {
             var filterText = userId.Replace("'", "''");
-            var filter = $"objectId  eq '{filterText}'";
+            var filter = $"id  eq '{filterText}'";
             var profile = new UserProfileHelper(_userAccountService, _settings);
             var userProfile = await profile.GetUserProfileAsync(filter);
 
