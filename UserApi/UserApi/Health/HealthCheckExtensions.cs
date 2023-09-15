@@ -14,7 +14,7 @@ public static class HealthCheckExtensions
         var connectionStrings = container.GetService<ConnectionStrings>();
         services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy())
-            .AddRedis(connectionStrings.RedisCache, tags: new[] {"services"});
+            .AddRedis(connectionStrings.RedisCache, tags: new[] {"startup", "readiness"});
             
         return services;
     }
