@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using UserApi.Common;
 
 namespace UserApi.Health;
 
+[ExcludeFromCodeCoverage]
 public static class HealthCheckExtensions
 {
     public static IServiceCollection AddVhHealthChecks(this IServiceCollection services)
