@@ -12,7 +12,7 @@ using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers
 {
-    [Parallelizable(ParallelScope.All)]
+    [Parallelizable(ParallelScope.None)]
     public abstract class ControllerTestsBase
     {
         private string _bearerToken;
