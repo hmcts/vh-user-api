@@ -5,10 +5,9 @@ java:
   replicas: 2
   ingressHost: vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
   releaseNameOverride: vh-user-api
-  readinessPath: /healthcheck/health
-  livenessPath: /healthcheck/health
-  livenessDelay: 360
-  livenessPeriod: 120
+  livenessPath: /healthcheck/liveness
+  readinessPath: /healthcheck/readiness
+  startupPath: /healthcheck/startup
   aadIdentityName: vh-aad-identity
   keyVaults:
     vh-admin-web:
@@ -51,8 +50,8 @@ java:
   environment:
     ASPNETCORE_URLS: http://+:8080
     DISABLEHTTPSREDIRECTION: true
-    Logging__LogLevel__Default: debug
-    Logging__LogLevel__System: debug
-    Logging__LogLevel__Microsoft: debug
+    Logging__LogLevel__Default: warning
+    Logging__LogLevel__System: warning
+    Logging__LogLevel__Microsoft: warning
     ReformEmail: hearings.reform.hmcts.net
     VHSERVICES__USERAPIURL: https://vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net/
