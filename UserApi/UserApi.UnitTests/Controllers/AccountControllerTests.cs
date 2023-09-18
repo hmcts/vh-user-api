@@ -24,7 +24,7 @@ namespace UserApi.UnitTests.Controllers
     {
         private AccountController _controller;
         private Mock<IUserAccountService> _userAccountService;
-        private AddUserToGroupRequest request;
+        private AddUserToGroupRequest _request;
 
 
         [SetUp]
@@ -34,12 +34,12 @@ namespace UserApi.UnitTests.Controllers
             var config = TelemetryConfiguration.CreateDefault();
             var client = new TelemetryClient(config);
 
-            request = Builder<AddUserToGroupRequest>.CreateNew()
+            _request = Builder<AddUserToGroupRequest>.CreateNew()
                .With(x => x.GroupName = "TestGroup")
                .With(x => x.UserId = "johndoe")
                .Build();
 
-            _userAccountService.Setup(u => u.GetGroupByNameAsync(request.GroupName)).ReturnsAsync(new Group());
+            _userAccountService.Setup(u => u.GetGroupByNameAsync(_request.GroupName)).ReturnsAsync(new Group());
             _userAccountService.Setup(u => u.GetUserByFilterAsync(It.IsAny<string>())).ReturnsAsync(new User());
 
             _controller = new AccountController(_userAccountService.Object, client);
@@ -48,7 +48,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_add_user_to_group_for_given_request()
         {
-            var response = await _controller.AddUserToGroup(request);
+            var response = await _controller.AddUserToGroup(_request);
 
             response.Should().NotBeNull();
             var result = (AcceptedResult)response;
@@ -59,20 +59,20 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_bad_request_with_invalid_AddUserToGroupRequest()
         {
-            request.GroupName = string.Empty;
+            _request.GroupName = string.Empty;
 
-            var actionResult = (BadRequestObjectResult)await _controller.AddUserToGroup(request);
-            actionResult.Should().NotBeNull();
-            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
-            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage("GroupName", "Require a GroupName");
+            var result = await _controller.AddUserToGroup(_request);
+            ((ObjectResult)result).Value.Should().BeOfType<ValidationProblemDetails>().Which.Errors[nameof(_request.GroupName)]
+                .Should()
+                .Contain("Require a GroupName");
         }
 
         [Test]
         public async Task Should_return_not_found_with_no_matching_group_by_name()
         {
-            _userAccountService.Setup(u => u.GetGroupByNameAsync(request.GroupName)).ReturnsAsync((Group)null);
+            _userAccountService.Setup(u => u.GetGroupByNameAsync(_request.GroupName)).ReturnsAsync((Group)null);
 
-            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(_request);
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
@@ -83,9 +83,9 @@ namespace UserApi.UnitTests.Controllers
         {
             _userAccountService.Setup(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>()))
                 .ThrowsAsync(new UserServiceException(
-                    $"Failed to add user {request.UserId} to group {request.GroupName}", "Resource not found"));
+                    $"Failed to add user {_request.UserId} to group {_request.GroupName}", "Resource not found"));
 
-            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(request);
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(_request);
             
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
@@ -103,7 +103,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetGroupByName(groupName);
             var actualResponse = (GroupsResponse) actionResult.Value;
-            actualResponse.DisplayName.Should().BeSameAs(groupResponse.DisplayName);
+            actualResponse!.DisplayName.Should().BeSameAs(groupResponse.DisplayName);
             actualResponse.GroupId.Should().BeSameAs(groupResponse.GroupId);
         }
 
@@ -136,7 +136,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetGroupById(groupId);
             var actualResponse = (GroupsResponse) actionResult.Value;
-            actualResponse.DisplayName.Should().BeSameAs(groupResponse.DisplayName);
+            actualResponse?.DisplayName.Should().BeSameAs(groupResponse.DisplayName);
         }
 
         [Test]
@@ -172,7 +172,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetGroupsForUser(userId);
             var actualResponse = (IEnumerable<GroupsResponse>) actionResult.Value;
-            actualResponse.FirstOrDefault()?.DisplayName.Should()
+            actualResponse!.FirstOrDefault()?.DisplayName.Should()
                 .BeSameAs(groupResponseList.FirstOrDefault()?.DisplayName);
         }
 
