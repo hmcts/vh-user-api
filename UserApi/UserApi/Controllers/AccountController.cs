@@ -139,7 +139,7 @@ namespace UserApi.Controllers
                 _telemetryClient.TrackTrace(new TraceTelemetry(
                     $"AddUserToGroupRequest validation failed: {string.Join(separator, errors)}",
                     SeverityLevel.Error));
-                return BadRequest(ModelState);
+                return ValidationProblem(ModelState);
             }
 
             var group = await _userAccountService.GetGroupByNameAsync(request.GroupName);
