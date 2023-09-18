@@ -94,6 +94,11 @@ namespace UserApi.Services
 
         public async Task AddUserToGroupAsync(User user, Group group)
         {
+            var existingGroups = await GetGroupsForUserAsync(user.Id);
+            if (existingGroups.Exists(x => x.DisplayName == group.DisplayName))
+            {
+                return;
+            }
             var body = new CustomDirectoryObject
             {
                 ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
