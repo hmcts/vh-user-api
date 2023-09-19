@@ -1,20 +1,26 @@
 ﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using FluentValidation.AspNetCore;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using UserApi.Common;
 using UserApi.Common.Configuration;
+using UserApi.Health;
 using UserApi.Helper;
 using UserApi.Validations;
 
@@ -59,6 +65,8 @@ namespace UserApi
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
             services.AddApplicationInsightsTelemetry();
             services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["FeatureToggle:SdkKey"]));
+
+            services.AddVhHealthChecks();
         }
 
 
@@ -143,7 +151,43 @@ namespace UserApi
             
             app.UseMiddleware<ExceptionMiddleware>();
             
-            app.UseEndpoints(endpoints => { endpoints.MapDefaultControllerRoute(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapDefaultControllerRoute();
+                
+                endpoints.MapHealthChecks("/healthcheck/liveness", new HealthCheckOptions()
+                {
+                    Predicate = check => check.Tags.Contains("self"),
+                    ResponseWriter = HealthCheckResponseWriter
+                });
+
+                endpoints.MapHealthChecks("/healthcheck/startup", new HealthCheckOptions()
+                {
+                    Predicate = check => check.Tags.Contains("startup"),
+                    ResponseWriter = HealthCheckResponseWriter
+                });
+                
+                endpoints.MapHealthChecks("/healthcheck/readiness", new HealthCheckOptions()
+                {
+                    Predicate = check => check.Tags.Contains("readiness"),
+                    ResponseWriter = HealthCheckResponseWriter
+                });
+            });
+        }
+        
+        private async Task HealthCheckResponseWriter(HttpContext context, HealthReport report)
+        {
+            var result = JsonConvert.SerializeObject(new
+            {
+                status = report.Status.ToString(),
+                details = report.Entries.Select(e => new
+                {
+                    key = e.Key, value = Enum.GetName(typeof(HealthStatus), e.Value.Status),
+                    error = e.Value.Exception?.Message
+                })
+            });
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(result);
         }
     }
 }
