@@ -16,9 +16,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_get_group_by_given_name()
         {
             var expectedGroup = new Group{ Id = GroupName, DisplayName = GroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
-                .Callback( (string key, Func<Task<Group>> factory) =>  factory())
-                .ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
+            //    .Callback( (string key, Func<Task<Group>> factory) =>  factory())
+            //    .ReturnsAsync(expectedGroup);
             
             var response = await Service.GetGroupByNameAsync(GroupName);
 
@@ -32,9 +32,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             const string REASON = "User not authorised";
 
-            DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
-                .Callback((string key, Func<Task<Group>> factory) => factory())
-                .ThrowsAsync(new UserServiceException($"Failed to get group by name {GroupName}", REASON));
+            //DistributedCache.Setup(x => x.GetOrAddAsync($"cachekey.ad.group.{GroupName}", It.IsAny<Func<Task<Group>>>()))
+            //    .Callback((string key, Func<Task<Group>> factory) => factory())
+            //    .ThrowsAsync(new UserServiceException($"Failed to get group by name {GroupName}", REASON));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByNameAsync(GroupName));
 

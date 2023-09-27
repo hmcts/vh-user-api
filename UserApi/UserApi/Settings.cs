@@ -16,6 +16,7 @@ namespace UserApi
         public string ReformEmail { get; set; }
         public AdGroup AdGroup { get; set; }
         public FeatureToggle FeatureToggle { get; set; }
+        public string JudgeGroupId { get; internal set; }
     }
 
     [ExcludeFromCodeCoverage]

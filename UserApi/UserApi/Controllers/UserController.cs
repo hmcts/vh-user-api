@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -23,17 +22,15 @@ namespace UserApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly TelemetryClient _telemetryClient;
-        private readonly ICache _distributedCache;
         private readonly IUserAccountService _userAccountService;
         private const string Separator = "; ";
         private readonly Settings _settings;
 
         public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient,
-            ICache distributedCache, Settings settings)
+            Settings settings)
         {
             _userAccountService = userAccountService;
             _telemetryClient = telemetryClient;
-            _distributedCache = distributedCache;
             _settings = settings;
         }
 
@@ -191,26 +188,6 @@ namespace UserApi.Controllers
         }
 
         /// <summary>
-        ///     DEPRECATED - Methods using this should use be replaced with the override version
-        ///     of this method that takes a username.
-        /// </summary>
-        [HttpGet("judges", Name = "GetJudges")]
-        [OpenApiOperation("GetJudges")]
-        [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
-        [Obsolete("Use GetJudgesByUsername instead. This method will be removed in a future release.")]
-        public async Task<IActionResult> GetJudges()
-        {
-            var adJudges = await _distributedCache.GetOrAddAsync(() => _userAccountService.GetJudgesAsync());
-
-            if (adJudges == null || !adJudges.Any())
-            {
-                return Ok(new List<UserResponse>());
-            }
-
-            return Ok(adJudges);
-        }
-
-        /// <summary>
         ///     Gets a list of judges with the filtered username
         /// </summary>
         [HttpGet("judgesbyusername", Name = "GetJudgesByUsername")]
@@ -246,18 +223,18 @@ namespace UserApi.Controllers
             return Ok(ejudiciaryJudges);
         }
 
-        /// <summary>
-        ///     Refresh Judge List Cache
-        /// </summary>
-        [HttpGet("judges/cache", Name = "RefreshJudgeCache")]
-        [OpenApiOperation("RefreshJudgeCache")]
-        [ProducesResponseType((int) HttpStatusCode.OK)]
-        public async Task<IActionResult> RefreshJudgeCache()
-        {
-            await _distributedCache.RefreshCacheAsync(() => _userAccountService.GetJudgesAsync());
+        ///// <summary>
+        /////     Refresh Judge List Cache
+        ///// </summary>
+        //[HttpGet("judges/cache", Name = "RefreshJudgeCache")]
+        //[OpenApiOperation("RefreshJudgeCache")]
+        //[ProducesResponseType((int) HttpStatusCode.OK)]
+        //public async Task<IActionResult> RefreshJudgeCache()
+        //{
+        //    await _distributedCache.RefreshCacheAsync(() => _userAccountService.GetJudgesAsync());
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
         /// <summary>
         /// Delete an AAD user

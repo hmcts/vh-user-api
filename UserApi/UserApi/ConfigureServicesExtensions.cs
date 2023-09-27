@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using NSwag;
 using NSwag.Generation.Processors.Security;
-using UserApi.Caching;
 using UserApi.Common;
 using UserApi.Helper;
 using UserApi.Security;
@@ -20,7 +19,6 @@ namespace UserApi
             serviceCollection.AddScoped<IUserAccountService, UserAccountService>();
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
-            serviceCollection.AddScoped<ICache, GenericDistributedCache>();
             serviceCollection.AddScoped<IPasswordService, PasswordService>();
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();

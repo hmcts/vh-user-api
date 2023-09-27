@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UserApi.Caching;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
@@ -27,7 +25,6 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
-        private readonly ICache _distributedCache;
         private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
         private const string UserGroupCacheKey = "cachekey.ad.group";
@@ -36,12 +33,11 @@ namespace UserApi.Services
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client,
-            Settings settings, ICache distributedCache)
+            Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
-            _distributedCache = distributedCache;
             _settings = settings;
         }
 
@@ -165,13 +161,6 @@ namespace UserApi.Services
         }
 
         public async Task<Group> GetGroupByNameAsync(string groupName)
-        {
-            var group = await _distributedCache.GetOrAddAsync($"{UserGroupCacheKey}.{groupName}", () => GetGraphAdGroupAsync(groupName));
-
-            return group;
-        }
-
-        private async Task<Group> GetGraphAdGroupAsync(string groupName)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);

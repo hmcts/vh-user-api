@@ -55,7 +55,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_not_exclude_judges_when_settings_is_not_live()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             
@@ -85,8 +85,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -102,7 +101,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_exclude_TP_test_judges()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             
@@ -133,8 +132,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -150,7 +148,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_exclude_judges_when_no_firstname_set()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             
@@ -182,8 +180,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -199,7 +196,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_call_graph_api_two_times_following_nextlink()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
 
             _graphQueryResponse.Value.Add(_group);
 
@@ -240,8 +237,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -256,7 +252,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_return_empty_for_not_found_status_code()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             
@@ -276,8 +272,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = await Service.GetJudgesAsync();
@@ -291,7 +286,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public void Should_return_user_exception_for_other_responses()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
@@ -313,7 +308,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_filter_judges_by_username()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             
@@ -344,8 +339,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = (await Service.GetJudgesAsync("117")).ToList();
@@ -360,7 +354,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_filter_judges_by_username_case_insensitive()
         {
             var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
+            //DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
             
             _graphQueryResponse.Value.Add(_group);
             
@@ -391,8 +385,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                     {
                         Judge = JudgeGroupName
                     }
-                },
-                DistributedCache.Object
+                }
             );
 
             var response = (await Service.GetJudgesAsync("JUDGE_alpha")).ToList();
