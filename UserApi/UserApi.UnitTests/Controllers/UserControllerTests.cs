@@ -43,7 +43,6 @@ namespace UserApi.UnitTests.Controllers
                                         AdGroup = new AdGroup
                                         {
                                             Administrator = "A",
-                                            CaseType = "CT",
                                             External = "E",
                                             Judge = "J",
                                             ProfessionalUser = "ProfUser",

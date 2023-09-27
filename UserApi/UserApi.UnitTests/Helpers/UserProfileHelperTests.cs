@@ -32,7 +32,6 @@ namespace UserApi.UnitTests.Helpers
                 AdGroup = new AdGroup
                 {
                     Administrator = "Admin",
-                    CaseType = "CT",
                     External = "Ext",
                     Judge = "JudgeGroup",
                     ProfessionalUser = "ProfUser",
