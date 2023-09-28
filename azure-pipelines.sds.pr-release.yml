@@ -301,3 +301,20 @@ stages:
                   value: $(adgroup-external)
                 - name: AdGroup:JudicialOfficeHolder
                   value: $(adgroup-judicialofficeholder)
+                - name: GroupId:External
+                  value: $(groupid-external)
+                - name: GroupId:Internal
+                  value: $(groupid-inernal)
+                - name: GroupId:VirtualRoomProfessionalUser
+                  value: $(groupid-virtualroomprofessionaluser)
+                - name: GroupId:JudicialOfficeHolder
+                  value: $(groupid-judicialofficeholder)
+                - name: GroupId:VirtualRoomJudge
+                  value: $(groupid-virtualroomjudge)
+                - name: GroupId:TestAccount
+                  value: $(groupid-testaccount)
+                - name: GroupId:VirtualRoomAdministrator
+                  value: $(groupid-virtualroomadministrator)
+                - name: GroupId:StaffMember
+                  value: $(groupid-staffmember)
+                  

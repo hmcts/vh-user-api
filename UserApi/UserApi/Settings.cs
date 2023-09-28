@@ -46,5 +46,7 @@ namespace UserApi
         public string JudicialOfficeHolder { get; set; }
         public string VirtualRoomJudge { get; set; }
         public string TestAccount { get; set; }
+        public string VirtualRoomAdministrator { get; set; }
+        public string StaffMember { get; set; }
     }
 }

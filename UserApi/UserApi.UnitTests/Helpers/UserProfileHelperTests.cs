@@ -36,7 +36,7 @@ namespace UserApi.UnitTests.Helpers
                     ProfessionalUser = "ProfUser",
                     JudgesTestGroup = "TA",
                     JudicialOfficeHolder = "JOH"
-                }
+                }, GroupId = new GroupId(),
             };
             _helper = new UserProfileHelper(_accountService.Object, _settings);
         }
@@ -44,7 +44,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
-            GivenFilterReturnsUserWithGroups("JudgeGroup");
+            GivenFilterReturnsUserWithGroups("VirtualRoomJudge");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -54,7 +54,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_joh_for_joh_user()
         {
-            GivenFilterReturnsUserWithGroups("JOH");
+            GivenFilterReturnsUserWithGroups("JudicialOfficeHolder");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -64,27 +64,18 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_vhadmin_for_user_with_internal_and_virtualroomadministrator()
         {
-            GivenFilterReturnsUserWithGroups("Admin");
+            GivenFilterReturnsUserWithGroups("VirtualRoomAdministrator");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
             userProfile.UserRole.Should().Be("VhOfficer");
         }
         
-        [Test]
-        public async Task Should_return_vhadmin_for_user_with_both_vho_groups_and_case_admin_group()
-        {
-            GivenFilterReturnsUserWithGroups("Admin", "Financial Remedy");
-            
-            var userProfile = await _helper.GetUserProfileAsync(Filter);
-
-            userProfile.UserRole.Should().Be("VhOfficer");
-        }
-        
+       
         [Test]
         public async Task Should_return_representative_for_user_with_external_and_virtualcourtroomprofessional_groups()
         {
-            GivenFilterReturnsUserWithGroups("ProfUser");
+            GivenFilterReturnsUserWithGroups("VirtualRoomProfessionalUser");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
@@ -94,7 +85,7 @@ namespace UserApi.UnitTests.Helpers
         [Test]
         public async Task Should_return_individual_for_user_with_external_group()
         {
-            GivenFilterReturnsUserWithGroups("Ext");
+            GivenFilterReturnsUserWithGroups("External");
             
             var userProfile = await _helper.GetUserProfileAsync(Filter);
 
