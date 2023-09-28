@@ -75,12 +75,6 @@ namespace UserApi.Helper
             return UserRole.None;
         }
 
-        //private bool IsCaseType(Group group)
-        //{
-        //    return !string.IsNullOrWhiteSpace(group.Description) &&
-        //            string.Equals(_settings.AdGroup.CaseType, group.Description, StringComparison.InvariantCultureIgnoreCase);
-        //}
-
         private bool IsVirtualRoomAdministrator(Group group)
         {
             return string.Equals(_settings.AdGroup.Administrator, group.DisplayName, StringComparison.InvariantCultureIgnoreCase);

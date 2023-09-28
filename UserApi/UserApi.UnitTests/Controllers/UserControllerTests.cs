@@ -302,28 +302,14 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_users_for_group_by_group_id_from_api()
         {
-            var response = new List<UserResponse>();
-            var user = new UserResponse
-            {
-                DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", 
-                Email = "firstname.lastname@hearings.test.server.net"
-            };
-            
-            response.Add(user);
-            
-            user = new UserResponse
-            {
-                DisplayName = "firstname1 lastname1", FirstName = "firstname1", LastName = "lastname1", 
-                Email = "firstname1.lastname1@hearings.test.server.net"
-            };
-            response.Add(user);
-
             var userList = new List<UserResponse>()
             {
-                new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" }
+                new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" },
+                new UserResponse { DisplayName = "firstname1 lastname1", FirstName = "firstname1", LastName = "lastname1", Email = "firstname1.lastname1@hearings.test.server.net"}
             };
+            _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>())).ReturnsAsync(userList);
 
-            var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("firstname.lastname@hearings.test.server.net");
+            var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("firstname");
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(2);
             actualResponse.FirstOrDefault().DisplayName.Should().BeSameAs(userList.FirstOrDefault().DisplayName);

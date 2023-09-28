@@ -102,7 +102,7 @@ namespace UserApi.IntegrationTests.Steps
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = _testContext.Config.TestSettings.ExistingUserId,
-                GroupName = _testContext.Config.TestSettings.NewGroups.First().DisplayName
+                GroupName = _testContext.Config.TestSettings.ExistingGroups.First().DisplayName
             };
             switch (scenario)
             {
@@ -134,7 +134,7 @@ namespace UserApi.IntegrationTests.Steps
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = _testContext.Config.TestSettings.ExistingUserId,
-                GroupName = _testContext.Config.TestSettings.NewGroups.First().DisplayName
+                GroupName = _testContext.Config.TestSettings.ExistingGroups.First().DisplayName
             };
             switch (scenario)
             {               
@@ -186,15 +186,15 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
             var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_testContext.Config.TestSettings.ExistingUserId,
-                _testContext.Config.TestSettings.NewGroups.First().DisplayName, _testContext.Tokens.GraphApiBearerToken);
+                _testContext.Config.TestSettings.ExistingGroups.First().DisplayName, _testContext.Tokens.GraphApiBearerToken);
             userIsInTheGroup.Should().BeTrue();
-            _testContext.Test.NewGroupId = _testContext.Config.TestSettings.NewGroups.First().GroupId;
+            _testContext.Test.NewGroupId = _testContext.Config.TestSettings.ExistingGroups.First().GroupId;
         }
 
         [AfterScenario]
         public async Task ClearUpAsync(TestContext testContext)
         {
-            var newGroup = testContext.Config.TestSettings.NewGroups.FirstOrDefault();
+            var newGroup = testContext.Config.TestSettings.ExistingGroups.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(_testContext.Test.NewGroupId) || newGroup == null)
             {
                 return;

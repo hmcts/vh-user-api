@@ -21,7 +21,6 @@ namespace Testing.Common.Helpers
             public static string GetUserByAdUserName(string userName) => $"{ApiRoot}/username/{userName}";
             public static string GetUserByEmail(string email) => $"{ApiRoot}/email/{email}";
             public static string GetJudges() => $"{ApiRoot}/judges";
-            public static string RefreshJudgesCache() => $"{ApiRoot}/judges/cache";
             public static string DeleteUser(string userName) => $"{ApiRoot}/username/{userName}";
             public static string ResetUserPassword() => $"{ApiRoot}";
             public static string UpdateUserAccount(Guid userId) => $"{ApiRoot}/username/{userId}";

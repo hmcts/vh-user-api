@@ -46,12 +46,12 @@ namespace UserApi.AcceptanceTests.Hooks
         private static async Task RemoveGroupFromUserIfExists(TestContext context)
         {
             var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(context.Config.TestSettings.ExistingUserId,
-                context.Config.TestSettings.NewGroups.First().DisplayName, context.Tokens.GraphApiBearerToken);
+                context.Config.TestSettings.ExistingGroups.First().DisplayName, context.Tokens.GraphApiBearerToken);
          
             if (userIsInTheGroup)
             {
                 await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(context.Config.TestSettings.ExistingUserId,
-                    context.Config.TestSettings.NewGroups.First().GroupId, context.Tokens.GraphApiBearerToken);
+                    context.Config.TestSettings.ExistingGroups.First().GroupId, context.Tokens.GraphApiBearerToken);
             }
             context.Test.NewGroupId = null;
         }

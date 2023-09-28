@@ -16,7 +16,7 @@ namespace UserApi
         public string ReformEmail { get; set; }
         public AdGroup AdGroup { get; set; }
         public FeatureToggle FeatureToggle { get; set; }
-        public string JudgeGroupId { get; internal set; }
+        public GroupId GroupId { get; set; }
     }
 
     [ExcludeFromCodeCoverage]
@@ -35,5 +35,16 @@ namespace UserApi
     public class FeatureToggle
     {
         public string SdkKey { get; set; }
+    }
+
+    [ExcludeFromCodeCoverage]
+    public class GroupId
+    {
+        public string External { get; set; }
+        public string Internal { get; set; }
+        public string VirtualRoomProfessionalUser { get; set; }
+        public string JudicialOfficeHolder { get; set; }
+        public string VirtualRoomJudge { get; set; }
+        public string TestAccount { get; set; }
     }
 }

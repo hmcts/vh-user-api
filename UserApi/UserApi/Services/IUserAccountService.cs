@@ -17,7 +17,7 @@ namespace UserApi.Services
         Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser);
         Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName);
         Task DeleteUserAsync(string username);
-        Task AddUserToGroupAsync(User user, Group group);
+        Task AddUserToGroupAsync(string userId, string group);
         Task<Group> GetGroupByNameAsync(string groupName);
         Task<Group> GetGroupByIdAsync(string groupId);
         Task<List<Group>> GetGroupsForUserAsync(string userId);
@@ -26,5 +26,6 @@ namespace UserApi.Services
         Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username);
         Task<string> UpdateUserPasswordAsync(string username);
         Task<bool> IsUserAdminAsync(string principalId);
+        string GetGroupIdFromSettings(string groupName);
     }
 }

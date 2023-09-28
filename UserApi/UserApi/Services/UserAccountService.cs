@@ -88,20 +88,20 @@ namespace UserApi.Services
             await _client.DeleteUserAsync(username);
         }
 
-        public async Task AddUserToGroupAsync(User user, Group group)
+        public async Task AddUserToGroupAsync(string userId, string groupId)
         {
-            var existingGroups = await GetGroupsForUserAsync(user.Id);
-            if (existingGroups.Exists(x => x.DisplayName == group.DisplayName))
+            var existingGroups = await GetGroupsForUserAsync(userId);
+            if (existingGroups.Exists(x => x.Id == groupId))
             {
                 return;
             }
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{userId}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{groupId}/members/$ref";
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -116,7 +116,7 @@ namespace UserApi.Services
                 return;
             }
 
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
+            var message = $"Failed to add user {userId} to group {groupId}";
             throw new UserServiceException(message, reason);
         }
 
@@ -158,6 +158,19 @@ namespace UserApi.Services
             var message = $"Failed to search user with filter {filter}";
             var reason = await responseMessage.Content.ReadAsStringAsync();
             throw new UserServiceException(message, reason);
+        }
+
+        public string GetGroupIdFromSettings(string groupName)
+        {
+            var prop = _settings.GroupId.GetType().GetProperty(groupName);
+            string groupId = string.Empty;
+
+            if (prop != null)
+            {
+                groupId = (string)prop.GetValue(_settings.GroupId);
+            }
+
+            return groupId;
         }
 
         public async Task<Group> GetGroupByNameAsync(string groupName)
@@ -298,7 +311,7 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
         {
-            var judges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.Judge, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.GroupId.VirtualRoomJudge, username);
             judges = ExcludePerformanceTestUsersAsync(judges);
 
             if (_settings.IsLive)
@@ -311,25 +324,13 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username)
         {
-            var judges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.JudicialOfficeHolder, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.GroupId.VirtualRoomJudge, username);
             return judges.OrderBy(x => x.DisplayName);
-        }
-
-        private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAndFilterAsync(string groupName, string filter = null)
-        {
-            var groupData = await GetGroupByNameAsync(groupName);
-
-            if (groupData == null)
-            {
-                return Enumerable.Empty<UserResponse>();
-            }
-
-            return await GetJudgesAsyncByGroupIdAndUsername(groupData.Id, filter);
         }
 
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.JudgesTestGroup);
+            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(_settings.GroupId.TestAccount);
 
             return judgesList.Except(testJudges, CompareJudgeById);
         }

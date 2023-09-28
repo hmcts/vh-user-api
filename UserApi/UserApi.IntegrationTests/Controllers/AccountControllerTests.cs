@@ -69,7 +69,7 @@ namespace UserApi.IntegrationTests.Controllers
             var groupsForUserModel = RequestHelper.Deserialise<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
-            const string expectedGroupName = "UserApiTestGroup";
+            const string expectedGroupName = "External";
             var group = groupsForUserModel.FirstOrDefault(g => g.DisplayName == expectedGroupName);
             Assert.IsNotNull(group, $"User should have group '{expectedGroupName}'");
         }

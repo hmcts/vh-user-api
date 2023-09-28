@@ -42,7 +42,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 AdGroup = new AdGroup
                 {
                     Administrator = "Admin",
-                }
+                },
+                GroupId = new GroupId { VirtualRoomJudge = Guid.NewGuid().ToString()}
             };
 
             var azureAdConfig = new AzureAdConfiguration()
@@ -291,5 +292,20 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }
+
+        [Test]
+        public void Should_return_groupId_value_for_judge_from_settings()
+        {
+            var result = Service.GetGroupIdFromSettings(nameof(_settings.GroupId.VirtualRoomJudge));
+            result.Should().Be(_settings.GroupId.VirtualRoomJudge);
+        }
+
+        [Test]
+        public void Should_return_null_or_empty_value_for_judge_from_settings()
+        {
+            var result = Service.GetGroupIdFromSettings("Judge");
+            result.Should().BeNullOrEmpty();
+        }
+
     }
 }

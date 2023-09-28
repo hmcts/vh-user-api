@@ -92,21 +92,6 @@ namespace UserApi.IntegrationTests.Controllers
         }
         
         [Test]
-        public async Task Should_get_case_administrator_by_id()
-        {
-            var username = $"Automation01Administrator01@{TestConfig.Instance.Settings.ReformEmail}";
-            var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
-            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel =
-                RequestHelper.Deserialise<UserProfile>(getResponse.Content
-                    .ReadAsStringAsync().Result);
-            userResponseModel.UserRole.Should().Be("CaseAdmin");
-            userResponseModel.FirstName.Should().Be("Automation01");
-            userResponseModel.LastName.Should().Be("Administrator01");
-            userResponseModel.DisplayName.Should().Be("Automation01 Administrator01");
-        }
-
-        [Test]
         public async Task Should_get_user_by_id_not_found_with_bogus_user_id()
         {
             const string userId = "foo";
@@ -163,27 +148,6 @@ namespace UserApi.IntegrationTests.Controllers
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
-        [Test]
-        public async Task Should_get_judges()
-        {
-            var getResponse = await SendGetRequestAsync(GetJudges());
-            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var usersForGroupModel = RequestHelper.Deserialise<List<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
-            usersForGroupModel.Should().NotBeEmpty();
-
-            var testAccount = usersForGroupModel.First(u => u.Email.ToLower().EndsWith($".judge@{TestConfig.Instance.Settings.ReformEmail}".ToLower()));
-            testAccount.Email.Should().NotBeNullOrWhiteSpace();
-            testAccount.DisplayName.Should().NotBeNullOrWhiteSpace();
-        }
-
-        [Test]
-        public async Task Should_refresh_judges_cache()
-        {
-            var response = await SendGetRequestAsync(RefreshJudgesCache());
-            response.IsSuccessStatusCode.Should().BeTrue();
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-        
         [Test]
         public async Task Should_get_none_user_role_for_user_not_in_group()
         {

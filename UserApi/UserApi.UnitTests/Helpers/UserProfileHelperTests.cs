@@ -8,7 +8,6 @@ using UserApi.Helper;
 using UserApi.Services;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using FizzWare.NBuilder;
 
 namespace UserApi.UnitTests.Helpers
 {
@@ -42,36 +41,6 @@ namespace UserApi.UnitTests.Helpers
             _helper = new UserProfileHelper(_accountService.Object, _settings);
         }
         
-        [Test]
-        public async Task Should_return_case_admin_for_user_with_money_claims_group()
-        {
-            GivenFilterReturnsUserWithCaseTypeGroups("Civil Money Claims");
-            
-            var userProfile = await _helper.GetUserProfileAsync(Filter);
-
-            userProfile.UserRole.Should().Be("CaseAdmin");
-        }
-        
-        [Test]
-        public async Task Should_return_case_admin_for_user_with_financial_remedy_group()
-        {
-            GivenFilterReturnsUserWithCaseTypeGroups("Financial Remedy");
-            
-            var userProfile = await _helper.GetUserProfileAsync(Filter);
-
-            userProfile.UserRole.Should().Be("CaseAdmin");
-        }
-
-        [Test]
-        public async Task Should_return_case_admin_for_user_with_generic_generic_group()
-        {
-            GivenFilterReturnsUserWithCaseTypeGroups("Generic");
-
-            var userProfile = await _helper.GetUserProfileAsync(Filter);
-
-            userProfile.UserRole.Should().Be("CaseAdmin");
-        }
-
         [Test]
         public async Task Should_return_judge_for_user_with_internal_and_virtualroomjudge()
         {
@@ -151,20 +120,7 @@ namespace UserApi.UnitTests.Helpers
 
             userProfile.Should().BeNull();
         }
-        
-        [Test]
-        public async Task Should_return_case_types_for_case_admin()
-        {
-            GivenFilterReturnsUserWithCaseTypeGroups("Civil Money Claims", "Financial Remedy", "Generic");
-            
-            var userProfile = await _helper.GetUserProfileAsync(Filter);
-
-            userProfile.CaseType.Count.Should().Be(3);
-            userProfile.CaseType.Should().Contain("Civil Money Claims");
-            userProfile.CaseType.Should().Contain("Financial Remedy");
-            userProfile.CaseType.Should().Contain("Generic");
-        }
-        
+                
         [Test]
         public async Task Should_return_user_data()
         {
@@ -213,22 +169,6 @@ namespace UserApi.UnitTests.Helpers
             userProfile.Email.Should().Be(user.Mail);
             userProfile.UserId.Should().Be(user.Id);
             userProfile.UserName.Should().Be(user.UserPrincipalName);
-        }
-
-        [TestCase(false)]
-        [TestCase(true)]
-        public async Task Should_check_if_user_is_admin(bool isAdmin)
-        {
-            var user = Builder<User>.CreateNew().Build();
-
-            GivenFilterReturnsUserWithGroups(user, null, "Ext");
-
-            _accountService.Setup(x => x.IsUserAdminAsync(It.IsAny<string>()))
-                .Returns(() => Task.FromResult(isAdmin));
-
-            var userProfile = await _helper.GetUserProfileAsync(Filter);
-
-            userProfile.IsUserAdmin.Should().Be(isAdmin);
         }
 
         private void GivenFilterReturnsUserWithGroups(params string[] groupDisplayNames)

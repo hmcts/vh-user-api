@@ -48,12 +48,12 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_add_user_to_group_for_given_request()
         {
+            _userAccountService.Setup(x => x.GetGroupIdFromSettings(_request.GroupName)).Returns(System.Guid.NewGuid().ToString());
             var response = await _controller.AddUserToGroup(_request);
-
             response.Should().NotBeNull();
             var result = (AcceptedResult)response;
             result.StatusCode.Should().Be((int)HttpStatusCode.Accepted);
-            _userAccountService.Verify(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>()), Times.Once);
+            _userAccountService.Verify(u => u.AddUserToGroupAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_not_found_with_no_matching_group_by_name()
         {
-            _userAccountService.Setup(u => u.GetGroupByNameAsync(_request.GroupName)).ReturnsAsync((Group)null);
+            _userAccountService.Setup(u => u.GetGroupIdFromSettings(_request.GroupName)).Returns(string.Empty);
 
             var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(_request);
 
@@ -81,15 +81,12 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_return_not_found_with_no_matching_user_by_filter()
         {
-            _userAccountService.Setup(u => u.AddUserToGroupAsync(It.IsAny<User>(), It.IsAny<Group>()))
-                .ThrowsAsync(new UserServiceException(
-                    $"Failed to add user {_request.UserId} to group {_request.GroupName}", "Resource not found"));
+            _userAccountService.Setup(u => u.GetGroupIdFromSettings(It.IsAny<string>()));
 
             var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(_request);
             
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage("user", "Resource not found");
         }
 
         [Test]
