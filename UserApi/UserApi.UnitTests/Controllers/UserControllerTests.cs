@@ -40,14 +40,6 @@ namespace UserApi.UnitTests.Controllers
             var client = new TelemetryClient(config);
             _settings = new Settings { IsLive = true,
                                         ReformEmail = Domain.Replace("@", ""), GroupId = new GroupId(),
-                                        //AdGroup = new AdGroup
-                                        //{
-                                        //    Administrator = "A",
-                                        //    External = "E",
-                                        //    Judge = "J",
-                                        //    ProfessionalUser = "ProfUser",
-                                        //    JudgesTestGroup = "JTG"
-                                        //}
                                     };
 
             _request = Builder<CreateUserRequest>.CreateNew()

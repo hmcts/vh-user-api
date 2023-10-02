@@ -28,15 +28,6 @@ namespace UserApi.UnitTests.Helpers
             {
                 IsLive = true,
                 ReformEmail = Domain.Replace("@", ""), GroupId = new GroupId(),
-                //AdGroup = new AdGroup
-                //{
-                //    Administrator = "Admin",
-                //    External = "Ext",
-                //    Judge = "JudgeGroup",
-                //    ProfessionalUser = "ProfUser",
-                //    JudgesTestGroup = "TA",
-                //    JudicialOfficeHolder = "JOH"
-                //}, GroupId = new GroupId(),
             };
             _helper = new UserProfileHelper(_accountService.Object, _settings);
         }
