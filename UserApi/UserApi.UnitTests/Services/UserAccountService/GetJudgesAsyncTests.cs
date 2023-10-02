@@ -32,10 +32,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _settings = new Settings
             {
                 IsLive = false,
-                AdGroup = new AdGroup
-                {
-                    Judge = JudgeGroupName
-                },
+                //AdGroup = new AdGroup
+                //{
+                //    Judge = JudgeGroupName
+                //},
                 GroupId = new GroupId { VirtualRoomJudge = _groupId }
             };
 

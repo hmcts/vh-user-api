@@ -39,10 +39,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
             _settings = new Settings { IsLive = true, ReformEmail = Domain.Replace("@", ""),
-                AdGroup = new AdGroup
-                {
-                    Administrator = "Admin",
-                },
+                //AdGroup = new AdGroup
+                //{
+                //    Administrator = "Admin",
+                //},
                 GroupId = new GroupId { VirtualRoomJudge = Guid.NewGuid().ToString()}
             };
 

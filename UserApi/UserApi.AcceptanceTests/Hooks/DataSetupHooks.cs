@@ -29,41 +29,5 @@ namespace UserApi.AcceptanceTests.Hooks
                 actualGroups.Any(x => x.DisplayName.Equals(expectedGroup.DisplayName)).Should().BeTrue();
             }
         }
-
-        [BeforeScenario(Order = (int)HooksSequence.RemoveGroupsHooks)]
-        public static async Task RemoveNewGroupIfExistsAsync(TestContext context)
-        {
-            await RemoveGroupFromUserIfExists(context);
-        }
-
-        [AfterScenario]
-        public static async Task RemoveNewGroupAgainIfExists(TestContext context)
-        {
-            await RemoveGroupFromUserIfExists(context);
-            context.Test.NewGroupId = null;
-        }
-
-        private static async Task RemoveGroupFromUserIfExists(TestContext context)
-        {
-            var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(context.Config.TestSettings.ExistingUserId,
-                context.Config.TestSettings.ExistingGroups.First().DisplayName, context.Tokens.GraphApiBearerToken);
-         
-            if (userIsInTheGroup)
-            {
-                await ActiveDirectoryUser.RemoveTheUserFromTheGroupAsync(context.Config.TestSettings.ExistingUserId,
-                    context.Config.TestSettings.ExistingGroups.First().GroupId, context.Tokens.GraphApiBearerToken);
-            }
-            context.Test.NewGroupId = null;
-        }
-
-        //Commented after scenario as the new user test has been removed.  This can be deleted if not used in future.
-        
-        /*[AfterScenario]
-        public static async Task NewUserClearUp(TestContext context)
-        {
-            if (string.IsNullOrWhiteSpace(context.Test.NewUserId)) return;
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(context.Test.NewUserId, context.Tokens.GraphApiBearerToken);
-            context.Test.NewUserId = null;
-        }*/
     }
 }

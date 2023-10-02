@@ -14,21 +14,8 @@ namespace UserApi
         /// </summary>
         public bool IsLive { get; set; }
         public string ReformEmail { get; set; }
-        public AdGroup AdGroup { get; set; }
         public FeatureToggle FeatureToggle { get; set; }
         public GroupId GroupId { get; set; }
-    }
-
-    [ExcludeFromCodeCoverage]
-    public class AdGroup
-    {
-        public string Administrator { get; set; }
-        public string Judge { get; set; }
-        public string StaffMember { get; set; }
-        public string JudgesTestGroup { get; set; }
-        public string ProfessionalUser { get; set; }
-        public string External { get; set; }
-        public string JudicialOfficeHolder { get; set; }
     }
 
     [ExcludeFromCodeCoverage]

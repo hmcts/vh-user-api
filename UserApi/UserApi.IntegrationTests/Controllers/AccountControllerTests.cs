@@ -30,7 +30,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name()
         {
-            var groupName = TestConfig.Instance.Settings.AdGroup.External;
+            var groupName = nameof(TestConfig.Instance.Settings.GroupId.External);
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content
@@ -42,8 +42,8 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_id()
         {
-            var groupId = TestConfig.Instance.TestSettings.ExistingGroups[1].GroupId;
-            var groupName = TestConfig.Instance.TestSettings.ExistingGroups[1].DisplayName;
+            var groupId = TestConfig.Instance.TestSettings.ExistingGroups.First().GroupId;
+            var groupName = TestConfig.Instance.TestSettings.ExistingGroups.First().DisplayName;
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content
@@ -69,7 +69,7 @@ namespace UserApi.IntegrationTests.Controllers
             var groupsForUserModel = RequestHelper.Deserialise<List<GroupsResponse>>(getResponse.Content
                     .ReadAsStringAsync().Result);
 
-            const string expectedGroupName = "External";
+            const string expectedGroupName = "UserApiTestGroup";
             var group = groupsForUserModel.FirstOrDefault(g => g.DisplayName == expectedGroupName);
             Assert.IsNotNull(group, $"User should have group '{expectedGroupName}'");
         }
