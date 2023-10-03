@@ -42,7 +42,7 @@
         "type": "Direct",
         "requested": "[1.24.1, )",
         "resolved": "1.24.1",
-        "contentHash": "9Dn6oZpe/my2AVSGEoMQd5bfaK/SeOUcSnmcIaL0yFArTouFTW4C98r0tOzMKKuHodccWSUKmq5gVoPFnpMxwg==",
+        "contentHash": "QhyJpkUzoTHnV6OGf5PSDBU2Qoaeii76OL9FpKxgiiaitILLA1IuygXqnvvAYBdtvNr0FIU1mCkajkCz/6jjVg==",
         "dependencies": {
           "Appium.WebDriver": "4.4.0",
           "Azure.Storage.Blobs": "12.14.1",
@@ -3080,61 +3080,61 @@
       "testing.common": {
         "type": "Project",
         "dependencies": {
-          "Faker.NETCore": "1.0.2",
-          "FluentAssertions": "5.10.3",
-          "Microsoft.Extensions.Configuration.Json": "7.0.0",
-          "NBuilder": "6.1.0",
-          "Polly": "7.2.0",
-          "Polly.Extensions.Http": "3.0.0",
-          "UserApi": "1.0.0",
-          "UserApi.Common": "1.0.0",
-          "UserApi.Contract": "1.0.0"
+          "Faker.NETCore": "[1.0.2, )",
+          "FluentAssertions": "[5.10.3, )",
+          "Microsoft.Extensions.Configuration.Json": "[7.0.0, )",
+          "NBuilder": "[6.1.0, )",
+          "Polly": "[7.2.0, )",
+          "Polly.Extensions.Http": "[3.0.0, )",
+          "UserApi": "[1.0.0, )",
+          "UserApi.Common": "[1.0.0, )",
+          "UserApi.Contract": "[1.0.0, )"
         }
       },
       "userapi": {
         "type": "Project",
         "dependencies": {
-          "AspNetCore.HealthChecks.Redis": "6.0.4",
-          "FluentValidation.AspNetCore": "9.3.0",
-          "Microsoft.ApplicationInsights.AspNetCore": "2.21.0",
-          "Microsoft.AspNet.WebApi.Client": "5.2.9",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "6.0.11",
-          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "6.0.11",
-          "Microsoft.Extensions.Caching.StackExchangeRedis": "6.0.10",
-          "Microsoft.Graph": "1.21.0",
-          "Microsoft.IdentityModel.Clients.ActiveDirectory": "5.2.9",
-          "Microsoft.OpenApi": "1.1.4",
-          "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": "1.10.8",
-          "Microsoft.VisualStudio.Web.CodeGeneration.Design": "6.0.12",
-          "NSwag.AspNetCore": "13.18.0",
-          "SonarAnalyzer.CSharp": "8.2.0.14119",
-          "UserApi.Common": "1.0.0",
-          "UserApi.Contract": "1.0.0",
-          "VH.Core.Configuration": "0.1.13",
-          "ZymLabs.NSwag.FluentValidation": "0.4.0"
+          "AspNetCore.HealthChecks.Redis": "[6.0.4, )",
+          "FluentValidation.AspNetCore": "[9.3.0, )",
+          "Microsoft.ApplicationInsights.AspNetCore": "[2.21.0, )",
+          "Microsoft.AspNet.WebApi.Client": "[5.2.9, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[6.0.11, )",
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "[6.0.11, )",
+          "Microsoft.Extensions.Caching.StackExchangeRedis": "[6.0.10, )",
+          "Microsoft.Graph": "[1.21.0, )",
+          "Microsoft.IdentityModel.Clients.ActiveDirectory": "[5.2.9, )",
+          "Microsoft.OpenApi": "[1.1.4, )",
+          "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": "[1.10.8, )",
+          "Microsoft.VisualStudio.Web.CodeGeneration.Design": "[6.0.12, )",
+          "NSwag.AspNetCore": "[13.18.0, )",
+          "SonarAnalyzer.CSharp": "[8.2.0.14119, )",
+          "UserApi.Common": "[1.0.0, )",
+          "UserApi.Contract": "[1.0.0, )",
+          "VH.Core.Configuration": "[0.1.13, )",
+          "ZymLabs.NSwag.FluentValidation": "[0.4.0, )"
         }
       },
       "userapi.common": {
         "type": "Project",
         "dependencies": {
-          "LaunchDarkly.ServerSdk": "6.3.2",
-          "Microsoft.ApplicationInsights.AspNetCore": "2.21.0",
-          "Microsoft.IdentityModel.Clients.ActiveDirectory": "5.2.9",
-          "Newtonsoft.Json": "13.0.1",
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "LaunchDarkly.ServerSdk": "[6.3.2, )",
+          "Microsoft.ApplicationInsights.AspNetCore": "[2.21.0, )",
+          "Microsoft.IdentityModel.Clients.ActiveDirectory": "[5.2.9, )",
+          "Newtonsoft.Json": "[13.0.1, )",
+          "SonarAnalyzer.CSharp": "[8.2.0.14119, )"
         }
       },
       "userapi.contract": {
         "type": "Project",
         "dependencies": {
-          "Newtonsoft.Json": "13.0.1",
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "Newtonsoft.Json": "[13.0.1, )",
+          "SonarAnalyzer.CSharp": "[8.2.0.14119, )"
         }
       },
       "userapi.domain": {
         "type": "Project",
         "dependencies": {
-          "SonarAnalyzer.CSharp": "8.2.0.14119"
+          "SonarAnalyzer.CSharp": "[8.2.0.14119, )"
         }
       }
     }
