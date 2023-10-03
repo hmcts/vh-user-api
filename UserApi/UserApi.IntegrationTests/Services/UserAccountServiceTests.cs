@@ -128,6 +128,20 @@ namespace UserApi.IntegrationTests.Services
             username.ToLower().Should().Contain(newLastName.ToLower());
         }
 
+        [Test]
+        public void should_have_all_groupid_values()
+        {
+            var settings = TestConfig.Instance.Settings;
+            Guid.TryParse(settings.GroupId.External, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.Internal, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.VirtualRoomProfessionalUser, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.JudicialOfficeHolder, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.VirtualRoomJudge, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.TestAccount, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.VirtualRoomAdministrator, out _).Should().BeTrue();
+            Guid.TryParse(settings.GroupId.StaffMember, out _).Should().BeTrue();
+        }
+
         private async Task CreateAccount()
         {
             const string firstName = "Automatically";
