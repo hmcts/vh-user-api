@@ -30,7 +30,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name()
         {
-            var groupName = nameof(TestConfig.Instance.Settings.GroupId.External);
+            var groupName = nameof(TestConfig.Instance.Settings.AdGroup.External);
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content

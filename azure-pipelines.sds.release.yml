@@ -183,22 +183,23 @@ stages:
             value: $(reformemailAzureAd)
           - name: TestDefaultPassword
             value: $(testDefaultPassword)
-          - name: GroupId:External
-            value: $(groupid-external)
-          - name: GroupId:Internal
-            value: $(groupid-inernal)
-          - name: GroupId:VirtualRoomProfessionalUser
-            value: $(groupid-virtualroomprofessionaluser)
-          - name: GroupId:JudicialOfficeHolder
-            value: $(groupid-judicialofficeholder)
-          - name: GroupId:VirtualRoomJudge
-            value: $(groupid-virtualroomjudge)
-          - name: GroupId:TestAccount
-            value: $(groupid-testaccount)
-          - name: GroupId:VirtualRoomAdministrator
-            value: $(groupid-virtualroomadministrator)
-          - name: GroupId:StaffMember
-            value: $(groupid-staffmember)
+          - name: AdGroup:External
+            value: $(adgroup-external)
+          - name: AdGroup:Internal
+            value: $(adgroup-internal)
+          - name: AdGroup:VirtualRoomProfessionalUser
+            value: $(adgroup-virtualroomprofessionaluser)
+          - name: AdGroup:JudicialOfficeHolder
+            value: $(adgroup-judicialofficeholder)
+          - name: AdGroup:VirtualRoomJudge
+            value: $(adgroup-virtualroomjudge)
+          - name: AdGroup:TestAccount
+            value: $(adgroup-testaccount)
+          - name: AdGroup:VirtualRoomAdministrator
+            value: $(adgroup-virtualroomadministrator)
+          - name: AdGroup:StaffMember
+            value: $(adgroup-staffmember)
+
             
 
 #####################################################

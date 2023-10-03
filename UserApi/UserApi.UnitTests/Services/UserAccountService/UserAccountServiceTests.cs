@@ -39,11 +39,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
             _settings = new Settings { IsLive = true, ReformEmail = Domain.Replace("@", ""),
-                //AdGroup = new AdGroup
-                //{
-                //    Administrator = "Admin",
-                //},
-                GroupId = new GroupId { VirtualRoomJudge = Guid.NewGuid().ToString()}
+                    AdGroup = new AdGroup { VirtualRoomJudge = Guid.NewGuid().ToString()}
             };
 
             var azureAdConfig = new AzureAdConfiguration()
@@ -296,8 +292,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public void Should_return_groupId_value_for_judge_from_settings()
         {
-            var result = Service.GetGroupIdFromSettings(nameof(_settings.GroupId.VirtualRoomJudge));
-            result.Should().Be(_settings.GroupId.VirtualRoomJudge);
+            var result = Service.GetGroupIdFromSettings(nameof(_settings.AdGroup.VirtualRoomJudge));
+            result.Should().Be(_settings.AdGroup.VirtualRoomJudge);
         }
 
         [Test]

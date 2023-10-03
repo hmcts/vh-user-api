@@ -15,7 +15,7 @@ namespace UserApi
         public bool IsLive { get; set; }
         public string ReformEmail { get; set; }
         public FeatureToggle FeatureToggle { get; set; }
-        public GroupId GroupId { get; set; }
+        public AdGroup AdGroup { get; set; }
     }
 
     [ExcludeFromCodeCoverage]
@@ -25,7 +25,7 @@ namespace UserApi
     }
 
     [ExcludeFromCodeCoverage]
-    public class GroupId
+    public class AdGroup
     {
         public string External { get; set; }
         public string Internal { get; set; }

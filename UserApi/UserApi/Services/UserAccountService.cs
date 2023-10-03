@@ -162,12 +162,12 @@ namespace UserApi.Services
 
         public string GetGroupIdFromSettings(string groupName)
         {
-            var prop = _settings.GroupId.GetType().GetProperty(groupName);
+            var prop = _settings.AdGroup.GetType().GetProperty(groupName);
             string groupId = string.Empty;
 
             if (prop != null)
             {
-                groupId = (string)prop.GetValue(_settings.GroupId);
+                groupId = (string)prop.GetValue(_settings.AdGroup);
             }
 
             return groupId;
@@ -311,7 +311,7 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
         {
-            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.GroupId.VirtualRoomJudge, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
             judges = ExcludePerformanceTestUsersAsync(judges);
 
             if (_settings.IsLive)
@@ -324,13 +324,13 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username)
         {
-            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.GroupId.VirtualRoomJudge, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
             return judges.OrderBy(x => x.DisplayName);
         }
 
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(_settings.GroupId.TestAccount);
+            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.TestAccount);
 
             return judgesList.Except(testJudges, CompareJudgeById);
         }

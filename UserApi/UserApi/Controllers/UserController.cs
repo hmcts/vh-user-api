@@ -223,19 +223,6 @@ namespace UserApi.Controllers
             return Ok(ejudiciaryJudges);
         }
 
-        ///// <summary>
-        /////     Refresh Judge List Cache
-        ///// </summary>
-        //[HttpGet("judges/cache", Name = "RefreshJudgeCache")]
-        //[OpenApiOperation("RefreshJudgeCache")]
-        //[ProducesResponseType((int) HttpStatusCode.OK)]
-        //public async Task<IActionResult> RefreshJudgeCache()
-        //{
-        //    await _distributedCache.RefreshCacheAsync(() => _userAccountService.GetJudgesAsync());
-
-        //    return Ok();
-        //}
-
         /// <summary>
         /// Delete an AAD user
         /// </summary>

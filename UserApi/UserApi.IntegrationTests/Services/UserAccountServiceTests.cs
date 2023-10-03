@@ -132,14 +132,14 @@ namespace UserApi.IntegrationTests.Services
         public void should_have_all_groupid_values()
         {
             var settings = TestConfig.Instance.Settings;
-            Guid.TryParse(settings.GroupId.External, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.Internal, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.VirtualRoomProfessionalUser, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.JudicialOfficeHolder, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.VirtualRoomJudge, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.TestAccount, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.VirtualRoomAdministrator, out _).Should().BeTrue();
-            Guid.TryParse(settings.GroupId.StaffMember, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.External, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.Internal, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.VirtualRoomProfessionalUser, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.JudicialOfficeHolder, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.VirtualRoomJudge, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.TestAccount, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.VirtualRoomAdministrator, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.StaffMember, out _).Should().BeTrue();
         }
 
         private async Task CreateAccount()

@@ -77,32 +77,32 @@ namespace UserApi.Helper
 
         private bool IsVirtualRoomAdministrator(Group group)
         {
-            return string.Equals(nameof(_settings.GroupId.VirtualRoomAdministrator), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(nameof(_settings.AdGroup.VirtualRoomAdministrator), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsStaffMember(Group group)
         {
-            return string.Equals(nameof(_settings.GroupId.StaffMember), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(nameof(_settings.AdGroup.StaffMember), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomJudge(Group group)
         {
-            return string.Equals(nameof(_settings.GroupId.VirtualRoomJudge), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(nameof(_settings.AdGroup.VirtualRoomJudge), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsVirtualRoomProfessionalUser(Group group)
         {
-            return string.Equals(nameof(_settings.GroupId.VirtualRoomProfessionalUser), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(nameof(_settings.AdGroup.VirtualRoomProfessionalUser), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsExternal(Group group)
         {
-            return string.Equals(nameof(_settings.GroupId.External), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(nameof(_settings.AdGroup.External), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private bool IsJudicialOfficeHolder(Group group)
         {
-            return string.Equals(nameof(_settings.GroupId.JudicialOfficeHolder), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(nameof(_settings.AdGroup.JudicialOfficeHolder), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

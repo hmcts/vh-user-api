@@ -32,15 +32,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _settings = new Settings
             {
                 IsLive = false,
-                //AdGroup = new AdGroup
-                //{
-                //    Judge = JudgeGroupName
-                //},
-                GroupId = new GroupId { VirtualRoomJudge = _groupId }
+                AdGroup = new AdGroup { VirtualRoomJudge = _groupId }
             };
 
             _graphQueryResponse = new GraphQueryResponse<Group>() { Value = new List<Group>() };
-            _group = new Group() { Id = _settings.GroupId.VirtualRoomJudge };
+            _group = new Group() { Id = _settings.AdGroup.VirtualRoomJudge };
 
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
             _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";

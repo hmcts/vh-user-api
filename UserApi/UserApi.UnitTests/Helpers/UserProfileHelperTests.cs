@@ -27,7 +27,7 @@ namespace UserApi.UnitTests.Helpers
             _settings = new Settings
             {
                 IsLive = true,
-                ReformEmail = Domain.Replace("@", ""), GroupId = new GroupId(),
+                ReformEmail = Domain.Replace("@", ""), AdGroup = new AdGroup(),
             };
             _helper = new UserProfileHelper(_accountService.Object, _settings);
         }

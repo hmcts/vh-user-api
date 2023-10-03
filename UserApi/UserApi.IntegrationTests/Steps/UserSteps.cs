@@ -160,7 +160,7 @@ namespace UserApi.IntegrationTests.Steps
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = userId,
-                GroupName = TestConfig.Instance.Settings.GroupId.External
+                GroupName = TestConfig.Instance.Settings.AdGroup.External
             };
             var jsonBody = RequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
