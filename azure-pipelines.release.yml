@@ -109,27 +109,24 @@ extends:
           value: $(reformemail)
         - name: TestDefaultPassword
           value: $(testDefaultPassword)
-        - name: AdGroup:CaseType
-          value: $(adgroup-casetype)
-        - name: AdGroup:Administrator
-          value: $(adgroup-administrator)
-        - name: AdGroup:Judge
-          value: $(adgroup-judge)
-        - name: AdGroup:StaffMember
-          value: $(adgroup-staffmember)
-        - name: AdGroup:ProfessionalUser
-          value: $(adgroup-professionaluser)
-        - name: AdGroup:JudgesTestGroup
-          value: $(adgroup-judgestestgroup)
         - name: AdGroup:External
           value: $(adgroup-external)
+        - name: AdGroup:Internal
+          value: $(adgroup-internal)
+        - name: AdGroup:VirtualRoomProfessionalUser
+          value: $(adgroup-virtualroomprofessionaluser)
         - name: AdGroup:JudicialOfficeHolder
           value: $(adgroup-judicialofficeholder)
+        - name: AdGroup:VirtualRoomJudge
+          value: $(adgroup-virtualroomjudge)
+        - name: AdGroup:TestAccount
+          value: $(adgroup-testaccount)
+        - name: AdGroup:VirtualRoomAdministrator
+          value: $(adgroup-virtualroomadministrator)
+        - name: AdGroup:StaffMember
+          value: $(adgroup-staffmember)
         - name: ZapConfiguration:BuildConfigMode
           value: $(zapConfiguration-buildConfigMode)
-        - name: ConnectionStrings:RedisCache
-          value: redis-connection-str
-          secret: true
         - name: IsLive
           slot:
             deployment:

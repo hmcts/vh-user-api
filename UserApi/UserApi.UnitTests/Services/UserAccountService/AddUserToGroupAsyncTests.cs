@@ -15,8 +15,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class AddUserToGroupAsyncTests: UserAccountServiceTests
     {
-        private Microsoft.Graph.User _user;
-        private Microsoft.Graph.Group _group;
+        private string _userId;
+        private string _groupId;
         private CustomDirectoryObject _customDirectoryObject;
         private DirectoryObject _groupDirectoryObject;
         private string _groupAccessUri;
@@ -24,23 +24,23 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [SetUp]
         public void TestIntialize()
         {           
-            _user = new Microsoft.Graph.User() { Id = "1" };
-            _group = new Microsoft.Graph.Group() { Id = "2", DisplayName = "TestGroup" };
+            _userId = "1";
+            _groupId = "2";
             _customDirectoryObject = new CustomDirectoryObject
             {
-                ObjectDataId = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/directoryObjects/{_user.Id}"
+                ObjectDataId = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/directoryObjects/{_userId}"
             };
 
             _groupDirectoryObject = new DirectoryObject
             {
-                Id = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/directoryObjects/{_group.Id}",
+                Id = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/directoryObjects/{_groupId}",
                 AdditionalData = new Dictionary<string, object>
                 {
-                    {"value", JsonConvert.SerializeObject(new[] {_group})}
+                    {"value", JsonConvert.SerializeObject(new[] {_groupId})}
                 }
             };
 
-            _groupAccessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/groups/{_group.Id}/members/$ref"; 
+            _groupAccessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/groups/{_groupId}/members/$ref"; 
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Success", HttpStatusCode.OK));
 
-            await Service.AddUserToGroupAsync(_user, _group);
+            await Service.AddUserToGroupAsync(_userId, _groupId);
 
             SecureHttpRequest.Verify(s => s.PostAsync(It.IsAny<string>(), It.Is<StringContent>(s => s.ReadAsStringAsync().Result == JsonConvert.SerializeObject(_customDirectoryObject)), _groupAccessUri), Times.Once);
         }
@@ -64,7 +64,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("already exist", HttpStatusCode.NotFound));
 
-            await Service.AddUserToGroupAsync(_user, _group);
+            await Service.AddUserToGroupAsync(_userId, _groupId);
 
             SecureHttpRequest.Verify(s => s.PostAsync(It.IsAny<string>(), It.Is<StringContent>(s => s.ReadAsStringAsync().Result == JsonConvert.SerializeObject(_customDirectoryObject)), _groupAccessUri), Times.Once);
         }
@@ -72,7 +72,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public void Should_throw_user_exception_on_other_responses()
         {
-            var message = $"Failed to add user {_user.Id} to group {_group.Id}";
+            var message = $"Failed to add user {_userId} to group {_groupId}";
             var reason = "Unathorized access";
 
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
@@ -80,7 +80,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.AddUserToGroupAsync(_user, _group));
+            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.AddUserToGroupAsync(_userId, _groupId));
 
             response.Should().NotBeNull();
             response.Message.Should().Be($"{message}: {reason}");

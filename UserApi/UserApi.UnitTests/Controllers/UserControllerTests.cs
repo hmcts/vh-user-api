@@ -13,7 +13,6 @@ using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Assertions;
-using UserApi.Caching;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
@@ -27,7 +26,6 @@ namespace UserApi.UnitTests.Controllers
         private Mock<IUserAccountService> _userAccountService;
         private CreateUserRequest _request;
         private NewAdUserAccount _newAdUserAccount;
-        private Mock<ICache> _cache;
         private Settings _settings;
         protected const string Domain = "@hearings.test.server.net";
 
@@ -41,16 +39,7 @@ namespace UserApi.UnitTests.Controllers
             var config = TelemetryConfiguration.CreateDefault();
             var client = new TelemetryClient(config);
             _settings = new Settings { IsLive = true,
-                                        ReformEmail = Domain.Replace("@", ""),
-                                        AdGroup = new AdGroup
-                                        {
-                                            Administrator = "A",
-                                            CaseType = "CT",
-                                            External = "E",
-                                            Judge = "J",
-                                            ProfessionalUser = "ProfUser",
-                                            JudgesTestGroup = "JTG"
-                                        }
+                                        ReformEmail = Domain.Replace("@", ""), AdGroup = new AdGroup(),
                                     };
 
             _request = Builder<CreateUserRequest>.CreateNew()
@@ -60,10 +49,8 @@ namespace UserApi.UnitTests.Controllers
                 .Build();
             _newAdUserAccount = new NewAdUserAccount { UserId = "TestUserId", Username = "TestUserName", OneTimePassword = "TestPassword" };
             _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ReturnsAsync(_newAdUserAccount);
-            _cache = new Mock<ICache>();
-
             
-            _controller = new UserController(_userAccountService.Object, client, _cache.Object, _settings);
+            _controller = new UserController(_userAccountService.Object, client, _settings);
         }
 
         [Test]
@@ -307,32 +294,14 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_users_for_group_by_group_id_from_api()
         {
-            var response = new List<UserResponse>();
-            var user = new UserResponse
-            {
-                DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", 
-                Email = "firstname.lastname@hearings.test.server.net"
-            };
-            
-            response.Add(user);
-            
-            user = new UserResponse
-            {
-                DisplayName = "firstname1 lastname1", FirstName = "firstname1", LastName = "lastname1", 
-                Email = "firstname1.lastname1@hearings.test.server.net"
-            };
-            response.Add(user);
-
             var userList = new List<UserResponse>()
             {
-                new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" }
+                new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" },
+                new UserResponse { DisplayName = "firstname1 lastname1", FirstName = "firstname1", LastName = "lastname1", Email = "firstname1.lastname1@hearings.test.server.net"}
             };
+            _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>())).ReturnsAsync(userList);
 
-            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
-                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
-                .ReturnsAsync(response.AsEnumerable());
-
-            var actionResult = (OkObjectResult)await _controller.GetJudges();
+            var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("firstname");
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(2);
             actualResponse.FirstOrDefault().DisplayName.Should().BeSameAs(userList.FirstOrDefault().DisplayName);
@@ -341,11 +310,7 @@ namespace UserApi.UnitTests.Controllers
         [Test]
         public async Task Should_get_empty_user_response_without_judges()
         {
-            _cache.Setup(x => x.GetOrAddAsync(It.IsAny<Func<Task<IEnumerable<UserResponse>>>>()))
-                .Callback(async (Func<Task<IEnumerable<UserResponse>>> factory) => await factory())
-                .ReturnsAsync((IEnumerable<UserResponse>) null);
-            
-            var actionResult = (OkObjectResult)await _controller.GetJudges();
+            var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("firstname.lastname@hearings.test.server.net");
             var actualResponse = (List<UserResponse>)actionResult.Value;
             actualResponse.Count.Should().Be(0);
         }

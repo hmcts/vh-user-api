@@ -27,7 +27,6 @@ Scenario Outline: Get user by AD user Id
 	| Individual			|
 	| Representative		|
 	| VhOfficer				|
-	| CaseAdmin				|
 	| Judge					|
 
 Scenario: User account not retrieved for a nonexistent user

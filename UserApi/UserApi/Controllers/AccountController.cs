@@ -36,7 +36,7 @@ namespace UserApi.Controllers
         [HttpGet("group", Name = "GetGroupByName")]
         [OpenApiOperation("GetGroupByName")]
         [ProducesResponseType(typeof(GroupsResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetGroupByName([FromQuery] string name)
         {
@@ -142,26 +142,20 @@ namespace UserApi.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            var group = await _userAccountService.GetGroupByNameAsync(request.GroupName);
-            if (group == null)
+            var groupId = _userAccountService.GetGroupIdFromSettings(request.GroupName);
+            if (string.IsNullOrEmpty(groupId))
             {
                 _telemetryClient.TrackTrace(new TraceTelemetry($"Group not found '{request.GroupName}'",
                     SeverityLevel.Error));
                 return NotFound(ModelState);
             }
-
-            var user = new User
-            {
-                Id = request.UserId
-            };
-
             try
             {
-                await _userAccountService.AddUserToGroupAsync(user, group);
+                await _userAccountService.AddUserToGroupAsync(request.UserId, groupId);
             }
             catch (UserServiceException e)
             {
-                ModelState.AddModelError(nameof(user), e.Reason);
+                ModelState.AddModelError(nameof(request.UserId), e.Reason);
                 return NotFound(ModelState);
             }
 

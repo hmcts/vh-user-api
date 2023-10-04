@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UserApi.Caching;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
@@ -27,7 +25,6 @@ namespace UserApi.Services
         private readonly ISecureHttpRequest _secureHttpRequest;
         private readonly IGraphApiSettings _graphApiSettings;
         private readonly IIdentityServiceApiClient _client;
-        private readonly ICache _distributedCache;
         private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
         private const string UserGroupCacheKey = "cachekey.ad.group";
@@ -36,12 +33,11 @@ namespace UserApi.Services
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
 
         public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client,
-            Settings settings, ICache distributedCache)
+            Settings settings)
         {
             _secureHttpRequest = secureHttpRequest;
             _graphApiSettings = graphApiSettings;
             _client = client;
-            _distributedCache = distributedCache;
             _settings = settings;
         }
 
@@ -92,20 +88,20 @@ namespace UserApi.Services
             await _client.DeleteUserAsync(username);
         }
 
-        public async Task AddUserToGroupAsync(User user, Group group)
+        public async Task AddUserToGroupAsync(string userId, string groupId)
         {
-            var existingGroups = await GetGroupsForUserAsync(user.Id);
-            if (existingGroups.Exists(x => x.DisplayName == group.DisplayName))
+            var existingGroups = await GetGroupsForUserAsync(userId);
+            if (existingGroups.Exists(x => x.Id == groupId))
             {
                 return;
             }
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{user.Id}"
+                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{userId}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{group.Id}/members/$ref";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{groupId}/members/$ref";
             var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -120,7 +116,7 @@ namespace UserApi.Services
                 return;
             }
 
-            var message = $"Failed to add user {user.Id} to group {group.Id}";
+            var message = $"Failed to add user {userId} to group {groupId}";
             throw new UserServiceException(message, reason);
         }
 
@@ -164,14 +160,20 @@ namespace UserApi.Services
             throw new UserServiceException(message, reason);
         }
 
-        public async Task<Group> GetGroupByNameAsync(string groupName)
+        public string GetGroupIdFromSettings(string groupName)
         {
-            var group = await _distributedCache.GetOrAddAsync($"{UserGroupCacheKey}.{groupName}", () => GetGraphAdGroupAsync(groupName));
+            var prop = _settings.AdGroup.GetType().GetProperty(groupName);
+            string groupId = string.Empty;
 
-            return group;
+            if (prop != null)
+            {
+                groupId = (string)prop.GetValue(_settings.AdGroup);
+            }
+
+            return groupId;
         }
 
-        private async Task<Group> GetGraphAdGroupAsync(string groupName)
+        public async Task<Group> GetGroupByNameAsync(string groupName)
         {
             var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
             var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
@@ -309,7 +311,7 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
         {
-            var judges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.Judge, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
             judges = ExcludePerformanceTestUsersAsync(judges);
 
             if (_settings.IsLive)
@@ -322,25 +324,13 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username)
         {
-            var judges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.JudicialOfficeHolder, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
             return judges.OrderBy(x => x.DisplayName);
-        }
-
-        private async Task<IEnumerable<UserResponse>> GetJudgesByGroupNameAndFilterAsync(string groupName, string filter = null)
-        {
-            var groupData = await GetGroupByNameAsync(groupName);
-
-            if (groupData == null)
-            {
-                return Enumerable.Empty<UserResponse>();
-            }
-
-            return await GetJudgesAsyncByGroupIdAndUsername(groupData.Id, filter);
         }
 
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesByGroupNameAndFilterAsync(_settings.AdGroup.JudgesTestGroup);
+            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.TestAccount);
 
             return judgesList.Except(testJudges, CompareJudgeById);
         }

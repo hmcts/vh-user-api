@@ -95,7 +95,6 @@ namespace UserApi
             services.AddSingleton(AzureAdSettings);
             services.AddSingleton(VhServices);
             services.AddSingleton(Settings);
-            services.AddSingleton(Configuration.GetSection("ConnectionStrings").Get<ConnectionStrings>());
         }
 
         private void RegisterAuth(IServiceCollection services)

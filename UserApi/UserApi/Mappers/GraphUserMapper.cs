@@ -21,7 +21,7 @@ namespace UserApi.Mappers
             };
         }
 
-        public static UserProfile MapToUserProfile(GraphUser graphUser, string userRole, List<string> caseTypes, bool isUserAdmin)
+        public static UserProfile MapToUserProfile(GraphUser graphUser, string userRole, bool isUserAdmin)
         {
             return new UserProfile
             {
@@ -33,7 +33,6 @@ namespace UserApi.Mappers
                 LastName = graphUser.Surname,
                 TelephoneNumber = graphUser.MobilePhone,
                 UserRole = userRole,
-                CaseType = caseTypes,
                 IsUserAdmin = isUserAdmin
             };
         }

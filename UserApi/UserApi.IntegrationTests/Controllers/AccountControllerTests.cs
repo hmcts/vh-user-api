@@ -30,7 +30,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_name()
         {
-            var groupName = TestConfig.Instance.Settings.AdGroup.External;
+            var groupName = nameof(TestConfig.Instance.Settings.AdGroup.External);
             var getResponse = await SendGetRequestAsync(GetGroupByName(groupName));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content
@@ -42,8 +42,8 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_id()
         {
-            var groupId = TestConfig.Instance.TestSettings.ExistingGroups[1].GroupId;
-            var groupName = TestConfig.Instance.TestSettings.ExistingGroups[1].DisplayName;
+            var groupId = TestConfig.Instance.TestSettings.ExistingGroups.First().GroupId;
+            var groupName = TestConfig.Instance.TestSettings.ExistingGroups.First().DisplayName;
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content

@@ -16,19 +16,27 @@ namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetJudgesAsyncTests: UserAccountServiceTests
     {
-        private const string JudgeGroupName = "Judge";
-        private readonly string _groupId = "Test123";
+        private const string JudgeGroupName = "VirtualRoomJudge";
+        private string _groupId;
         private GraphQueryResponse<Group> _graphQueryResponse;
         private string _judgesGroup;
         private string _judgesTestGroup;
         private string _accessUri;
         private Group _group;
+        private Settings _settings;
         
         [SetUp]
         public void TestInitialize()
         {
+            _groupId = Guid.NewGuid().ToString();
+            _settings = new Settings
+            {
+                IsLive = false,
+                AdGroup = new AdGroup { VirtualRoomJudge = _groupId }
+            };
+
             _graphQueryResponse = new GraphQueryResponse<Group>() { Value = new List<Group>() };
-            _group = new Group() { Id = _groupId };
+            _group = new Group() { Id = _settings.AdGroup.VirtualRoomJudge };
 
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
             _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
@@ -40,12 +48,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_return_judges_list_successfully()
         {            
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesTestGroup))
+            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
                             .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
-             
-            
+
+            Service = new UserApi.Services.UserAccountService
+            (
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
+            );
             var response = await Service.GetJudgesAsync();
 
             response.Should().NotBeNull();
@@ -54,9 +63,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_not_exclude_judges_when_settings_is_not_live()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
             
             SecureHttpRequest
@@ -78,15 +84,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -101,9 +99,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_exclude_TP_test_judges()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
             
             SecureHttpRequest
@@ -126,15 +121,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -149,15 +136,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_exclude_judges_when_no_firstname_set()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
-            
-            SecureHttpRequest
-                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
-
+           
             var users = new List<User> 
             { 
                 new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "TP", Surname = "Test TP" },
@@ -175,15 +155,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
@@ -194,35 +166,28 @@ namespace UserApi.UnitTests.Services.UserAccountService
             
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
-        
+
         [Test]
         public async Task Should_call_graph_api_two_times_following_nextlink()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-
             _graphQueryResponse.Value.Add(_group);
 
-            SecureHttpRequest
-                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
+            var users1 = new List<User>
+            {
+                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
+                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
+            };
 
-            var users1 = new List<User> 
-            { 
+            var users2 = new List<User>
+            {
                 new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
                 new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
             };
-            
-            var users2 = new List<User> 
-            { 
-                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
-                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
-            };
-            
+
             var directoryObject1 = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
             directoryObject1.AdditionalData.Add("value", JsonConvert.SerializeObject(users1));
             directoryObject1.AdditionalData.Add("@odata.nextLink", "someLinkToNextPage");
-            
+
             var directoryObject2 = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
             directoryObject2.AdditionalData.Add("value", JsonConvert.SerializeObject(users2));
 
@@ -233,21 +198,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = (await Service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(4);
-            
+
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, "someLinkToNextPage"), Times.Once);
         }
@@ -255,9 +212,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_return_empty_for_not_found_status_code()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
             
             SecureHttpRequest
@@ -269,15 +223,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = await Service.GetJudgesAsync();
@@ -290,17 +236,17 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public void Should_return_user_exception_for_other_responses()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
 
             const string reason = "User not authorised";
 
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
+            SecureHttpRequest.Setup(x => x.GetAsync(GraphApiSettings.AccessToken, _accessUri))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
+
+            Service = new UserApi.Services.UserAccountService
+            (
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
+            );
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetJudgesAsync());
 
@@ -312,15 +258,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_filter_judges_by_username()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
             
-            SecureHttpRequest
-                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
-
             var users = new List<User> 
             { 
                 new User { Id = "Test1", DisplayName = "Judge 117", GivenName = "Judge", Surname = "117", UserPrincipalName = "judge_117@hmcts.net"},
@@ -337,15 +276,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = (await Service.GetJudgesAsync("117")).ToList();
@@ -359,9 +290,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_filter_judges_by_username_case_insensitive()
         {
-            var expectedGroup = new Group {Id = _groupId, DisplayName = JudgeGroupName};
-            DistributedCache.Setup(x => x.GetOrAddAsync(It.IsAny<string>(), It.IsAny<Func<Task<Group>>>())).ReturnsAsync(expectedGroup);
-            
             _graphQueryResponse.Value.Add(_group);
             
             SecureHttpRequest
@@ -384,15 +312,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Service = new UserApi.Services.UserAccountService
             (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, new Settings
-                {
-                    IsLive = false,
-                    AdGroup = new AdGroup
-                    {
-                        Judge = JudgeGroupName
-                    }
-                },
-                DistributedCache.Object
+                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
             );
 
             var response = (await Service.GetJudgesAsync("JUDGE_alpha")).ToList();

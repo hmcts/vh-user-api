@@ -14,26 +14,26 @@ namespace UserApi
         /// </summary>
         public bool IsLive { get; set; }
         public string ReformEmail { get; set; }
-        public AdGroup AdGroup { get; set; }
         public FeatureToggle FeatureToggle { get; set; }
-    }
-
-    [ExcludeFromCodeCoverage]
-    public class AdGroup
-    {
-        public string CaseType { get; set; }
-        public string Administrator { get; set; }
-        public string Judge { get; set; }
-        public string StaffMember { get; set; }
-        public string JudgesTestGroup { get; set; }
-        public string ProfessionalUser { get; set; }
-        public string External { get; set; }
-        public string JudicialOfficeHolder { get; set; }
+        public AdGroup AdGroup { get; set; }
     }
 
     [ExcludeFromCodeCoverage]
     public class FeatureToggle
     {
         public string SdkKey { get; set; }
+    }
+
+    [ExcludeFromCodeCoverage]
+    public class AdGroup
+    {
+        public string External { get; set; }
+        public string Internal { get; set; }
+        public string VirtualRoomProfessionalUser { get; set; }
+        public string JudicialOfficeHolder { get; set; }
+        public string VirtualRoomJudge { get; set; }
+        public string TestAccount { get; set; }
+        public string VirtualRoomAdministrator { get; set; }
+        public string StaffMember { get; set; }
     }
 }

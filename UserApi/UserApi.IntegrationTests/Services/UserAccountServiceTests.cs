@@ -1,12 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Moq;
 using NUnit.Framework;
 using Testing.Common.ActiveDirectory;
 using Testing.Common.Configuration;
-using UserApi.Caching;
-using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;
@@ -20,7 +17,6 @@ namespace UserApi.IntegrationTests.Services
         private GraphApiSettings _graphApiSettings;
         private SecureHttpRequest _secureHttpRequest;
         private GraphApiClient _identityServiceApiClient;
-        private Mock<ICache> _distributedCache;
         private IPasswordService _passwordService;
         private NewAdUserAccount _createdAccount;
 
@@ -37,9 +33,8 @@ namespace UserApi.IntegrationTests.Services
             _passwordService = new PasswordService();
             _identityServiceApiClient =
                 new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
-            _distributedCache = new Mock<ICache>();
             _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient,
-                settings, _distributedCache.Object);
+                settings);
         }
 
         [TearDown]
@@ -131,6 +126,20 @@ namespace UserApi.IntegrationTests.Services
             username.Should().NotBe(_createdAccount.Username);
             username.ToLower().Should().Contain(newFirstName.ToLower());
             username.ToLower().Should().Contain(newLastName.ToLower());
+        }
+
+        [Test]
+        public void should_have_all_groupid_values()
+        {
+            var settings = TestConfig.Instance.Settings;
+            Guid.TryParse(settings.AdGroup.External, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.Internal, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.VirtualRoomProfessionalUser, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.JudicialOfficeHolder, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.VirtualRoomJudge, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.TestAccount, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.VirtualRoomAdministrator, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.StaffMember, out _).Should().BeTrue();
         }
 
         private async Task CreateAccount()

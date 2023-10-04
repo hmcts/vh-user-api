@@ -36,12 +36,6 @@ namespace UserApi.AcceptanceTests.Steps
             _newUsername = model.UserName;
         }
 
-        [Given(@"I have a valid refresh judges cache request")]
-        public void GivenIHaveAValidRefreshJudgesCache()
-        {
-            _context.Request = _context.Get(RefreshJudgesCache());
-        }
-
         [Given(@"I have an update user request for the new user")]
         public void GivenIHaveAnUpdateUserRequestForTheNewUser()
         {

@@ -10,7 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using UserApi.Caching;
 using UserApi.Common;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -33,7 +32,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
         private Settings _settings;
         protected string Filter;
         protected DirectoryObject DirectoryObject;
-        protected Mock<ICache> DistributedCache;
 
         [SetUp]
         public void Setup()
@@ -41,10 +39,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest = new Mock<ISecureHttpRequest>();
 
             _settings = new Settings { IsLive = true, ReformEmail = Domain.Replace("@", ""),
-                AdGroup = new AdGroup
-                {
-                    Administrator = "Admin",
-                }
+                    AdGroup = new AdGroup { VirtualRoomJudge = Guid.NewGuid().ToString()}
             };
 
             var azureAdConfig = new AzureAdConfiguration()
@@ -88,9 +83,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 ODataType = "@odata.type"
             };
             
-            DistributedCache = new Mock<ICache>();
 
-            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings, DistributedCache.Object);
+            Service = new UserApi.Services.UserAccountService(SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings);
         }
 
         protected string AccessUri => $"{GraphApiSettings.GraphApiBaseUri}v1.0/{GraphApiSettings.TenantId}/users?$filter={Filter}&" + 
@@ -294,5 +288,20 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }
+
+        [Test]
+        public void Should_return_groupId_value_for_judge_from_settings()
+        {
+            var result = Service.GetGroupIdFromSettings(nameof(_settings.AdGroup.VirtualRoomJudge));
+            result.Should().Be(_settings.AdGroup.VirtualRoomJudge);
+        }
+
+        [Test]
+        public void Should_return_null_or_empty_value_for_judge_from_settings()
+        {
+            var result = Service.GetGroupIdFromSettings("Judge");
+            result.Should().BeNullOrEmpty();
+        }
+
     }
 }
