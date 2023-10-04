@@ -57,7 +57,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a valid AD group id and request for a list of judges")]
         public void GivenIHaveAValidAdGroupIdAndRequestForAListOfJudges()
         {
-            _context.Request = _context.Get(GetJudges());
+            _context.Request = _context.Get(GetJudgesByUsername());
         }
                 
         [Then(@"a list of ad judges should be retrieved")]
