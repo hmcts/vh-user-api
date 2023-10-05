@@ -41,8 +41,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
             _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
-            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?" + 
-                "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
+            _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?$filter=givenName ne null and not(startsWith(givenName, 'TP'))&$count=true" + 
+                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
         }
 
         [Test]
@@ -96,77 +96,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
         
-        [Test]
-        public async Task Should_exclude_TP_test_judges()
-        {
-            _graphQueryResponse.Value.Add(_group);
-            
-            SecureHttpRequest
-                .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
-
-            var users = new List<User> 
-            { 
-                new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "TP", Surname = "Test TP" },
-                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
-                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
-            };
-            
-            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
-            
-            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
-
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
-
-            Service = new UserApi.Services.UserAccountService
-            (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
-            );
-
-            var response = (await Service.GetJudgesAsync()).ToList();
-
-            response.Count.Should().Be(2);
-            response.First().DisplayName.Should().Be("T Test");
-            response.Last().DisplayName.Should().Be("T Tester");
-            
-            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
-        }
-        
-        [Test]
-        public async Task Should_exclude_judges_when_no_firstname_set()
-        {
-            _graphQueryResponse.Value.Add(_group);
-           
-            var users = new List<User> 
-            { 
-                new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "TP", Surname = "Test TP" },
-                new User { Id = "TPTest124", DisplayName = "TP Test", GivenName = "", Surname = "Test TP" },
-                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
-                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
-            };
-            
-            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
-            
-            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
-
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
-
-            Service = new UserApi.Services.UserAccountService
-            (
-                SecureHttpRequest.Object, GraphApiSettings, IdentityServiceApiClient.Object, _settings
-            );
-
-            var response = (await Service.GetJudgesAsync()).ToList();
-
-            response.Count.Should().Be(2);
-            response.First().DisplayName.Should().Be("T Test");
-            response.Last().DisplayName.Should().Be("T Tester");
-            
-            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
-        }
-
         [Test]
         public async Task Should_call_graph_api_two_times_following_nextlink()
         {

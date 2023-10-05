@@ -272,7 +272,18 @@ namespace UserApi.IntegrationTests.Controllers
             userResponseModel.LastName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.UserRole.Should().NotBeNullOrWhiteSpace();
         }
-        
+
+        [Test]
+        public async Task Should_get_judges_by_user_name()
+        {
+            var getResponse = await SendGetRequestAsync(GetJudgesByUsername());
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var judges = RequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content
+                .ReadAsStringAsync().Result);
+
+            judges.Count().Should().BeGreaterThan(0);
+        }
+
         [TearDown]
         public async Task ClearUp()
         {

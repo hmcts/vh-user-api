@@ -27,7 +27,6 @@ namespace UserApi.Services
         private readonly IIdentityServiceApiClient _client;
         private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
-        private const string UserGroupCacheKey = "cachekey.ad.group";
 
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
@@ -312,7 +311,6 @@ namespace UserApi.Services
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
         {
             var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
-            judges = ExcludePerformanceTestUsersAsync(judges);
 
             if (_settings.IsLive)
             {
@@ -335,17 +333,12 @@ namespace UserApi.Services
             return judgesList.Except(testJudges, CompareJudgeById);
         }
 
-        private static IEnumerable<UserResponse> ExcludePerformanceTestUsersAsync(IEnumerable<UserResponse> judgesList)
-        {
-            return judgesList.Where(u => !string.IsNullOrWhiteSpace(u.FirstName) && !u.FirstName.StartsWith(PerformanceTestUserFirstName));
-        }
-
         private async Task<IEnumerable<UserResponse>> GetJudgesAsyncByGroupIdAndUsername(string groupId, string username = null)
         {
             var users = new List<UserResponse>();
 
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?" + 
-                            "$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
+            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?$filter=givenName ne null and not(startsWith(givenName, '{PerformanceTestUserFirstName}'))&$count=true" +
+                            "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
 
             while (true)
             {
