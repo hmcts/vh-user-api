@@ -17,7 +17,7 @@ namespace UserApi.Services
         Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser);
         Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName);
         Task DeleteUserAsync(string username);
-        Task AddUserToGroupAsync(string userId, string group);
+        Task AddUserToGroupAsync(string userId, string groupId);
         Task<Group> GetGroupByNameAsync(string groupName);
         Task<Group> GetGroupByIdAsync(string groupId);
         Task<List<Group>> GetGroupsForUserAsync(string userId);

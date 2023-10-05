@@ -27,7 +27,6 @@ namespace UserApi.Services
         private readonly IIdentityServiceApiClient _client;
         private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
-        private const string UserGroupCacheKey = "cachekey.ad.group";
 
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
