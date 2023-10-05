@@ -35,13 +35,13 @@ java:
           alias: azuread--VhUserApiResourceId
         - name: azuread--identifieruri
           alias: VhServices--UserApiResourceId
-        - AdGroup--Administrator
-        - AdGroup--CaseType
+        - AdGroup--VirtualRoomAdministrator
         - AdGroup--External
-        - AdGroup--Judge
-        - AdGroup--JudgesTestGroup
+        - AdGroup--Internal        
+        - AdGroup--VirtualRoomJudge
+        - AdGroup--TestAccount
         - AdGroup--JudicialOfficeHolder
-        - AdGroup--ProfessionalUser
+        - AdGroup--VirtualRoomProfessionalUser
         - AdGroup--StaffMember
         - azuread--clientid
         - azuread--clientsecret

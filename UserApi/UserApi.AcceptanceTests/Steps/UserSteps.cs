@@ -14,9 +14,7 @@ namespace UserApi.AcceptanceTests.Steps
     [Binding]
     public sealed class UserSteps
     {
-        private const int Timeout = 90;
         private readonly TestContext _context;
-        private CreateUserRequest _createUserRequest;
         private string _newUsername;
         private readonly CommonSteps _commonSteps;
 
@@ -57,7 +55,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Given(@"I have a valid AD group id and request for a list of judges")]
         public void GivenIHaveAValidAdGroupIdAndRequestForAListOfJudges()
         {
-            _context.Request = _context.Get(GetJudges());
+            _context.Request = _context.Get(GetJudgesByUsername());
         }
                 
         [Then(@"a list of ad judges should be retrieved")]
