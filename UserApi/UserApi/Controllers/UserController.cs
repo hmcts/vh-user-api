@@ -275,7 +275,7 @@ namespace UserApi.Controllers
             try
             {
                 var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName,
-                    payload.LastName);
+                    payload.LastName, payload.ContactEmail);
                 var response = GraphUserMapper.MapToUserResponse(user);
                 return Ok(response);
             }
