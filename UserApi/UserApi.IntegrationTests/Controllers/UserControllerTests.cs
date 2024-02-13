@@ -259,6 +259,30 @@ namespace UserApi.IntegrationTests.Controllers
         }
 
         [Test]
+        public async Task should_return_ok_and_updated_user_when_updating_an_account_contact_email_successfully()
+        {
+            var newUser = await CreateNewUser($"Automation_{Name.First()}@hmcts.net");
+            var existingUser = await GetUser(newUser.UserId);
+            var userId = Guid.Parse(existingUser.UserId);
+            var updateUserRequest = new UpdateUserAccountRequest
+            {
+                FirstName = existingUser.FirstName,
+                LastName = existingUser.LastName,
+                ContactEmail = "newEmail@email.com"
+            };
+            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            
+            var responseMessage = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
+            
+            responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+            var updatedUserResponse = RequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
+            updatedUserResponse.FirstName.Should().Be(updateUserRequest.FirstName);
+            updatedUserResponse.LastName.Should().Be(updateUserRequest.LastName);
+            updatedUserResponse.ContactEmail.Should().Be(updateUserRequest.ContactEmail);
+        }
+
+        [Test]
         public async Task Should_get_user_by_email_containing_slash()
         {
             var email = "Automation02/Individual01@hmcts.net";
@@ -327,6 +351,13 @@ namespace UserApi.IntegrationTests.Controllers
             _newUserId = createUserModel.UserId;
             TestContext.WriteLine($"Created account {_newUserId}");
             return createUserModel;
+        }
+        
+        private async Task<UserProfile> GetUser(string userId)
+        {
+            var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            return RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
         }
     }
 }
