@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -232,6 +233,41 @@ namespace UserApi.UnitTests.Services
             _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
 
             Assert.ThrowsAsync<UserExistsException>(() => client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail));
+        }
+
+        [TestCase("contactEmail@email.com")]
+        [TestCase("")]
+        public async Task Should_update_user_account(string contactEmail)
+        {
+            var userId = Guid.NewGuid().ToString();
+            var firstName = "FirstName";
+            var lastName = "LastName";
+            var newUsername = "username@email.com";
+            
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
+            _secureHttpRequest.Setup(x => x.PatchAsync(It.IsAny<string>(), It.IsAny<StringContent>(), It.IsAny<string>()))
+                .ReturnsAsync(responseMessage);
+
+            var result = await _client.UpdateUserAccount(userId,
+                firstName, lastName, newUsername,
+                contactEmail: contactEmail);
+
+            result.Id.Should().Be(userId);
+            result.GivenName.Should().Be(firstName);
+            result.Surname.Should().Be(lastName);
+            result.DisplayName.Should().Be($"{firstName} {lastName}");
+            result.UserPrincipalName.Should().Be(newUsername);
+            if (!string.IsNullOrEmpty(contactEmail))
+            {
+                result.Mail.Should().Be(contactEmail);
+                result.OtherMails.Count().Should().Be(1);
+                result.OtherMails.Should().Contain(contactEmail);
+            }
+            else
+            {
+                result.Mail.Should().BeNull();
+                result.OtherMails.Should().BeNull();
+            }
         }
     }
 }
