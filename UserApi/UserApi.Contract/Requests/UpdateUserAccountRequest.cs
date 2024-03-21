@@ -4,5 +4,10 @@ namespace UserApi.Contract.Requests
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        
+        /// <summary>
+        /// Contact email of the user (optional)
+        /// </summary>
+        public string ContactEmail { get; set; }
     }
 }

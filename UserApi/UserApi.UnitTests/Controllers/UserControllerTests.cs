@@ -18,6 +18,7 @@ using UserApi.Contract.Responses;
 using UserApi.Controllers;
 using UserApi.Services;
 using UserApi.Services.Models;
+using UserApi.Validations;
 namespace UserApi.UnitTests.Controllers
 {
     public class UserAccountsControllerTests
@@ -450,6 +451,72 @@ namespace UserApi.UnitTests.Controllers
             response.Value.As<UpdateUserResponse>().NewPassword.Should().Be(password);
             
             _userAccountService.Verify(x => x.GetUserByFilterAsync(filter), Times.Once);
+        }
+        
+        [Test]
+        public async Task should_return_ok_and_updated_user_when_updating_an_account_contact_email_successfully()
+        {
+            var userId = Guid.NewGuid();
+            var request = new UpdateUserAccountRequest
+            {
+                FirstName = "UpdatedFirstName",
+                LastName = "UpdatedLastName",
+                ContactEmail = "UpdatedContactEmail"
+            };
+            var returnedUser = new User
+            {
+                DisplayName = "Display Name",
+                GivenName = request.FirstName,
+                Surname = request.LastName,
+                UserPrincipalName = "test@hmcts.net",
+                OtherMails = new List<string> { request.ContactEmail }
+            };
+            _userAccountService.Setup(x => x.UpdateUserAccountAsync(userId, request.FirstName, request.LastName, request.ContactEmail)).ReturnsAsync(returnedUser);
+
+            var result = await _controller.UpdateUserAccount(userId, request);
+
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<OkObjectResult>();
+            var response = (OkObjectResult) result;
+            response.Should().NotBeNull();
+            response.Value.Should().NotBeNull().And.BeAssignableTo<UserResponse>();
+            var userResponse = response.Value.As<UserResponse>();
+            userResponse.FirstName.Should().Be(request.FirstName);
+            userResponse.LastName.Should().Be(request.LastName);
+            userResponse.ContactEmail.Should().Be(request.ContactEmail);
+        }
+
+        [Test]
+        public async Task Should_return_bad_request_when_updating_user_account_with_invalid_request()
+        {
+            var userId = Guid.NewGuid();
+            var request = new UpdateUserAccountRequest();
+            
+            var actionResult = (BadRequestObjectResult)await _controller.UpdateUserAccount(userId, request);
+
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            ((SerializableError)actionResult.Value).ContainsKeyAndErrorMessage(nameof(request.FirstName), UpdateUserAccountRequestValidation.MissingFirstNameErrorMessage);
+        }
+
+        [Test]
+        public async Task Should_return_not_found_when_updating_user_account_that_does_not_exist()
+        {
+            var userId = Guid.NewGuid();
+            var request = new UpdateUserAccountRequest
+            {
+                FirstName = "FirstName",
+                LastName = "LastName",
+                ContactEmail = "email@email.com"
+            };
+            _userAccountService
+                .Setup(x => x.UpdateUserAccountAsync(userId, request.FirstName, request.LastName, request.ContactEmail))
+                .ThrowsAsync(new UserDoesNotExistException(userId));
+            
+            var actionResult = (NotFoundObjectResult)await _controller.UpdateUserAccount(userId, request);
+            
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
         }
     }
 }

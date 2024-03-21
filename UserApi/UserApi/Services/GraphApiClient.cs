@@ -94,7 +94,7 @@ namespace UserApi.Services
             };
         }
 
-        public async Task<User> UpdateUserAccount(string userId, string firstName, string lastName, string newUsername)
+        public async Task<User> UpdateUserAccount(string userId, string firstName, string lastName, string newUsername, string contactEmail = null)
         {
             var updatedUser = new User
             {
@@ -104,6 +104,12 @@ namespace UserApi.Services
                 DisplayName = $"{firstName} {lastName}",
                 UserPrincipalName = newUsername
             };
+            
+            if (!string.IsNullOrEmpty(contactEmail))
+            {
+                updatedUser.Mail = contactEmail;
+                updatedUser.OtherMails = new List<string> { contactEmail };
+            }
             
             var json = JsonConvert.SerializeObject(updatedUser);
             var stringContent = new StringContent(json);

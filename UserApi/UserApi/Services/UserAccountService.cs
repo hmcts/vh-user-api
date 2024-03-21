@@ -63,7 +63,7 @@ namespace UserApi.Services
             return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
         }
 
-        public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName)
+        public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null)
         {
             var filter = $"id  eq '{userId}'";
             var user = await GetUserByFilterAsync(filter);
@@ -79,7 +79,7 @@ namespace UserApi.Services
                 username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
             }
 
-            return await _client.UpdateUserAccount(user.Id, firstName, lastName, username);
+            return await _client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: contactEmail);
         }
 
         public async Task DeleteUserAsync(string username)
