@@ -70,33 +70,34 @@ namespace UserApi.Services
             return existingMatchedUsers;
         }
 
-        private async Task<List<string>> GetDeletedUsersWithPersonalMailAsync(string usernameBase,string contactMail)
+        private async Task<List<string>> GetDeletedUsersWithPersonalMailAsync(string usernameBase, string contactMail)
         {
-            var queryUrl = $"{_baseUrl}/directory/deletedItems/microsoft.graph.user?$filter=startswith(mail, '{contactMail}')";
-            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
-            await AssertResponseIsSuccessful(response);
-            var deletedMatchedUsers = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
-            List<string> usernames = new ();
-            foreach (var username in deletedMatchedUsers.Value.Select(u => u.UserPrincipalName))
-            {
-                var basePrincipal = username.ExtractBasePrincipalName(usernameBase);
-                if(!string.IsNullOrEmpty(basePrincipal)) { usernames.Add(basePrincipal);}
-            }
-
-            return usernames;
+            var queryUrl =
+                $"{_baseUrl}/directory/deletedItems/microsoft.graph.user?$filter=startswith(mail, '{contactMail}')";
+            return await GetUsernamesWithUri(queryUrl, usernameBase);
         }
-        
-        private async Task<List<string>> GetDeletedUsersWithNameAsync(string usernameBase, string firstName, string lastName)
+
+        private async Task<List<string>> GetDeletedUsersWithNameAsync(string usernameBase, string firstName,
+            string lastName)
         {
-            var queryUrl = $"{_baseUrl}/directory/deletedItems/microsoft.graph.user?$filter=givenName eq '{firstName}' and surname eq '{lastName}'";
+            var queryUrl =
+                $"{_baseUrl}/directory/deletedItems/microsoft.graph.user?$filter=givenName eq '{firstName}' and surname eq '{lastName}'";
+            return await GetUsernamesWithUri(queryUrl, usernameBase);
+        }
+
+        private async Task<List<string>> GetUsernamesWithUri(string queryUrl, string usernameBase)
+        {
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
             var deletedMatchedUsers = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
-            List<string> usernames = new ();
+            List<string> usernames = new();
             foreach (var username in deletedMatchedUsers.Value.Select(u => u.UserPrincipalName))
             {
                 var basePrincipal = username.ExtractBasePrincipalName(usernameBase);
-                if(!string.IsNullOrEmpty(basePrincipal)) { usernames.Add(basePrincipal);}
+                if (!string.IsNullOrEmpty(basePrincipal))
+                {
+                    usernames.Add(basePrincipal);
+                }
             }
 
             return usernames;
