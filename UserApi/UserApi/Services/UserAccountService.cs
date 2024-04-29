@@ -57,7 +57,7 @@ namespace UserApi.Services
                 throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
             }
 
-            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
+            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, recoveryEmail);
             var displayName = $"{firstName} {lastName}";
 
             return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
@@ -76,7 +76,7 @@ namespace UserApi.Services
             if (!user.GivenName.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) ||
                 !user.Surname.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
             {
-                username = await CheckForNextAvailableUsernameAsync(firstName, lastName);
+                username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
             }
 
             return await _client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: contactEmail);
@@ -286,8 +286,9 @@ namespace UserApi.Services
         /// </summary>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
+        /// <param name="contactEmail"></param>
         /// <returns>next available user principal name</returns>
-        public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName)
+        public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName, string contactEmail)
         {
             var periodRegexString = "^\\.|\\.$";
             var sanitisedFirstName = Regex.Replace(firstName, periodRegexString, string.Empty);
@@ -298,13 +299,14 @@ namespace UserApi.Services
 
             var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
-            var existingUsernames = await GetUsersMatchingNameAsync(baseUsername);
+            var existingUsernames = await GetUsersMatchingNameAsync(baseUsername, contactEmail, firstName, lastName);
             return username.GetGivenExistingUsers(existingUsernames);
         }
 
-        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername)
+        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername, string contactEmail,
+            string firstName, string lastName)
         {
-            var users = await _client.GetUsernamesStartingWithAsync(baseUsername);
+            var users = await _client.GetUsernamesStartingWithAsync(baseUsername, contactEmail, firstName, lastName);
             return users;
         }
 

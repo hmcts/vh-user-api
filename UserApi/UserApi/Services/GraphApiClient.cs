@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -5,6 +6,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UserApi.Extensions;
 using UserApi.Helper;
 using UserApi.Services.Models;
 using User = Microsoft.Graph.User;
@@ -41,16 +43,63 @@ namespace UserApi.Services
             _baseUrl = $"{_graphApiSettings.GraphApiBaseUri}/v1.0/{_graphApiSettings.TenantId}";
         }
 
-        public async Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string text)
-        { 
-            var filterText = text.Replace("'", "''");
+        public async Task<IEnumerable<string>> GetUsernamesStartingWithAsync(string usernameBase, string contactEmail = null,
+            string firstName = null, string lastName = null)
+        {
+            var filterText = usernameBase.Replace("'", "''");
             var filter = $"startswith(userPrincipalName,'{filterText}')";
             var queryUrl = $"{_baseUrl}/users?$filter={filter}";
             var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
 
             var result = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
-            return result.Value.Select(user => user.UserPrincipalName);
+            var existingMatchedUsers = result.Value.Select(user => user.UserPrincipalName).ToList();
+
+            if(!string.IsNullOrEmpty(contactEmail))
+            {
+                var deletedMatchedUsersByContactMail = await GetDeletedUsersWithPersonalMailAsync(filterText, contactEmail);
+                existingMatchedUsers.AddRange(deletedMatchedUsersByContactMail);
+            }
+
+            if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+            {
+                var deletedMatchedUsersByPrincipal = await GetDeletedUsersWithNameAsync(filterText, firstName, lastName);
+                existingMatchedUsers.AddRange(deletedMatchedUsersByPrincipal);
+            }
+
+            return existingMatchedUsers;
+        }
+
+        private async Task<List<string>> GetDeletedUsersWithPersonalMailAsync(string usernameBase,string contactMail)
+        {
+            var queryUrl = $"{_baseUrl}/directory/deletedItems/microsoft.graph.user?$filter=startswith(mail, '{contactMail}')";
+            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
+            await AssertResponseIsSuccessful(response);
+            var deletedMatchedUsers = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
+            List<string> usernames = new ();
+            foreach (var username in deletedMatchedUsers.Value.Select(u => u.UserPrincipalName))
+            {
+                var basePrincipal = username.ExtractBasePrincipalName(usernameBase);
+                if(!string.IsNullOrEmpty(basePrincipal)) { usernames.Add(basePrincipal);}
+            }
+
+            return usernames;
+        }
+        
+        private async Task<List<string>> GetDeletedUsersWithNameAsync(string usernameBase, string firstName, string lastName)
+        {
+            var queryUrl = $"{_baseUrl}/directory/deletedItems/microsoft.graph.user?$filter=givenName eq '{firstName}' and surname eq '{lastName}'";
+            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
+            await AssertResponseIsSuccessful(response);
+            var deletedMatchedUsers = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
+            List<string> usernames = new ();
+            foreach (var username in deletedMatchedUsers.Value.Select(u => u.UserPrincipalName))
+            {
+                var basePrincipal = username.ExtractBasePrincipalName(usernameBase);
+                if(!string.IsNullOrEmpty(basePrincipal)) { usernames.Add(basePrincipal);}
+            }
+
+            return usernames;
         }
 
         public async Task<NewAdUserAccount> CreateUserAsync(string username, string firstName, string lastName, string displayName, string recoveryEmail, bool isTestUser = false)

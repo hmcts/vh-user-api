@@ -99,13 +99,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             // given api returns
             var existingUsers = new[] { "existing.user", "existing.user1" };
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, firstName, lastName))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
-            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName);
+            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName, null);
 
             nextAvailable.Should().Be("existing.user2" + Domain);
-            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername, null, firstName, lastName), Times.Once);
         }
 
         [Test]
@@ -113,12 +113,13 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             const string firstName = ".First.";
             const string lastName = ".La.st.";
+            const string contactEmail = "first.name@test.com";
             var baseUsername = "First.La.st".ToLowerInvariant();
 
-            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName);
+            var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
 
             nextAvailable.Should().Be(baseUsername + Domain);
-            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername), Times.Once);
+            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername, contactEmail, firstName, lastName), Times.Once);
         }
 
         [Test]
@@ -252,9 +253,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_check_for_next_available_user_name_with_no_prefix()
         {
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, null, null))
                 .ReturnsAsync(new List<string> { "adam.green" });
-            var result = await Service.CheckForNextAvailableUsernameAsync("Adam","Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Adam","Green", null);
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }
@@ -262,9 +263,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_remove_spaces_before_checking_user_name()
         {
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, null, null))
                 .ReturnsAsync(new List<string> { "janemary.vangreen" });
-            var result = await Service.CheckForNextAvailableUsernameAsync("Jane Mary","van Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Jane Mary","van Green", null);
 
             Assert.IsTrue(result.Contains("janemary.vangreen@hearings.test.server.net"));
         }
@@ -272,9 +273,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_check_for_next_available_user_name_find_with_prefix()
         {
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, "Adam", "Green"))
                 .ReturnsAsync(new List<string> { "adam.green2@hearings.test.server.net", "adam.green@hearings.test.server.net", "adam.green1@hearings.test.server.net" });
-            var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green", null);
 
             Assert.IsTrue(result.Contains("adam.green3@hearings.test.server.net"));
         }
@@ -282,9 +283,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
         [Test]
         public async Task Should_check_for_next_available_user_name_find_null()
         {
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, "Adam", "Green"))
                 .ReturnsAsync(new List<string> ());
-            var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green");
+            var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green", null);
 
             Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
         }
