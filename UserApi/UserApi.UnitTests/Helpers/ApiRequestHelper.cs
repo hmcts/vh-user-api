@@ -19,7 +19,7 @@ namespace Testing.Common.Helpers
         {
             return new HttpResponseMessage(httpStatusCode)
             {
-                Content = new StringContent(content)
+                Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
             };
         }
     }

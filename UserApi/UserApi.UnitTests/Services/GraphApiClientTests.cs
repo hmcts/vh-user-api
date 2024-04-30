@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -22,7 +23,6 @@ namespace UserApi.UnitTests.Services
         private Mock<IGraphApiSettings> _graphApiSettings;
         private Mock<ISecureHttpRequest> _secureHttpRequest;
         private Mock<IPasswordService> _passwordService;
-        private Mock<IFeatureToggles> _featureToggles;
         private GraphApiClient _client;
         private string _baseUrl;
         private string _queryUrl;
@@ -39,7 +39,6 @@ namespace UserApi.UnitTests.Services
             _defaultPassword = settings.DefaultPassword;
             _baseUrl = $"{_graphApiSettings.Object.GraphApiBaseUri}/v1.0/{_graphApiSettings.Object.TenantId}";
             _queryUrl = $"{_baseUrl}/users";
-            _featureToggles = new Mock<IFeatureToggles>();
             _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
         }
 
@@ -103,8 +102,83 @@ namespace UserApi.UnitTests.Services
             response.Should().NotBeNull();
             var users = response.ToList();
             users.Count.Should().Be(1);
-            users.First().Should().Be("TestUser");
+            users[0].Should().Be("TestUser");
             _secureHttpRequest.Verify(x => x.GetAsync(_graphApiSettings.Object.AccessToken, _queryUrl), Times.Once);
+        }
+        
+        [Test]
+        public async Task GetUsernamesStartingWithAsync_WithContactEmail_ReturnsExpectedUsernames()
+        {
+            // Arrange
+            // original call
+            var usernameBase = "test.user";
+            var contactEmail = "test@test.com";
+            var expectedUsernames = new List<string> { "test.user@domain.com", "test.user1@domain.com", "test.user2@domain.com" };
+            var user1 = new Microsoft.Graph.User { UserPrincipalName = $"{Guid.NewGuid()}test.user1@domain.com", Mail = contactEmail};
+            var user2 = new Microsoft.Graph.User { UserPrincipalName = $"{Guid.NewGuid()}test.user2@domain.com", Mail = contactEmail};
+            var azureAdGraphQueryContactMailResponse = new GraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user1, user2 } };
+            
+            var user = new Microsoft.Graph.User { UserPrincipalName = "test.user@domain.com" };
+            var azureAdGraphQueryResponseOriginal = new GraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user } };
+            
+            _secureHttpRequest.SetupSequence(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponseOriginal, HttpStatusCode.OK))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryContactMailResponse, HttpStatusCode.OK));
+
+            // Act
+            var result = await _client.GetUsernamesStartingWithAsync(usernameBase, contactEmail);
+
+            // Assert
+            Assert.AreEqual(expectedUsernames, result.ToList());
+        }
+        
+        [Test]
+        public async Task GetUsernamesStartingWithAsync_WithFirstNameAndLastName_ReturnsExpectedUsernames()
+        {
+            // Arrange
+            // original call
+            var usernameBase = "test.user";
+            var firstName = "Test";
+            var lastName = "User";
+            var contactEmail = "test@test.com";
+            var expectedUsernames = new List<string> { "test.user@domain.com", "test.user1@domain.com", "test.user2@domain.com" };
+            
+            var user = new Microsoft.Graph.User { UserPrincipalName = "test.user@domain.com" };
+            var azureAdGraphQueryResponseOriginal = new GraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user } };
+            
+            
+            var user1 = new Microsoft.Graph.User
+            {
+                GivenName = firstName,
+                Surname = lastName,
+                DisplayName = $"{firstName} {lastName}", 
+                UserPrincipalName = $"{Guid.NewGuid()}test.user1@domain.com",
+                Mail = contactEmail,
+                Id = Guid.NewGuid().ToString()
+            };
+            var user2 = new Microsoft.Graph.User
+            {
+                GivenName = firstName,
+                Surname = lastName,
+                DisplayName = $"{firstName} {lastName}",
+                UserPrincipalName = $"{Guid.NewGuid()}test.user2@domain.com",
+                Mail = contactEmail,
+                Id = Guid.NewGuid().ToString()
+            };
+            var azureAdGraphQueryContactMailResponse = new GraphQueryResponse<Microsoft.Graph.User>()
+            {
+                Value = new List<Microsoft.Graph.User> { user1, user2 }
+            };
+            
+            _secureHttpRequest.SetupSequence(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponseOriginal, HttpStatusCode.OK))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryContactMailResponse, HttpStatusCode.OK));
+            
+            // Act
+            var result = await _client.GetUsernamesStartingWithAsync(usernameBase, null, firstName, lastName);
+
+            // Assert
+            Assert.AreEqual(expectedUsernames, result.ToList());
         }
      
 
