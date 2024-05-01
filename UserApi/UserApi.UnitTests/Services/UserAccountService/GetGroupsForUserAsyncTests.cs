@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Helpers;
@@ -57,7 +57,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupsForUserAsync(UserId));
 
             response.Should().NotBeNull();
-            response.Message.Should().Be($"Failed to get group for user {UserId}: {reason}");
+            response!.Message.Should().Be($"Failed to get group for user {UserId}: {reason}");
             response.Reason.Should().Be(reason);
         }
     }

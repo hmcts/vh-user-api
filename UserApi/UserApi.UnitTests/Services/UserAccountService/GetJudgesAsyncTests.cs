@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -16,11 +16,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetJudgesAsyncTests: UserAccountServiceTests
     {
-        private const string JudgeGroupName = "VirtualRoomJudge";
         private string _groupId;
         private GraphQueryResponse<Group> _graphQueryResponse;
         private string _judgesGroup;
-        private string _judgesTestGroup;
         private string _accessUri;
         private Group _group;
         private Settings _settings;
@@ -90,8 +88,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(2);
-            response.First().DisplayName.Should().Be("T Test");
-            response.Last().DisplayName.Should().Be("T Tester");
+            response[0].DisplayName.Should().Be("T Test");
+            response[response.Count-1].DisplayName.Should().Be("T Tester");
             
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
@@ -211,7 +209,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync("117")).ToList();
 
             response.Count.Should().Be(1);
-            response.First().DisplayName.Should().Be("Judge 117");
+            response[0].DisplayName.Should().Be("Judge 117");
 
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
@@ -247,7 +245,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync("JUDGE_alpha")).ToList();
 
             response.Count.Should().Be(1);
-            response.First().DisplayName.Should().Be("Judge Alpha");
+            response[0].DisplayName.Should().Be("Judge Alpha");
 
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }

@@ -9,7 +9,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Assertions;
@@ -63,7 +63,7 @@ namespace UserApi.UnitTests.Controllers
             actionResult.RouteName.Should().Be("GetUserByAdUserId");
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Created);
             var response = (NewUserResponse)actionResult.Value;
-            response.UserId.Should().Be(_newAdUserAccount.UserId);
+            response!.UserId.Should().Be(_newAdUserAccount.UserId);
             response.Username.Should().Be(_newAdUserAccount.Username);
             response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
         }
@@ -89,7 +89,7 @@ namespace UserApi.UnitTests.Controllers
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
             var actualResponse = (NewUserErrorResponse) actionResult.Value;
-            actualResponse.Message.Should().Be("User already exists");
+            actualResponse!.Message.Should().Be("User already exists");
             actualResponse.Code.Should().Be("UserExists");
             actualResponse.Username.Should().Be("TestUser");
         }
@@ -103,7 +103,7 @@ namespace UserApi.UnitTests.Controllers
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
             var actualResponse = (NewUserErrorResponse) actionResult.Value;
-            actualResponse.Message.Should().Be("Recovery email is not a valid email");
+            actualResponse!.Message.Should().Be("Recovery email is not a valid email");
             actualResponse.Code.Should().Be("InvalidEmail");
             actualResponse.Email.Should().Be(_request.RecoveryEmail);
         }
@@ -130,7 +130,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetUserByAdUserId(userId);
             var actualResponse = (UserProfile) actionResult.Value;
-            actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
+            actualResponse!.DisplayName.Should().BeSameAs(response.DisplayName);
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
         }
@@ -157,7 +157,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetUserByAdUserId(userId);
             var actualResponse = (UserProfile) actionResult.Value;
-            actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
+            actualResponse!.DisplayName.Should().BeSameAs(response.DisplayName);
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
         }
@@ -197,7 +197,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetUserByUserName(userName);
             var actualResponse = (UserProfile) actionResult.Value;
-            actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
+            actualResponse!.DisplayName.Should().BeSameAs(response.DisplayName);
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
             _userAccountService.Verify(x => x.GetUserByFilterAsync(filter),Times.Once);
@@ -212,7 +212,7 @@ namespace UserApi.UnitTests.Controllers
                 .Throws(new UnauthorizedAccessException("unauthorized"));
 
             var result = (await _controller.GetUserByUserName(userName)) as UnauthorizedObjectResult;
-            Assert.NotNull(result);
+            result.Should().NotBeNull();
         }
 
         [Test]
@@ -261,7 +261,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult) await _controller.GetUserByEmail(email);
             var actualResponse = (UserProfile) actionResult.Value;
-            actualResponse.DisplayName.Should().BeSameAs(response.DisplayName);
+            actualResponse!.DisplayName.Should().BeSameAs(response.DisplayName);
             actualResponse.FirstName.Should().BeSameAs(response.FirstName);
             actualResponse.LastName.Should().BeSameAs(response.LastName);
             _userAccountService.Verify(x => x.GetUserByFilterAsync(filter), Times.Once);
@@ -304,8 +304,8 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("firstname");
             var actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(2);
-            actualResponse.FirstOrDefault().DisplayName.Should().BeSameAs(userList.FirstOrDefault().DisplayName);
+            actualResponse!.Count.Should().Be(2);
+            actualResponse[0].DisplayName.Should().BeSameAs(userList[0].DisplayName);
         }
 
         [Test]
@@ -313,7 +313,7 @@ namespace UserApi.UnitTests.Controllers
         {
             var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("firstname.lastname@hearings.test.server.net");
             var actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(0);
+            actualResponse!.Count.Should().Be(0);
         }
 
 
@@ -346,7 +346,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername(term);
             var actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(2);
+            actualResponse!.Count.Should().Be(2);
             actualResponse[0].DisplayName.Should().BeSameAs(user.DisplayName);
             actualResponse[1].DisplayName.Should().BeSameAs(user2.DisplayName);
         }
@@ -359,7 +359,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("username");
             var actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(0);
+            actualResponse!.Count.Should().Be(0);
         }
 
         [Test]
@@ -390,7 +390,7 @@ namespace UserApi.UnitTests.Controllers
 
             var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername(term);
             var actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(2);
+            actualResponse!.Count.Should().Be(2);
             actualResponse[0].DisplayName.Should().BeSameAs(user.DisplayName);
             actualResponse[1].DisplayName.Should().BeSameAs(user2.DisplayName);
 
@@ -399,7 +399,7 @@ namespace UserApi.UnitTests.Controllers
 
             actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername(term);
             actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(1);
+            actualResponse!.Count.Should().Be(1);
             actualResponse[0].DisplayName.Should().BeSameAs(user2.DisplayName);
         }
 
@@ -408,7 +408,7 @@ namespace UserApi.UnitTests.Controllers
         {
             var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername("firstname1");
             var actualResponse = (List<UserResponse>)actionResult.Value;
-            actualResponse.Count.Should().Be(0);
+            actualResponse!.Count.Should().Be(0);
         }
 
         [Test]

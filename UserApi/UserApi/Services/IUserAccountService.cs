@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using UserApi.Contract.Responses;
 using UserApi.Services.Models;
 

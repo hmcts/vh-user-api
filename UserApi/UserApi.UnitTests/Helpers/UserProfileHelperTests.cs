@@ -7,7 +7,7 @@ using NUnit.Framework;
 using UserApi.Helper;
 using UserApi.Services;
 using System.Threading.Tasks;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace UserApi.UnitTests.Helpers
 {
@@ -167,13 +167,6 @@ namespace UserApi.UnitTests.Helpers
             var groups = groupDisplayNames.Select(aadGroup => new Group { DisplayName = aadGroup, Description = description }).ToArray();
 
             _accountService.Setup(x => x.GetGroupsForUserAsync(user.Id)).ReturnsAsync(new List<Group>(groups));
-        }
-
-        private void GivenFilterReturnsUserWithCaseTypeGroups(params string[] groupDisplayNames)
-        {
-            var user = new User { Id = Guid.NewGuid().ToString() };
-
-            GivenFilterReturnsUserWithGroups(user, "CT", groupDisplayNames);
         }
     }
 }

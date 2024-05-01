@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;

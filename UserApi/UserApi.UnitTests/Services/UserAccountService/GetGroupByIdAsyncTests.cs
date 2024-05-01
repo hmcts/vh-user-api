@@ -16,7 +16,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_get_group_by_given_id()
         {
             var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
-            var group = new Microsoft.Graph.Group() { Id = GroupId };
+            var group = new Microsoft.Graph.Models.Group() { Id = GroupId };
 
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(group, HttpStatusCode.OK));
 
@@ -50,7 +50,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByIdAsync(GroupId));
 
             response.Should().NotBeNull();
-            response.Message.Should().Be($"Failed to get group by id {GroupId}: {reason}");
+            response!.Message.Should().Be($"Failed to get group by id {GroupId}: {reason}");
             response.Reason.Should().Be(reason);
         }
     }

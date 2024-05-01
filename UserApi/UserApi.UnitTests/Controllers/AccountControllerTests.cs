@@ -6,7 +6,7 @@ using FluentAssertions;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using NUnit.Framework;
 using UserApi.Contract.Responses;
@@ -15,8 +15,6 @@ using UserApi.Services;
 using Testing.Common.Assertions;
 using UserApi.Contract.Requests;
 using FizzWare.NBuilder;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using UserApi.Security;
 
 namespace UserApi.UnitTests.Controllers
 {
