@@ -5,7 +5,7 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref: upgrade-dotnet-default
+      ref: master
       endpoint: hmcts
 
 trigger: none
@@ -42,6 +42,7 @@ stages:
           - template: templates/dotnet/build-test-analyse.yml@azTemplates
             parameters:
               nugetConfigPath: nuget.config
+              dotnetVersion: ${{ variables.dotnetVersion }}
               appName: ${{ variables.appName }}
               dockerComposeTestFile: docker-compose.tests.yml
               sonarExtraProperties: |
@@ -72,6 +73,7 @@ stages:
         steps:
           - template: templates\dotnet\publish-acceptance-tests.yml@azTemplates
             parameters:
+              netVersion: ${{ variables.dotnetVersion }}
               vstsFeedId: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
               coreProjectPath: $(projectPath)
 
@@ -226,6 +228,7 @@ stages:
         steps:
           - template: templates/dotnet/run-acceptance-tests.yml@azTemplates
             parameters:
+              netVersion: ${{ variables.dotnetVersion }}
               environment: ${{ variables.env }}
               azureSubscription: ${{ variables.subscriptionName }}
               acceptanceTestSettings:
