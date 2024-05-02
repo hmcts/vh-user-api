@@ -87,5 +87,5 @@ variables:
 
   - name: dotnetVersion
     value: '8.x'
-  - name: efDotnetToolVersion:
+  - name: efDotnetToolVersion
     value: '8.0.4'
