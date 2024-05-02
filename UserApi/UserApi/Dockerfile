@@ -14,7 +14,8 @@ RUN dotnet publish "UserApi.csproj" -c Release -o /app/publish
 
 # Create Final Image.
 FROM base AS final
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl \
+    && apt-get clean
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "UserApi.dll"]
