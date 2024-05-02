@@ -22,5 +22,13 @@ namespace Testing.Common.Helpers
                 Content = new StringContent(content)
             };
         }
+        
+        public static HttpResponseMessage CreateHttpResponseMessageForJson(string jsonString, HttpStatusCode httpStatusCode)
+        {
+            return new HttpResponseMessage(httpStatusCode)
+            {
+                Content = new StringContent(jsonString, System.Text.Encoding.UTF8, "application/json")
+            };
+        }
     }
 }
