@@ -86,6 +86,6 @@ variables:
     value: "vh-infra-core-${{ parameters.env }}-sql-password"
 
   - name: dotnetVersion
-    value: 8.x
+    value: '8.x'
   - name: efDotnetToolVersion:
     value: '8.0.4'
