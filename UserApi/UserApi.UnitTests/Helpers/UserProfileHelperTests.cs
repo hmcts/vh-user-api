@@ -7,7 +7,7 @@ using NUnit.Framework;
 using UserApi.Helper;
 using UserApi.Services;
 using System.Threading.Tasks;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 
 namespace UserApi.UnitTests.Helpers
 {

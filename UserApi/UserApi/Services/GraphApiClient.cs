@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UserApi.Helper;
 using UserApi.Services.Models;
-using User = Microsoft.Graph.Models.User;
+using User = Microsoft.Graph.User;
 
 namespace UserApi.Services
 {

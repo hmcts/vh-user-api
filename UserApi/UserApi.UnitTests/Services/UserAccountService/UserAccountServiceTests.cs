@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -80,7 +80,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             {
                 Id = "1",
                 AdditionalData = additionalData,
-                OdataType = "@odata.type"
+                ODataType = "@odata.type"
             };
             
 
@@ -232,7 +232,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             {
                 Id = "1",
                 AdditionalData = additionalData,
-                OdataType = "@odata.type"
+                ODataType = "@odata.type"
             };
 
             var serialised = JsonConvert.SerializeObject(directoryObject);

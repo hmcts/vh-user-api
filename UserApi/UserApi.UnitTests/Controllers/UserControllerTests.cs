@@ -9,7 +9,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Assertions;

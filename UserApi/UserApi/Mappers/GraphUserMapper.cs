@@ -1,6 +1,6 @@
 using System.Linq;
 using UserApi.Contract.Responses;
-using GraphUser = Microsoft.Graph.Models.User;
+using GraphUser = Microsoft.Graph.User;
 
 namespace UserApi.Mappers
 {

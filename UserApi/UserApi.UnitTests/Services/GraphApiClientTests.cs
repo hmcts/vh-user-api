@@ -10,7 +10,6 @@ using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Testing.Common.Helpers;
-using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
@@ -74,7 +73,7 @@ namespace UserApi.UnitTests.Services
             var json = JsonConvert.SerializeObject(user);
 
             _secureHttpRequest.Setup(x => x.PostAsync(It.IsAny<string>(),It.IsAny<StringContent>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.Models.User(), HttpStatusCode.OK));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(new Microsoft.Graph.User(), HttpStatusCode.OK));
             _passwordService.Setup(x => x.GenerateRandomPasswordWithDefaultComplexity()).Returns(_defaultPassword);
 
             var response = await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail);
@@ -91,8 +90,8 @@ namespace UserApi.UnitTests.Services
             var filter = $"startswith(userPrincipalName,'{text.Replace("'", "''")}')";
             _queryUrl += $"?$filter={filter}";
 
-            var user = new Microsoft.Graph.Models.User() { UserPrincipalName = "TestUser" };
-            var azureAdGraphQueryResponse = new GraphQueryResponse<Microsoft.Graph.Models.User>() { Value = new List<Microsoft.Graph.Models.User> { user } };
+            var user = new Microsoft.Graph.User() { UserPrincipalName = "TestUser" };
+            var azureAdGraphQueryResponse = new GraphQueryResponse<Microsoft.Graph.User>() { Value = new List<Microsoft.Graph.User> { user } };
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
 
@@ -258,7 +257,7 @@ namespace UserApi.UnitTests.Services
             if (!string.IsNullOrEmpty(contactEmail))
             {
                 result.Mail.Should().Be(contactEmail);
-                result.OtherMails!.Count.Should().Be(1);
+                result.OtherMails!.Count().Should().Be(1);
                 result.OtherMails.Should().Contain(contactEmail);
             }
             else

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using UserApi.Services.Models;
 
 namespace UserApi.Services

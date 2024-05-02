@@ -1,5 +1,5 @@
 using System;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ using UserApi.Security;
 using UserApi.Services.Models;
 using System.Text.RegularExpressions;
 using UserApi.Mappers;
-using Group = Microsoft.Graph.Models.Group;
+using Group = Microsoft.Graph.Group;
 using UserApi.Validations;
 
 namespace UserApi.Services

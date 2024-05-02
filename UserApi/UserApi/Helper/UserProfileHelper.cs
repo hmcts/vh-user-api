@@ -1,4 +1,4 @@
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Linq;

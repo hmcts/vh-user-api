@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Helpers;

@@ -4,8 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using Moq;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Testing.Common.Helpers;
 using UserApi.Security;
@@ -43,27 +44,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
         [Test]
         public async Task Should_return_judges_list_successfully()
-        {
-            var jsonResponse = """
-                               {
-                                 '@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#users(id,otherMails,userPrincipalName,displayName,givenName,surname)',
-                                 '@odata.count': 1,
-                                 'value': [
-                                   {
-                                     'id': 'a3d6e5c6-3a70-4ebe-9294-b549f59ff198',
-                                     'otherMails': [
-                                       'manual.test@test.com'
-                                     ],
-                                     'userPrincipalName': 'test.judge@test.net',
-                                     'displayName': 'Test Judge',
-                                     'givenName': 'Test',
-                                     'surname': 'Judge'
-                                   }
-                                 ]
-                               }
-                               """;
+        {            
             SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
-                            .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessageForJson(jsonResponse, HttpStatusCode.OK));
+                            .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
 
             Service = new UserApi.Services.UserAccountService
             (
@@ -82,37 +65,19 @@ namespace UserApi.UnitTests.Services.UserAccountService
             SecureHttpRequest
                 .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
+
+            var users = new List<User> 
+            { 
+                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
+                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
+            };
             
-            var jsonResponse = """
-                               {
-                                 '@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#users(id,otherMails,userPrincipalName,displayName,givenName,surname)',
-                                 '@odata.count': 2,
-                                 'value': [
-                                   {
-                                     'id': 'a3d6e5c6-3a70-4ebe-9294-b549f59ff198',
-                                     'otherMails': [
-                                       'manual.test@test.com'
-                                     ],
-                                     'userPrincipalName': 'test.judge@test.net',
-                                     'displayName': 'Test Judge',
-                                     'givenName': 'Test',
-                                     'surname': 'Judge'
-                                   },
-                                   {
-                                     'id': '110a8327-1fe4-4844-8c17-269bacaf0a96',
-                                     'otherMails': [
-                                       'manual.test2@test.com'
-                                     ],
-                                     'userPrincipalName': 'test2.judge2@test.net',
-                                     'displayName': 'Test2 Judge2',
-                                     'givenName': 'Test2',
-                                     'surname': 'Judge2'
-                                   }
-                                 ]
-                               }
-                               """;
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessageForJson(jsonResponse, HttpStatusCode.OK));
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
             Service = new UserApi.Services.UserAccountService
             (
@@ -122,8 +87,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(2);
-            response[0].DisplayName.Should().Be("Test Judge");
-            response[response.Count-1].DisplayName.Should().Be("Test2 Judge2");
+            response[0].DisplayName.Should().Be("T Test");
+            response[response.Count-1].DisplayName.Should().Be("T Tester");
             
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
@@ -132,49 +97,30 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_call_graph_api_two_times_following_nextlink()
         {
             _graphQueryResponse.Value.Add(_group);
-            var jsonResponse1 = """
-                               {
-                                 '@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#users(id,otherMails,userPrincipalName,displayName,givenName,surname)',
-                                 '@odata.count': 1,
-                                 '@odata.nextLink': 'somenextlink',
-                                 'value': [
-                                   {
-                                     'id': 'a3d6e5c6-3a70-4ebe-9294-b549f59ff198',
-                                     'otherMails': [
-                                       'manual.test@test.com'
-                                     ],
-                                     'userPrincipalName': 'test.judge@test.net',
-                                     'displayName': 'Test Judge',
-                                     'givenName': 'Test',
-                                     'surname': 'Judge'
-                                   }
-                                 ]
-                               }
-                               """;
-            
-            var jsonResponse2 = """
-                               {
-                                 '@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#users(id,otherMails,userPrincipalName,displayName,givenName,surname)',
-                                 '@odata.count': 1,
-                                 'value': [
-                                   {
-                                     'id': '110a8327-1fe4-4844-8c17-269bacaf0a96',
-                                     'otherMails': [
-                                       'manual.test2@test.com'
-                                     ],
-                                     'userPrincipalName': 'test2.judge2@test.net',
-                                     'displayName': 'Test2 Judge2',
-                                     'givenName': 'Test2',
-                                     'surname': 'Judge2'
-                                   }
-                                 ]
-                               }
-                               """;
+
+            var users1 = new List<User>
+            {
+                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
+                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
+            };
+
+            var users2 = new List<User>
+            {
+                new User { Id = "Test123", DisplayName = "T Tester", GivenName = "Test", Surname = "Tester" },
+                new User { Id = "Test124", DisplayName = "T Test", GivenName = "Tester", Surname = "Test" }
+            };
+
+            var directoryObject1 = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            directoryObject1.AdditionalData.Add("value", JsonConvert.SerializeObject(users1));
+            directoryObject1.AdditionalData.Add("@odata.nextLink", "someLinkToNextPage");
+
+            var directoryObject2 = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            directoryObject2.AdditionalData.Add("value", JsonConvert.SerializeObject(users2));
 
             SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessageForJson(jsonResponse1, HttpStatusCode.OK));
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, "somenextlink"))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessageForJson(jsonResponse2, HttpStatusCode.OK));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject1, HttpStatusCode.OK));
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, "someLinkToNextPage"))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject2, HttpStatusCode.OK));
 
             Service = new UserApi.Services.UserAccountService
             (
@@ -183,10 +129,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             var response = (await Service.GetJudgesAsync()).ToList();
 
-            response.Count.Should().Be(2);
+            response.Count.Should().Be(4);
 
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
-            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, "somenextlink"), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, "someLinkToNextPage"), Times.Once);
         }
 
         [Test]
@@ -240,37 +186,19 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             _graphQueryResponse.Value.Add(_group);
             
-            var jsonResponse = """
-                               {
-                                 '@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#users(id,otherMails,userPrincipalName,displayName,givenName,surname)',
-                                 '@odata.count': 2,
-                                 'value': [
-                                   {
-                                     'id': 'Test1',
-                                     'userPrincipalName': 'judge_117@hmcts.net',
-                                     'displayName': 'Judge 117',
-                                     'givenName': 'Judge',
-                                     'surname': '117'
-                                   },
-                                   {
-                                     'id': 'Test2',
-                                     'userPrincipalName': 'judge_23@hmcts.net',
-                                     'displayName': 'Judge 23',
-                                     'givenName': 'Judge',
-                                     'surname': '23'
-                                   },
-                                   {
-                                     'id': 'Test3',
-                                     'userPrincipalName': 'judge_16@hmcts.net',
-                                     'displayName': 'Judge 16',
-                                     'givenName': 'Judge',
-                                     'surname': '16'
-                                   },
-                                 ]
-                               }
-                               """;
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessageForJson(jsonResponse, HttpStatusCode.OK));
+            var users = new List<User> 
+            { 
+                new User { Id = "Test1", DisplayName = "Judge 117", GivenName = "Judge", Surname = "117", UserPrincipalName = "judge_117@hmcts.net"},
+                new User { Id = "Test2", DisplayName = "Judge 23", GivenName = "Judge", Surname = "23", UserPrincipalName = "judge_23@hmcts.net" },
+                new User { Id = "Test3", DisplayName = "Judge 16", GivenName = "Judge", Surname = "16", UserPrincipalName = "judge_16@hmcts.net" }
+            };
+            
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
             Service = new UserApi.Services.UserAccountService
             (
@@ -292,39 +220,21 @@ namespace UserApi.UnitTests.Services.UserAccountService
             
             SecureHttpRequest
                 .Setup(x => x.GetAsync(It.IsAny<string>(), _judgesGroup))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK));
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(_graphQueryResponse, HttpStatusCode.OK)); 
+
+            var users = new List<User> 
+            { 
+                new User { Id = "Test1", DisplayName = "Judge Alpha", GivenName = "Judge", Surname = "Alpha", UserPrincipalName = "judge_ALPHA@hmcts.net"},
+                new User { Id = "Test2", DisplayName = "Judge 23", GivenName = "Judge", Surname = "23", UserPrincipalName = "judge_23@hmcts.net" },
+                new User { Id = "Test3", DisplayName = "Judge 16", GivenName = "Judge", Surname = "16", UserPrincipalName = "judge_16@hmcts.net" }
+            };
             
-            var jsonResponse = """
-                               {
-                                 '@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#users(id,otherMails,userPrincipalName,displayName,givenName,surname)',
-                                 '@odata.count': 2,
-                                 'value': [
-                                   {
-                                     'id': 'Test1',
-                                     'userPrincipalName': 'judge_ALPHA@hmcts.net',
-                                     'displayName': 'Judge Alpha',
-                                     'givenName': 'Judge',
-                                     'surname': 'Alpha'
-                                   },
-                                   {
-                                     'id': 'Test2',
-                                     'userPrincipalName': 'judge_23@hmcts.net',
-                                     'displayName': 'Judge 23',
-                                     'givenName': 'Judge',
-                                     'surname': '23'
-                                   },
-                                   {
-                                     'id': 'Test3',
-                                     'userPrincipalName': 'judge_16@hmcts.net',
-                                     'displayName': 'Judge 16',
-                                     'givenName': 'Judge',
-                                     'surname': '16'
-                                   },
-                                 ]
-                               }
-                               """;
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), _accessUri))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessageForJson(jsonResponse, HttpStatusCode.OK));
+            var directoryObject = new DirectoryObject { AdditionalData = new Dictionary<string, object>() };
+            
+            directoryObject.AdditionalData.Add("value", JsonConvert.SerializeObject(users));
+
+            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri))
+                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
             Service = new UserApi.Services.UserAccountService
             (

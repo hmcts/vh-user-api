@@ -6,7 +6,7 @@ using FluentAssertions;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Graph.Models;
+using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using UserApi.Contract.Responses;
