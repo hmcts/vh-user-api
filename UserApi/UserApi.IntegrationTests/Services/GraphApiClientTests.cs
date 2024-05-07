@@ -1,9 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
-using Moq;
 using NUnit.Framework;
 using Testing.Common.Configuration;
-using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;

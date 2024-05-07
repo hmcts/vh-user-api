@@ -15,8 +15,6 @@ using UserApi.Services;
 using Testing.Common.Assertions;
 using UserApi.Contract.Requests;
 using FizzWare.NBuilder;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using UserApi.Security;
 
 namespace UserApi.UnitTests.Controllers
 {
