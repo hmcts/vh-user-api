@@ -20,7 +20,6 @@ namespace UserApi.Controllers
     [Produces("application/json")]
     [Route("users")]
     [ApiController]
-    [AllowAnonymous]
     public class UserController : ControllerBase
     {
         private readonly TelemetryClient _telemetryClient;
