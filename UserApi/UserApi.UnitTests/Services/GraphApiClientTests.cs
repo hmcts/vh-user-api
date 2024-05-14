@@ -95,7 +95,7 @@ namespace UserApi.UnitTests.Services
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
 
-            var response = await _client.GetUsernamesStartingWithAsync(text);
+            var response = (await _client.GetUsernamesStartingWithAsync(text)).ToList();
 
             response.Should().NotBeNull();
             var users = response.ToList();
@@ -203,7 +203,7 @@ namespace UserApi.UnitTests.Services
            var exception = Assert.ThrowsAsync<IdentityServiceApiException>(async () => await _client.DeleteUserAsync(UserName));
 
             exception.Should().NotBeNull();
-            exception.Message.Should().Be("Failed to call API: Unauthorized\r\ntest");
+            exception!.Message.Should().Be("Failed to call API: Unauthorized\r\ntest");
         }
         
         [Test]
@@ -332,7 +332,7 @@ namespace UserApi.UnitTests.Services
             if (!string.IsNullOrEmpty(contactEmail))
             {
                 result.Mail.Should().Be(contactEmail);
-                result.OtherMails.Count().Should().Be(1);
+                result.OtherMails!.Count().Should().Be(1);
                 result.OtherMails.Should().Contain(contactEmail);
             }
             else

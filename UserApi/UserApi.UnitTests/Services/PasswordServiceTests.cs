@@ -28,10 +28,11 @@ namespace UserApi.UnitTests.Services
 
                 result.Should().NotBeNullOrWhiteSpace();
                 result.Length.Should().Be(12);
-                Assert.True(result.Any(x => uppercase.Contains(x)), $"Did not contain uppercase: Result: {result}");
-                Assert.True(result.Any(x => lowercase.Contains(x)), $"Did not contain lowercase: Result: {result}");
-                Assert.True(result.Any(x => digits.Contains(x)), $"Did not contain digits: Result: {result}");
-                Assert.True(result.Any(x => nonAlphaNumeric.Contains(x)), $"Did not contain nonAlphaNumeric: Result: {result}"); 
+                
+                result.Any(x => uppercase.Contains(x)).Should().BeTrue("because the result should contain an uppercase letter");
+                result.Any(x => lowercase.Contains(x)).Should().BeTrue("because the result should contain a lowercase letter");
+                result.Any(x => digits.Contains(x)).Should().BeTrue("because the result should contain a digit");
+                result.Any(x => nonAlphaNumeric.Contains(x)).Should().BeTrue("because the result should contain a non-alphanumeric character");
             }
         }
     }

@@ -157,10 +157,10 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var testJudges = new List<UserResponse> { new UserResponse { Email = "test@hmcts.net" } };
 
             var result = judgesList.Except(testJudges, UserApi.Services.UserAccountService.CompareJudgeById).ToList();
-
-            Assert.AreEqual(2, result.Count);
-            Assert.AreEqual("aa@hmcts.net", result[0].Email);
-            Assert.AreEqual("bb@hmcts.net", result[1].Email);
+            
+            result.Should().HaveCount(2);
+            result[0].Email.Should().Be("aa@hmcts.net");
+            result[1].Email.Should().Be("bb@hmcts.net");
 
         }
 
@@ -177,12 +177,12 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             var result = await Service.GetUserByFilterAsync("user@test.aa");
 
-            Assert.IsNotNull(result);
-            Assert.AreEqual("1", result.Id);
-            Assert.AreEqual("T Tester", result.DisplayName);
-            Assert.AreEqual("Test", result.GivenName);
-            Assert.AreEqual("Tester", result.Surname);
-            Assert.AreEqual("TestUser", result.UserPrincipalName);
+            result.Should().NotBeNull();
+            result.Id.Should().Be("1");
+            result.DisplayName.Should().Be("T Tester");
+            result.GivenName.Should().Be("Test");
+            result.Surname.Should().Be("Tester");
+            result.UserPrincipalName.Should().Be("TestUser");
         }
 
         [Test]
@@ -199,7 +199,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             var result = await Service.GetUserByFilterAsync("user@test.aa");
 
-            Assert.IsNull(result);
+            result.Should().BeNull();
         }
 
         [Test]
@@ -215,8 +215,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             var result = await Service.GetGroupsForUserAsync("user@test.aa");
 
-            Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            result.Should().NotBeNull();
+            result.Count.Should().Be(1);
         }
 
         [Test]
@@ -246,8 +246,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
             var result = await Service.GetGroupsForUserAsync("user@test.aa");
 
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
         }
 
         [Test]
@@ -257,7 +257,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 .ReturnsAsync(new List<string> { "adam.green" });
             var result = await Service.CheckForNextAvailableUsernameAsync("Adam","Green", null);
 
-            Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
+            result.Should().Contain("adam.green@hearings.test.server.net");
         }
         
         [Test]
@@ -267,7 +267,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 .ReturnsAsync(new List<string> { "janemary.vangreen" });
             var result = await Service.CheckForNextAvailableUsernameAsync("Jane Mary","van Green", null);
 
-            Assert.IsTrue(result.Contains("janemary.vangreen@hearings.test.server.net"));
+            result.Should().Contain("janemary.vangreen@hearings.test.server.net");
         }
 
         [Test]
@@ -277,7 +277,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 .ReturnsAsync(new List<string> { "adam.green2@hearings.test.server.net", "adam.green@hearings.test.server.net", "adam.green1@hearings.test.server.net" });
             var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green", null);
 
-            Assert.IsTrue(result.Contains("adam.green3@hearings.test.server.net"));
+            result.Should().Contain("adam.green3@hearings.test.server.net");
         }
 
         [Test]
@@ -287,7 +287,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 .ReturnsAsync(new List<string> ());
             var result = await Service.CheckForNextAvailableUsernameAsync("Adam", "Green", null);
 
-            Assert.IsTrue(result.Contains("adam.green@hearings.test.server.net"));
+            result.Should().Contain("adam.green@hearings.test.server.net");
         }
 
         [Test]

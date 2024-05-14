@@ -50,7 +50,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByIdAsync(GroupId));
 
             response.Should().NotBeNull();
-            response.Message.Should().Be($"Failed to get group by id {GroupId}: {reason}");
+            response!.Message.Should().Be($"Failed to get group by id {GroupId}: {reason}");
             response.Reason.Should().Be(reason);
         }
     }

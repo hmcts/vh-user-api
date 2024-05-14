@@ -168,12 +168,5 @@ namespace UserApi.UnitTests.Helpers
 
             _accountService.Setup(x => x.GetGroupsForUserAsync(user.Id)).ReturnsAsync(new List<Group>(groups));
         }
-
-        private void GivenFilterReturnsUserWithCaseTypeGroups(params string[] groupDisplayNames)
-        {
-            var user = new User { Id = Guid.NewGuid().ToString() };
-
-            GivenFilterReturnsUserWithGroups(user, "CT", groupDisplayNames);
-        }
     }
 }

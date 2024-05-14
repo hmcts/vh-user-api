@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSwag;
 using NSwag.Generation.Processors.Security;
 using UserApi.Common;
@@ -33,7 +35,13 @@ namespace UserApi
 
         private static void AddSwaggerToApi(this IServiceCollection services)
         {
-            services.AddSingleton<FluentValidationSchemaProcessor>();
+            services.AddScoped(provider =>
+            {
+                var validationRules = provider.GetService<IEnumerable<FluentValidationRule>>();
+                var loggerFactory = provider.GetService<ILoggerFactory>();
+
+                return new FluentValidationSchemaProcessor(provider, validationRules, loggerFactory);
+            });
             services.AddOpenApiDocument((document, serviceProvider) =>
             {
                 document.Title = "User API";
@@ -49,10 +57,11 @@ namespace UserApi
                         }));
                 document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
                 document.OperationProcessors.Add(new AuthResponseOperationProcessor());
-                var fluentValidationSchemaProcessor = serviceProvider.GetService<FluentValidationSchemaProcessor>();
+                var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider
+                    .GetService<FluentValidationSchemaProcessor>();
 
                 // Add the fluent validations schema processor
-                document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
+                document.SchemaSettings.SchemaProcessors.Add(fluentValidationSchemaProcessor);
             });
         }
     }

@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,7 +50,7 @@ namespace UserApi
                     builder
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .SetIsOriginAllowed((host) => true)
+                        .SetIsOriginAllowed((_) => true)
                         .AllowCredentials();
                 }));
 
@@ -64,7 +63,8 @@ namespace UserApi
             services.AddMvc()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
             services.AddApplicationInsightsTelemetry();
-            services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["FeatureToggle:SdkKey"]));
+            var envName = Configuration["VhServices:UserApiResourceId"]; // any service url will do here since we only care about the env name
+            services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["LaunchDarkly:SdkKey"], envName));
 
             services.AddVhHealthChecks();
         }
@@ -128,7 +128,7 @@ namespace UserApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseOpenApi();
-            app.UseSwaggerUi3(c =>
+            app.UseSwaggerUi(c =>
             {
                 c.DocumentTitle = "User API V1";
             });

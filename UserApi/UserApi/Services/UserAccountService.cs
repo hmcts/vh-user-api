@@ -359,19 +359,21 @@ namespace UserApi.Services
                     throw new UserServiceException(message, reason);
                 }
 
-                var directoryObject = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
-                var response = JsonConvert.DeserializeObject<List<User>>(directoryObject.AdditionalData["value"].ToString());
+                var directoryObjectJson = await responseMessage.Content.ReadAsStringAsync();
+                JObject directoryObject = JsonConvert.DeserializeObject<JObject>(directoryObjectJson);
+                var response = JsonConvert.DeserializeObject<List<User>>(directoryObject["value"].ToString());
 
                 users.AddRange(response
                     .Where(x => username != null && x.UserPrincipalName.ToLower().Contains(username.ToLower()) || string.IsNullOrEmpty(username))
                     .Select(GraphUserMapper.MapToUserResponse));
 
-                if (!directoryObject.AdditionalData.ContainsKey("@odata.nextLink"))
+                
+                if (!directoryObject.TryGetValue("@odata.nextLink", out var value))
                 {
                     return users;
                 }
-
-                accessUri = directoryObject.AdditionalData["@odata.nextLink"].ToString();
+                    
+                accessUri = value.ToString();
             }
         }
 
