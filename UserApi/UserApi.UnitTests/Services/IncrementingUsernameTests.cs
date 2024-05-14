@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 using NUnit.Framework;
 using UserApi.Services;
 
@@ -22,10 +23,10 @@ namespace UserApi.UnitTests.Services
         public void Should_throw_if_given_bad_arguments()
         {
             var exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername(null, "domain"));
-            Assert.AreEqual("usernameBase", exception.ParamName);
+            exception.ParamName.Should().Be("usernameBase");
 
             exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername("username", null));
-            Assert.AreEqual("domain", exception.ParamName);
+            exception.ParamName.Should().Be("domain");
         }
 
         [Test]
@@ -38,7 +39,7 @@ namespace UserApi.UnitTests.Services
             GivenApiReturnsExistingUsers(existingUsers);
 
             var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
-            Assert.AreEqual("existing.user11@" + Domain, nextAvailable);
+            nextAvailable.Should().Be("existing.user11@" + Domain);
         }
 
         [Test]
@@ -49,7 +50,7 @@ namespace UserApi.UnitTests.Services
             GivenApiReturnsExistingUsers(username, username + "1", username + "3");
 
             var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
-            Assert.AreEqual("existing.user2@" + Domain, nextAvailable);
+            nextAvailable.Should().Be("existing.user2@" + Domain);
         }
 
         [Test]
@@ -59,7 +60,7 @@ namespace UserApi.UnitTests.Services
             GivenApiReturnsExistingUsers("existing.user", "existing.username1", "existing.username2", "existing.user1");
 
             var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
-            Assert.AreEqual("existing.user2@" + Domain, nextAvailable);
+            nextAvailable.Should().Be("existing.user2@" + Domain);
         }
 
         [Test]
@@ -70,7 +71,7 @@ namespace UserApi.UnitTests.Services
             GivenApiReturnsExistingUsers("EXisting.User", "ExistIng.UseR1");
 
             var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
-            Assert.AreEqual("existing.user2@" + Domain, nextAvailable);
+            nextAvailable.Should().Be("existing.user2@" + Domain);
         }
 
         private void GivenApiReturnsExistingUsers(params string[] existingUsernames)

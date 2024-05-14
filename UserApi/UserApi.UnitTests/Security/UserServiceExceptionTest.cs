@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using FluentAssertions;
+using NUnit.Framework;
 using UserApi.Security;
 
 namespace UserApi.UnitTests.Security
@@ -12,8 +13,8 @@ namespace UserApi.UnitTests.Security
             const string message = "message error";
 
             var exception = new UserServiceException(message, reason);
-            Assert.AreEqual(reason, exception.Reason);
-            Assert.AreEqual($"{message}: {reason}", exception.Message);
+            exception.Reason.Should().Be(reason);
+            exception.Message.Should().Be($"{message}: {reason}");
         }
 
         [Test]
@@ -23,8 +24,8 @@ namespace UserApi.UnitTests.Security
             const string message = "";
 
             var exception = new UserServiceException(message, reason);
-            Assert.AreEqual(reason, exception.Reason);
-            Assert.AreEqual(": ", exception.Message);
+            exception.Reason.Should().Be(reason);
+            exception.Message.Should().Be(": ");
         }
     }
 }

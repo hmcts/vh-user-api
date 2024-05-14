@@ -1,3 +1,5 @@
+using System;
+using LaunchDarkly.Logging;
 using LaunchDarkly.Sdk;
 using LaunchDarkly.Sdk.Server;
 using LaunchDarkly.Sdk.Server.Interfaces;
@@ -12,15 +14,27 @@ namespace UserApi.Common.Configuration
     public class FeatureToggles : IFeatureToggles
     {
         private readonly ILdClient _ldClient;
-        private readonly User _user;
-        private const string LdUser = "vh-user-api";
+        private readonly Context _context;
+        private const string LdUser = "vh-booking-api";
+        
         private const string SsprToggleKey = "sspr";
-        public FeatureToggles(string sdkKey)
+        public FeatureToggles(string sdkKey, string environmentName)
         {
-            _ldClient = new LdClient(sdkKey);
-            _user = User.WithKey(LdUser);
+            var config = LaunchDarkly.Sdk.Server.Configuration.Builder(sdkKey)
+                .Logging(Components.Logging(Logs.ToWriter(Console.Out)).Level(LogLevel.Warn)).Build();
+            _context = Context.Builder(LdUser).Name(environmentName).Build();
+            _ldClient = new LdClient(config);
         }
 
-        public bool SsprToggle() => _ldClient.BoolVariation(SsprToggleKey, _user);
+        public bool SsprToggle() => GetBoolToggle(SsprToggleKey);
+        
+        private bool GetBoolToggle(string key)
+        {
+            if (!_ldClient.Initialized)
+            {
+                throw new InvalidOperationException("LaunchDarkly client not initialized");
+            }
+            return _ldClient.BoolVariation(key, _context);
+        }
     }
 }

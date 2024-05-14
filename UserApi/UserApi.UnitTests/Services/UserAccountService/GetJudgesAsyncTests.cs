@@ -16,11 +16,9 @@ namespace UserApi.UnitTests.Services.UserAccountService
 {
     public class GetJudgesAsyncTests: UserAccountServiceTests
     {
-        private const string JudgeGroupName = "VirtualRoomJudge";
         private string _groupId;
         private GraphQueryResponse<Group> _graphQueryResponse;
         private string _judgesGroup;
-        private string _judgesTestGroup;
         private string _accessUri;
         private Group _group;
         private Settings _settings;
@@ -39,7 +37,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
             _group = new Group() { Id = _settings.AdGroup.VirtualRoomJudge };
 
             _judgesGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'Judge'";
-            _judgesTestGroup = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq 'TestAccount'";
 
             _accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{_groupId}/members/microsoft.graph.user?$filter=givenName ne null and not(startsWith(givenName, 'TP'))&$count=true" + 
                 "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
@@ -90,8 +87,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync()).ToList();
 
             response.Count.Should().Be(2);
-            response.First().DisplayName.Should().Be("T Test");
-            response.Last().DisplayName.Should().Be("T Tester");
+            response[0].DisplayName.Should().Be("T Test");
+            response[response.Count-1].DisplayName.Should().Be("T Tester");
             
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
@@ -180,7 +177,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetJudgesAsync());
 
             response.Should().NotBeNull();
-            response.Message.Should().Be($"Failed to get users for group {_groupId}: {reason}");
+            response!.Message.Should().Be($"Failed to get users for group {_groupId}: {reason}");
             response.Reason.Should().Be(reason);
         }
 
@@ -211,7 +208,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync("117")).ToList();
 
             response.Count.Should().Be(1);
-            response.First().DisplayName.Should().Be("Judge 117");
+            response[0].DisplayName.Should().Be("Judge 117");
 
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }
@@ -247,7 +244,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var response = (await Service.GetJudgesAsync("JUDGE_alpha")).ToList();
 
             response.Count.Should().Be(1);
-            response.First().DisplayName.Should().Be("Judge Alpha");
+            response[0].DisplayName.Should().Be("Judge Alpha");
 
             SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, _accessUri), Times.Once);
         }

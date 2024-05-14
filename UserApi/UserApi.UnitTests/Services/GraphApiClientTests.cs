@@ -10,7 +10,6 @@ using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Testing.Common.Helpers;
-using UserApi.Common.Configuration;
 using UserApi.Helper;
 using UserApi.Services;
 using UserApi.Services.Models;
@@ -22,7 +21,6 @@ namespace UserApi.UnitTests.Services
         private Mock<IGraphApiSettings> _graphApiSettings;
         private Mock<ISecureHttpRequest> _secureHttpRequest;
         private Mock<IPasswordService> _passwordService;
-        private Mock<IFeatureToggles> _featureToggles;
         private GraphApiClient _client;
         private string _baseUrl;
         private string _queryUrl;
@@ -39,7 +37,6 @@ namespace UserApi.UnitTests.Services
             _defaultPassword = settings.DefaultPassword;
             _baseUrl = $"{_graphApiSettings.Object.GraphApiBaseUri}/v1.0/{_graphApiSettings.Object.TenantId}";
             _queryUrl = $"{_baseUrl}/users";
-            _featureToggles = new Mock<IFeatureToggles>();
             _client = new GraphApiClient(_secureHttpRequest.Object, _graphApiSettings.Object, _passwordService.Object, settings);
         }
 
@@ -98,12 +95,12 @@ namespace UserApi.UnitTests.Services
             _secureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(azureAdGraphQueryResponse, HttpStatusCode.OK));
 
-            var response = await _client.GetUsernamesStartingWithAsync(text);
+            var response = (await _client.GetUsernamesStartingWithAsync(text)).ToList();
 
             response.Should().NotBeNull();
             var users = response.ToList();
             users.Count.Should().Be(1);
-            users.First().Should().Be("TestUser");
+            users[0].Should().Be("TestUser");
             _secureHttpRequest.Verify(x => x.GetAsync(_graphApiSettings.Object.AccessToken, _queryUrl), Times.Once);
         }
      
@@ -131,7 +128,7 @@ namespace UserApi.UnitTests.Services
            var exception = Assert.ThrowsAsync<IdentityServiceApiException>(async () => await _client.DeleteUserAsync(UserName));
 
             exception.Should().NotBeNull();
-            exception.Message.Should().Be("Failed to call API: Unauthorized\r\ntest");
+            exception!.Message.Should().Be("Failed to call API: Unauthorized\r\ntest");
         }
         
         [Test]
@@ -260,7 +257,7 @@ namespace UserApi.UnitTests.Services
             if (!string.IsNullOrEmpty(contactEmail))
             {
                 result.Mail.Should().Be(contactEmail);
-                result.OtherMails.Count().Should().Be(1);
+                result.OtherMails!.Count().Should().Be(1);
                 result.OtherMails.Should().Contain(contactEmail);
             }
             else
