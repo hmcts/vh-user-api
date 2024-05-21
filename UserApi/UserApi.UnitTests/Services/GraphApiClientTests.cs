@@ -9,6 +9,7 @@ using FluentAssertions;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Testing.Common.Helpers;
 using UserApi.Helper;
 using UserApi.Services;
@@ -127,7 +128,7 @@ namespace UserApi.UnitTests.Services
             var result = await _client.GetUsernamesStartingWithAsync(usernameBase, contactEmail);
 
             // Assert
-            Assert.AreEqual(expectedUsernames, result.ToList());
+            ClassicAssert.AreEqual(expectedUsernames, result.ToList());
         }
         
         [Test]
@@ -176,7 +177,7 @@ namespace UserApi.UnitTests.Services
             var result = await _client.GetUsernamesStartingWithAsync(usernameBase, null, firstName, lastName);
 
             // Assert
-            Assert.AreEqual(expectedUsernames, result.ToList());
+            ClassicAssert.AreEqual(expectedUsernames, result.ToList());
         }
      
 
