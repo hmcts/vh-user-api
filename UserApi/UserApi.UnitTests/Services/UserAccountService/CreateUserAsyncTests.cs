@@ -31,7 +31,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
         public async Task Should_create_new_user_account_successfully()
         {
             var existingUsers = new[] { "existing.user", "existing.user1" };
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>()))
+            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, null, null))
                 .ReturnsAsync(existingUsers.Select(username => username + Domain));
 
             Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
