@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>280634DA-05AA-4134-9EF3-05C2985378A9</ProjectGuid>
+    <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
+    <TargetFramework />
   </PropertyGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
