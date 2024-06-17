@@ -18,7 +18,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using UserApi.Common;
-using UserApi.Common.Configuration;
 using UserApi.Health;
 using UserApi.Helper;
 using UserApi.Validations;
@@ -63,9 +62,6 @@ namespace UserApi
             services.AddMvc()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
             services.AddApplicationInsightsTelemetry();
-            var envName = Configuration["VhServices:UserApiResourceId"]; // any service url will do here since we only care about the env name
-            services.AddSingleton<IFeatureToggles>(new FeatureToggles(Configuration["LaunchDarkly:SdkKey"], envName));
-
             services.AddVhHealthChecks();
         }
 
