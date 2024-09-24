@@ -1,7 +1,8 @@
 ﻿using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration.KeyPerFile;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using VH.Core.Configuration;
 
 namespace UserApi
 {
@@ -22,13 +23,19 @@ namespace UserApi
             const string vhInfraCore = "/mnt/secrets/vh-infra-core";
             const string vhUserApi = "/mnt/secrets/vh-user-api";
             const string vhAdminWeb = "/mnt/secrets/vh-admin-web";
+            var keyVaults = new[] { vhInfraCore, vhUserApi, vhAdminWeb };
 
             return Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((configBuilder) =>
                 {
-                    configBuilder.AddAksKeyVaultSecretProvider(vhInfraCore);
-                    configBuilder.AddAksKeyVaultSecretProvider(vhUserApi);
-                    configBuilder.AddAksKeyVaultSecretProvider(vhAdminWeb);
+                    foreach (var keyVault in keyVaults)
+                    {
+                        var filePath = $"/mnt/secrets/{keyVault}";
+                        if (Directory.Exists(filePath))
+                        {
+                            configBuilder.Add(GetKeyPerFileSource(filePath));    
+                        }
+                    }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
@@ -36,6 +43,17 @@ namespace UserApi
                     webBuilder.UseIISIntegration();
                     webBuilder.UseStartup<Startup>();
                 });
+        }
+        
+        private static KeyPerFileConfigurationSource GetKeyPerFileSource(string filePath)
+        {
+            return new KeyPerFileConfigurationSource
+            {
+                FileProvider = new PhysicalFileProvider(filePath),
+                Optional = true,
+                ReloadOnChange = true,
+                SectionDelimiter = "--" // Set your custom delimiter here
+            };
         }
     }
 }
