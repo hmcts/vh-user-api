@@ -13,7 +13,10 @@ dotnet tool restore
 The branch name should start with: feature/VIH-XXXX-branchName  (X - is digit).
 If git version is less than 2.9 the pre-commit file from the .githooks folder need copy to local .git/hooks folder.
 To change git hooks directory to directory under source control run (works only for git version 2.9 or greater) :
-$ git config core.hooksPath .githooks
+
+``` shell
+git config core.hooksPath .githooks
+```
 
 ## Commit message
 
@@ -44,3 +47,8 @@ dotnet stryker
 ```
 
 From the results look for line(s) of code highlighted with Survived\No Coverage and fix them.
+
+## Running the app as a container
+
+Visit the VH-Setup repository for
+[Instructions to run as a container locally.](https://github.com/hmcts/vh-setup/tree/main/docs/local-container-setup).

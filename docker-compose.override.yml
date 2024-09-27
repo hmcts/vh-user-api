@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  userapi:
+    container_name: userapi
+    image: ${DOCKER_REGISTRY-}userapi:local
+    environment:
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp-vh.pfx
+    ports:
+      - 5201:80
+      - 5200:443
+    volumes:
+      - ~/.aspnet/DataProtection-Keys:/root/.aspnet/DataProtection-Keys
+      - ~/.aspnet/https:/https:ro
+      - ~/.microsoft/usersecrets/:/root/.microsoft/usersecrets:ro # comment this line if you don't use dotnet user secrets
+      - ~/mnt/secrets:/mnt/secrets:ro # comment this line if you don't use mounted secrets
+    build:
+      context: .
+      dockerfile: UserApi/UserApi/Dockerfile
