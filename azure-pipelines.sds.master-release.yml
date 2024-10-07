@@ -34,6 +34,29 @@ pool:
 
 stages:
 #####################################################
+# CI Build Tasks. ###################################
+- stage: CI_Build
+  dependsOn: []
+  variables:
+    - template: variables/shared.yaml
+  displayName: Test & Sonar
+  jobs:
+    - job: UnitAndIntegrationTests
+      displayName: 'Unit and Integration Tests'
+      steps:
+        - checkout: self
+
+        - template: templates/dotnet/build-test-analyse.yml@azTemplates
+          parameters:
+            dotnetVersion: ${{ variables.dotnetVersion }}
+            nugetConfigPath: nuget.config
+            appName: ${{ variables.appName }}
+            dockerComposeTestFile: docker-compose.tests.yml
+            sonarExtraProperties: |
+                sonar.cs.opencover.reportsPaths=$(System.DefaultWorkingDirectory)/coverage.opencover.xml
+                sonar.exclusions=**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**
+
+#####################################################
 # Manual Approval ###################################
 - ${{ each stage in parameters.stages }}:
   - stage: Manual_Approval_${{ stage.env }}
