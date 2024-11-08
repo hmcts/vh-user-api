@@ -1,12 +1,12 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace UserApi.Validations
 {
     /// <summary>Simple validator to check email formats</summary>
-    public static class EmailValidation
+    public static partial class EmailValidation
     {
-        private const string RegexPattern = @"^([!#-'*/-9=?A-Z^-~-]+(\.[!#-'*/-9=?A-Z^-~-]+)*)@([!#-'*/-9=?A-Z^-~-]+(\.[!#-'*/-9=?A-Z^-~-]+)+)$";
+        [GeneratedRegex(@"^([!#-'*/-9=?A-Z^-~-]+(\.[!#-'*/-9=?A-Z^-~-]+)*)@([!#-'*/-9=?A-Z^-~-]+(\.[!#-'*/-9=?A-Z^-~-]+)+)$")]
+        private static partial Regex EmailRegex();
 
         /// <summary>
         /// Test if the given string is specified and a valid email address
@@ -19,7 +19,7 @@ namespace UserApi.Validations
             if (string.IsNullOrEmpty(email))
                 return false;
 
-            var match = Regex.Match(email, RegexPattern);
+            var match = EmailRegex().Match(email);
             return match.Success;
         }
     }

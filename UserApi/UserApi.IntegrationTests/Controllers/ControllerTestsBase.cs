@@ -51,7 +51,7 @@ namespace UserApi.IntegrationTests.Controllers
             _server.Dispose();
         }
 
-        private IConfigurationRoot ConfigurationRoot => new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        private static IConfigurationRoot ConfigurationRoot => new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
         private VhServices TestConfiguration
         {
@@ -103,12 +103,6 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using var client = CreateClient();
             return await client.PatchAsync(uri, httpContent);
-        }
-
-        protected async Task<HttpResponseMessage> SendPutRequestAsync(string uri, StringContent httpContent)
-        {
-            using var client = CreateClient();
-            return await client.PutAsync(uri, httpContent);
         }
 
         protected async Task<HttpResponseMessage> SendDeleteRequestAsync(string uri)

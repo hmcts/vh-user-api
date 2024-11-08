@@ -54,7 +54,7 @@ namespace UserApi.UnitTests.ValidateArguments
                 .Should().BeTrue();
         }
 
-        private UpdateUserAccountRequest BuildRequest()
+        private static UpdateUserAccountRequest BuildRequest()
         {
             return Builder<UpdateUserAccountRequest>.CreateNew()
                 .With(x => x.FirstName = "John")

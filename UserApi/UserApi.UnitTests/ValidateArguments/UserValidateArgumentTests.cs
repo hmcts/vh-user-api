@@ -41,7 +41,7 @@ namespace UserApi.UnitTests.ValidateArguments
                 .Should().BeTrue();
         }
 
-        private CreateUserRequest BuildRequest()
+        private static CreateUserRequest BuildRequest()
         {
             return Builder<CreateUserRequest>.CreateNew()
                 .With(x => x.FirstName = "John")

@@ -182,7 +182,6 @@ namespace UserApi.Services
 
         private static async Task AssertResponseIsSuccessful(HttpResponseMessage response)
         {
-            // TODO: Move this code into the http request class and have that throw an exception if response type isn't valid
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();

@@ -18,7 +18,7 @@ using UserApi.Validations;
 
 namespace UserApi.Services
 {
-    public class UserAccountService : IUserAccountService
+    public partial class UserAccountService : IUserAccountService
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
@@ -27,6 +27,9 @@ namespace UserApi.Services
         private readonly IIdentityServiceApiClient _client;
         private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
+        
+        [GeneratedRegex("^\\.|\\.$")]
+        private static partial Regex PeriodRegex();
 
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
@@ -290,12 +293,11 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName, string contactEmail)
         {
-            var periodRegexString = "^\\.|\\.$";
-            var sanitisedFirstName = Regex.Replace(firstName, periodRegexString, string.Empty);
-            var sanitisedLastName = Regex.Replace(lastName, periodRegexString, string.Empty);
+            var sanitisedFirstName = PeriodRegex().Replace(firstName, string.Empty);
+            var sanitisedLastName = PeriodRegex().Replace(lastName, string.Empty);
 
-            sanitisedFirstName = Regex.Replace(sanitisedFirstName, " ", string.Empty);
-            sanitisedLastName = Regex.Replace(sanitisedLastName, " ", string.Empty);
+            sanitisedFirstName = sanitisedFirstName.Replace(" ", string.Empty);
+            sanitisedLastName = sanitisedLastName.Replace(" ", string.Empty);
 
             var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
@@ -364,7 +366,9 @@ namespace UserApi.Services
                 var response = JsonConvert.DeserializeObject<List<User>>(directoryObject["value"].ToString());
 
                 users.AddRange(response
-                    .Where(x => username != null && x.UserPrincipalName.ToLower().Contains(username.ToLower()) || string.IsNullOrEmpty(username))
+                    .Where(x => username != null 
+                        && x.UserPrincipalName.Contains(username, StringComparison.CurrentCultureIgnoreCase) 
+                        || string.IsNullOrEmpty(username))
                     .Select(GraphUserMapper.MapToUserResponse));
 
                 

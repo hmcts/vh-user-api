@@ -35,5 +35,6 @@ namespace UserApi
         public string TestAccount { get; set; }
         public string VirtualRoomAdministrator { get; set; }
         public string StaffMember { get; set; }
+        public string UserApiTestGroup { get; set; }
     }
 }

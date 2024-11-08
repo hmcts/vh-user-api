@@ -41,7 +41,7 @@ namespace UserApi.UnitTests.ValidateArguments
                 .Should().BeTrue();
         }
 
-        private AddUserToGroupRequest BuildRequest()
+        private static AddUserToGroupRequest BuildRequest()
         {
             return Builder<AddUserToGroupRequest>.CreateNew()
                 .With(x => x.GroupName = "TestGroup")

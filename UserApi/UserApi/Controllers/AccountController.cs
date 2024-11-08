@@ -108,7 +108,7 @@ namespace UserApi.Controllers
             }
 
             var adGroups = await _userAccountService.GetGroupsForUserAsync(userId);
-            if (adGroups == null || !adGroups.Any()) return NotFound();
+            if (adGroups == null || adGroups.Count == 0) return NotFound();
 
             var response = adGroups.Select(x => new GroupsResponse
             {

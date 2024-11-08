@@ -19,7 +19,7 @@ namespace UserApi.AcceptanceTests.Hooks
         [BeforeScenario(Order = (int)HooksSequence.DataSetupHooks)]
         public static void CheckUserExistsWithCorrectGroups(TestContext context)
         {
-            context.Request = context.Get(GetGroupsForUser(context.Config.TestSettings.ExistingUserId));
+            context.Request = TestContext.Get(GetGroupsForUser(context.Config.TestSettings.ExistingUserId));
             context.Response = context.Client().Execute(context.Request);
             context.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             var model = RequestHelper.Deserialise<List<GroupsResponse>>(context.Response.Content);

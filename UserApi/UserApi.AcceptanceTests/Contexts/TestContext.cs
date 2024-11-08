@@ -24,25 +24,9 @@ namespace UserApi.AcceptanceTests.Contexts
             return client;
         }
 
-        public RestRequest Get(string path) => new RestRequest(path, Method.GET);
+        public static RestRequest Get(string path) => new(path, Method.GET);
 
-        public RestRequest Post(string path, object requestBody)
-        {
-            var request = new RestRequest(path, Method.POST);
-            request.AddParameter("Application/json", RequestHelper.Serialise(requestBody),
-                ParameterType.RequestBody);
-            return request;
-        }
-        
-        public RestRequest Put(string path, object requestBody)
-        {
-            var request = new RestRequest(path, Method.PUT);
-            request.AddParameter("Application/json", RequestHelper.Serialise(requestBody),
-                ParameterType.RequestBody);
-            return request;
-        }
-
-        public RestRequest Patch(string path, object requestBody = null)
+        public static RestRequest Patch(string path, object requestBody = null)
         {
             var request = new RestRequest(path, Method.PATCH);
             request.AddParameter("Application/json", RequestHelper.Serialise(requestBody),

@@ -140,6 +140,7 @@ namespace UserApi.IntegrationTests.Services
             Guid.TryParse(settings.AdGroup.TestAccount, out _).Should().BeTrue();
             Guid.TryParse(settings.AdGroup.VirtualRoomAdministrator, out _).Should().BeTrue();
             Guid.TryParse(settings.AdGroup.StaffMember, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.UserApiTestGroup, out _).Should().BeTrue();
         }
 
         private async Task CreateAccount()
