@@ -54,7 +54,7 @@ stages:
             dockerComposeTestFile: docker-compose.tests.yml
             sonarExtraProperties: |
                 sonar.cs.opencover.reportsPaths=$(System.DefaultWorkingDirectory)/coverage.opencover.xml
-                sonar.exclusions=**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**
+                sonar.exclusions=**/UserApi/Swagger/**, **/Program.cs, **/Startup.cs, **/Testing.Common/**, **/UserApi.Common/**, **/UserApi.IntegrationTests/**, **/UserApi.UnitTests/**, **/UserApi/Helper/**, **/UserApi/ConfigureServicesExtensions.cs, **/UserApi/Extensions/**, **/UserApi/Security/**
 
 #####################################################
 # Manual Approval ###################################
