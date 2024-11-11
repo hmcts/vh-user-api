@@ -34,10 +34,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 Value = new List<RoleDefinition> { new RoleDefinition { Id = "ADMIN_ROLE_ID" } }
             };
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserRoleEndpoint))
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, UserRoleEndpoint))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(assignedUserRole, HttpStatusCode.OK));
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserAdminRoleEndpoint))
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, UserAdminRoleEndpoint))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(userAdminRole, HttpStatusCode.OK));
 
             var response = await Service.IsUserAdminAsync(PrincipalId);
@@ -62,10 +63,11 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 Value = new List<RoleDefinition> { new RoleDefinition { Id = "ADMIN_ROLE_ID" } }
             };
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserRoleEndpoint))
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, UserRoleEndpoint))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(assignedUserRole, userRoleStatusCode));
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserAdminRoleEndpoint))
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, UserAdminRoleEndpoint))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(userAdminRole, adminRoleStatusCode));
 
             var response = await Service.IsUserAdminAsync(PrincipalId);
@@ -74,12 +76,14 @@ namespace UserApi.UnitTests.Services.UserAccountService
         }
 
         [Test]
-        public void Should_throw_exception_on_other_responses()
+        public async Task Should_throw_exception_on_other_responses()
         {
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserRoleEndpoint))
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, UserRoleEndpoint))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(default(GraphQueryResponse<UserAssignedRole>), HttpStatusCode.BadRequest));
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, UserAdminRoleEndpoint))
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, UserAdminRoleEndpoint))
                 .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(default(GraphQueryResponse<RoleDefinition>), HttpStatusCode.InternalServerError));
 
             var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.IsUserAdminAsync(PrincipalId));

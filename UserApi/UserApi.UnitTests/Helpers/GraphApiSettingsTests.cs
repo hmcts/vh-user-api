@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Threading.Tasks;
+using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Common;
@@ -26,16 +27,16 @@ namespace UserApi.UnitTests.Helpers
             };
 
             _tokenProvider = new Mock<ITokenProvider>();
-            _tokenProvider.Setup(t => t.GetClientAccessToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Token);
+            _tokenProvider.Setup(t => t.GetClientAccessToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(Token);
 
             _graphApiSettings = new GraphApiSettings(_tokenProvider.Object, _azureAdConfiguration);
         }
 
         [Test]
-        public void Should_return_access_token_string()
+        public async Task Should_return_access_token_string()
         {
 
-            var accessToken = _graphApiSettings.AccessToken;
+            var accessToken = await _graphApiSettings.GetAccessToken();
 
             accessToken.Should().NotBeNullOrEmpty();
             accessToken.Should().Be(Token);

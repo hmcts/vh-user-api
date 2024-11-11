@@ -18,13 +18,14 @@ namespace UserApi.UnitTests.Services.UserAccountService
             var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
             var group = new Microsoft.Graph.Group() { Id = GroupId };
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(group, HttpStatusCode.OK));
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(group, HttpStatusCode.OK));
 
             var response = await Service.GetGroupByIdAsync(GroupId);
 
             response.Should().NotBeNull();
             response.Id.Should().Be(GroupId);
-            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(accessToken, accessUri), Times.Once);
         }
 
         [Test]
@@ -32,7 +33,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
         {
             var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
 
             var response = await Service.GetGroupByIdAsync(GroupId);
 

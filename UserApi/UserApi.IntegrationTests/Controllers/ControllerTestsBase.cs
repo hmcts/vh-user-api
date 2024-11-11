@@ -20,7 +20,7 @@ namespace UserApi.IntegrationTests.Controllers
         protected string GraphApiToken;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
+        public async Task OneTimeSetup()
         {
             var webHostBuilder = WebHost.CreateDefaultBuilder()
                 .UseKestrel(c => c.AddServerHeader = false)
@@ -28,19 +28,19 @@ namespace UserApi.IntegrationTests.Controllers
                 .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
 
-            GetClientAccessTokenForBookHearingApi();
+            await GetClientAccessTokenForBookHearingApi();
         }
 
-        private void GetClientAccessTokenForBookHearingApi()
+        private async Task GetClientAccessTokenForBookHearingApi()
         {
             var azureAdConfig = TestConfig.Instance.AzureAd;
             var vhServicesConfig = TestConfig.Instance.VhServices;
 
-            _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
+            _bearerToken = await new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 vhServicesConfig.UserApiResourceId);
 
-            GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
+            GraphApiToken = await new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 "https://graph.microsoft.com");
         }

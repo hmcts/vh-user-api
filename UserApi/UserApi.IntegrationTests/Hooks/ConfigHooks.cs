@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using AcceptanceTests.Common.Configuration;
+using System.Threading.Tasks;
 using AcceptanceTests.Common.Configuration.Users;
 using FluentAssertions;
 using Microsoft.AspNetCore;
@@ -31,7 +31,7 @@ namespace UserApi.IntegrationTests.Hooks
         }
 
         [BeforeScenario(Order = (int)HooksSequence.ConfigHooks)]
-        public void RegisterSecrets(TestContext context)
+        public async Task RegisterSecrets(TestContext context)
         {
             RegisterAzureSecrets(context);
             RegisterTestUserSecrets(context);
@@ -39,7 +39,7 @@ namespace UserApi.IntegrationTests.Hooks
             RegisterDefaultData(context);
             RegisterHearingServices(context);
             RegisterServer(context);
-            GenerateBearerTokens(context);
+            await GenerateBearerTokens(context);
         }
 
         private void RegisterAzureSecrets(TestContext context)
@@ -89,16 +89,16 @@ namespace UserApi.IntegrationTests.Hooks
             context.Server = new TestServer(webHostBuilder);
         }
 
-        private static void GenerateBearerTokens(TestContext context)
+        private static async Task GenerateBearerTokens(TestContext context)
         {
             var azureConfig = context.Config.AzureAdConfiguration;
 
-            context.Tokens.UserApiBearerToken = new TokenProvider(azureConfig).GetClientAccessToken(
+            context.Tokens.UserApiBearerToken = await new TokenProvider(azureConfig).GetClientAccessToken(
                 azureConfig.ClientId, azureConfig.ClientSecret,
                 context.Config.VhServices.UserApiResourceId);
             context.Tokens.UserApiBearerToken.Should().NotBeNullOrEmpty();
 
-            context.Tokens.GraphApiBearerToken = new TokenProvider(azureConfig).GetClientAccessToken(
+            context.Tokens.GraphApiBearerToken = await new TokenProvider(azureConfig).GetClientAccessToken(
                 azureConfig.ClientId, azureConfig.ClientSecret,
                 azureConfig.GraphApiBaseUri);
             context.Tokens.GraphApiBearerToken.Should().NotBeNullOrEmpty();

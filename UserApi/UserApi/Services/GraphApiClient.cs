@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -49,7 +48,8 @@ namespace UserApi.Services
             var filterText = usernameBase.Replace("'", "''");
             var filter = $"startswith(userPrincipalName,'{filterText}')";
             var queryUrl = $"{_baseUrl}/users?$filter={filter}";
-            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            var response = await _secureHttpRequest.GetAsync(accessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
 
             var result = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
@@ -87,7 +87,8 @@ namespace UserApi.Services
 
         private async Task<List<string>> GetUsernamesWithUri(string queryUrl, string usernameBase)
         {
-            var response = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, queryUrl);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            var response = await _secureHttpRequest.GetAsync(accessToken, queryUrl);
             await AssertResponseIsSuccessful(response);
             var deletedMatchedUsers = await response.Content.ReadAsAsync<GraphQueryResponse<User>>();
             List<string> usernames = new();
@@ -132,7 +133,8 @@ namespace UserApi.Services
             var json = JsonConvert.SerializeObject(user);
             var stringContent = new StringContent(json);
             var accessUri = $"{_baseUrl}/users";
-            var response = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            var response = await _secureHttpRequest.PostAsync(accessToken, stringContent, accessUri);
             await AssertResponseIsSuccessful(response);
             var responseJson = await response.Content.ReadAsStringAsync();
             var adAccount = JsonConvert.DeserializeObject<User>(responseJson);
@@ -164,7 +166,8 @@ namespace UserApi.Services
             var json = JsonConvert.SerializeObject(updatedUser);
             var stringContent = new StringContent(json);
             var accessUri = $"{_baseUrl}/users/{userId}";
-            var response = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            var response = await _secureHttpRequest.PatchAsync(accessToken, stringContent, accessUri);
             await AssertResponseIsSuccessful(response);
             return updatedUser;
         }
@@ -172,7 +175,8 @@ namespace UserApi.Services
         public async Task DeleteUserAsync(string username)
         {
             var queryUrl = $"{_baseUrl}/users/{username}";
-            var response = await _secureHttpRequest.DeleteAsync(_graphApiSettings.AccessToken, queryUrl);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            var response = await _secureHttpRequest.DeleteAsync(accessToken, queryUrl);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 throw new UserDoesNotExistException(username);
@@ -210,7 +214,8 @@ namespace UserApi.Services
             var json = JsonConvert.SerializeObject(user);
             var stringContent = new StringContent(json);
             var accessUri = $"{_baseUrl}/users/{username}";
-            var response = await _secureHttpRequest.PatchAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            var response = await _secureHttpRequest.PatchAsync(accessToken, stringContent, accessUri);
             await AssertResponseIsSuccessful(response);
 
             return newPassword;

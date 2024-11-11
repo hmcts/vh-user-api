@@ -9,29 +9,22 @@ using UserApi.Services;
 
 namespace UserApi.Helper
 {
-    public class UserProfileHelper
+    public class UserProfileHelper(IUserAccountService userAccountService, Settings settings)
     {
-        private readonly IUserAccountService _userAccountService;
-        private readonly Settings _settings;
-        
-        public UserProfileHelper(IUserAccountService userAccountService, Settings settings)
-        {
-            _userAccountService = userAccountService;
-            _settings = settings;
-        }
+        private readonly Settings _settings = settings;
 
         public async Task<UserProfile> GetUserProfileAsync(string filter)
         {
-            var user = await _userAccountService.GetUserByFilterAsync(filter);
+            var user = await userAccountService.GetUserByFilterAsync(filter);
 
             if (user == null)
             {
                 return null;
             }
 
-            var isUserAdmin = await _userAccountService.IsUserAdminAsync(user.Id);
+            var isUserAdmin = await userAccountService.IsUserAdminAsync(user.Id);
 
-            var groups = (await _userAccountService.GetGroupsForUserAsync(user.Id))
+            var groups = (await userAccountService.GetGroupsForUserAsync(user.Id))
                 .Where(x => !string.IsNullOrWhiteSpace(x.DisplayName))
                 .ToList();
 
@@ -40,7 +33,7 @@ namespace UserApi.Helper
             return GraphUserMapper.MapToUserProfile(user, userRole, isUserAdmin);
         }
 
-        private UserRole GetUserRole(ICollection<Group> userGroups)
+        private static UserRole GetUserRole(ICollection<Group> userGroups)
         {
             if (userGroups.Any(IsVirtualRoomAdministrator))
             {

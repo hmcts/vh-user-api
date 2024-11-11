@@ -27,19 +27,21 @@ namespace UserApi.UnitTests.Services.UserAccountService
             
             directoryObject.AdditionalData.Add("value", json);
 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
 
             var response = await Service.GetGroupsForUserAsync(UserId);
 
             response.Should().NotBeNull();
             response.Count.Should().Be(2);
-            SecureHttpRequest.Verify(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri), Times.Once);
+            SecureHttpRequest.Verify(s => s.GetAsync(accessToken, accessUri), Times.Once);
         }
 
         [Test]
         public async Task Should_return_empty_when_no_matching_group_by_given_userid()
         { 
-            SecureHttpRequest.Setup(s => s.GetAsync(GraphApiSettings.AccessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
+            var accessToken = await GraphApiSettings.GetAccessToken();
+            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
 
             var response = await Service.GetGroupsForUserAsync(UserId);
 

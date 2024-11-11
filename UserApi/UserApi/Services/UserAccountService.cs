@@ -18,14 +18,15 @@ using UserApi.Validations;
 
 namespace UserApi.Services
 {
-    public partial class UserAccountService : IUserAccountService
+    public partial class UserAccountService(
+        ISecureHttpRequest secureHttpRequest,
+        IGraphApiSettings graphApiSettings,
+        IIdentityServiceApiClient client,
+        Settings settings)
+        : IUserAccountService
     {
         private const string OdataType = "@odata.type";
         private const string GraphGroupType = "#microsoft.graph.group";
-        private readonly ISecureHttpRequest _secureHttpRequest;
-        private readonly IGraphApiSettings _graphApiSettings;
-        private readonly IIdentityServiceApiClient _client;
-        private readonly Settings _settings;
         private const string PerformanceTestUserFirstName = "TP";
         
         [GeneratedRegex("^\\.|\\.$")]
@@ -33,15 +34,6 @@ namespace UserApi.Services
 
         public static readonly Compare<UserResponse> CompareJudgeById =
             Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
-
-        public UserAccountService(ISecureHttpRequest secureHttpRequest, IGraphApiSettings graphApiSettings, IIdentityServiceApiClient client,
-            Settings settings)
-        {
-            _secureHttpRequest = secureHttpRequest;
-            _graphApiSettings = graphApiSettings;
-            _client = client;
-            _settings = settings;
-        }
 
         public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail,
             bool isTestUser)
@@ -63,7 +55,7 @@ namespace UserApi.Services
             var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, recoveryEmail);
             var displayName = $"{firstName} {lastName}";
 
-            return await _client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+            return await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
         }
 
         public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null)
@@ -82,12 +74,12 @@ namespace UserApi.Services
                 username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
             }
 
-            return await _client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: contactEmail);
+            return await client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: contactEmail);
         }
 
         public async Task DeleteUserAsync(string username)
         {
-            await _client.DeleteUserAsync(username);
+            await client.DeleteUserAsync(username);
         }
 
         public async Task AddUserToGroupAsync(string userId, string groupId)
@@ -99,12 +91,13 @@ namespace UserApi.Services
             }
             var body = new CustomDirectoryObject
             {
-                ObjectDataId = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/directoryObjects/{userId}"
+                ObjectDataId = $"{graphApiSettings.GraphApiBaseUri}v1.0/{graphApiSettings.TenantId}/directoryObjects/{userId}"
             };
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/groups/{groupId}/members/$ref";
-            var responseMessage = await _secureHttpRequest.PostAsync(_graphApiSettings.AccessToken, stringContent, accessUri);
+            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/{graphApiSettings.TenantId}/groups/{groupId}/members/$ref";
+            var accessToken = await graphApiSettings.GetAccessToken();
+            var responseMessage = await secureHttpRequest.PostAsync(accessToken, stringContent, accessUri);
             if (responseMessage.IsSuccessStatusCode)
             {
                 return;
@@ -124,9 +117,10 @@ namespace UserApi.Services
 
         public async Task<User> GetUserByFilterAsync(string filter)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/{_graphApiSettings.TenantId}/users?$filter={filter}&" +
+            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/{graphApiSettings.TenantId}/users?$filter={filter}&" +
                             "$select=id,displayName,userPrincipalName,givenName,surname,otherMails,contactEmail,mobilePhone";
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+            var accessToken = await graphApiSettings.GetAccessToken();
+            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -164,12 +158,12 @@ namespace UserApi.Services
 
         public string GetGroupIdFromSettings(string groupName)
         {
-            var prop = _settings.AdGroup.GetType().GetProperty(groupName);
+            var prop = settings.AdGroup.GetType().GetProperty(groupName);
             string groupId = string.Empty;
 
             if (prop != null)
             {
-                groupId = (string)prop.GetValue(_settings.AdGroup);
+                groupId = (string)prop.GetValue(settings.AdGroup);
             }
 
             return groupId;
@@ -177,8 +171,9 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupByNameAsync(string groupName)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
+            var accessToken = await graphApiSettings.GetAccessToken();
+            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -193,8 +188,9 @@ namespace UserApi.Services
 
         public async Task<Group> GetGroupByIdAsync(string groupId)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
+            var accessToken = await graphApiSettings.GetAccessToken();
+            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -214,9 +210,9 @@ namespace UserApi.Services
 
         public async Task<bool> IsUserAdminAsync(string principalId)
         {
-            var userRoleAssignmentUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleAssignments?$filter=principalId eq '{principalId}'";  
+            var userRoleAssignmentUri = $"{graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleAssignments?$filter=principalId eq '{principalId}'";  
             
-            var adminRoleUri = $"{_graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
+            var adminRoleUri = $"{graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
 
             var userAssignedRoles = (await ExecuteRequest<GraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri))?.Value;
 
@@ -229,7 +225,8 @@ namespace UserApi.Services
 
         private async Task<T> ExecuteRequest<T>(string accessUri) where T : class
         {
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+            var accessToken = await graphApiSettings.GetAccessToken();
+            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -248,9 +245,9 @@ namespace UserApi.Services
 
         public async Task<List<Group>> GetGroupsForUserAsync(string userId)
         {
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
-
-            var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
+            var accessToken = await graphApiSettings.GetAccessToken();
+            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -300,7 +297,7 @@ namespace UserApi.Services
             sanitisedLastName = sanitisedLastName.Replace(" ", string.Empty);
 
             var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
-            var username = new IncrementingUsername(baseUsername, _settings.ReformEmail);
+            var username = new IncrementingUsername(baseUsername, settings.ReformEmail);
             var existingUsernames = await GetUsersMatchingNameAsync(baseUsername, contactEmail, firstName, lastName);
             return username.GetGivenExistingUsers(existingUsernames);
         }
@@ -308,15 +305,15 @@ namespace UserApi.Services
         private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername, string contactEmail,
             string firstName, string lastName)
         {
-            var users = await _client.GetUsernamesStartingWithAsync(baseUsername, contactEmail, firstName, lastName);
+            var users = await client.GetUsernamesStartingWithAsync(baseUsername, contactEmail, firstName, lastName);
             return users;
         }
 
         public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
         {
-            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(settings.AdGroup.VirtualRoomJudge, username);
 
-            if (_settings.IsLive)
+            if (settings.IsLive)
             {
                 judges = await ExcludeTestJudgesAsync(judges);
             }
@@ -326,13 +323,13 @@ namespace UserApi.Services
 
         public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username)
         {
-            var judges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.VirtualRoomJudge, username);
+            var judges = await GetJudgesAsyncByGroupIdAndUsername(settings.AdGroup.VirtualRoomJudge, username);
             return judges.OrderBy(x => x.DisplayName);
         }
 
         private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
         {
-            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(_settings.AdGroup.TestAccount);
+            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(settings.AdGroup.TestAccount);
 
             return judgesList.Except(testJudges, CompareJudgeById);
         }
@@ -341,12 +338,13 @@ namespace UserApi.Services
         {
             var users = new List<UserResponse>();
 
-            var accessUri = $"{_graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?$filter=givenName ne null and not(startsWith(givenName, '{PerformanceTestUserFirstName}'))&$count=true" +
+            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?$filter=givenName ne null and not(startsWith(givenName, '{PerformanceTestUserFirstName}'))&$count=true" +
                             "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
 
             while (true)
             {
-                var responseMessage = await _secureHttpRequest.GetAsync(_graphApiSettings.AccessToken, accessUri);
+                var accessToken = await graphApiSettings.GetAccessToken();
+                var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
 
                 if (!responseMessage.IsSuccessStatusCode)
                 {
@@ -383,7 +381,7 @@ namespace UserApi.Services
 
         public async Task<string> UpdateUserPasswordAsync(string username)
         {
-            return await _client.UpdateUserPasswordAsync(username);
+            return await client.UpdateUserPasswordAsync(username);
         }
     }
 }
