@@ -34,7 +34,7 @@ namespace UserApi.IntegrationTests.Steps
             _testContext.HttpMethod = HttpMethod.Get;
              _testContext.Uri = scenario switch
             {
-                Scenario.Valid => GetGroupByName(_testContext.Config.TestSettings.ExistingGroups.First().DisplayName),
+                Scenario.Valid => GetGroupByName(_testContext.Config.TestSettings.ExistingGroups[0].DisplayName),
                 Scenario.Nonexistent => GetGroupByName("Does not exist"),
                 Scenario.Invalid => GetGroupByName(" "),
                 _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null)
@@ -50,7 +50,7 @@ namespace UserApi.IntegrationTests.Steps
             {
                 case Scenario.Valid:
                 {
-                    _testContext.Uri = GetGroupById(_testContext.Config.TestSettings.ExistingGroups.First().GroupId);
+                    _testContext.Uri = GetGroupById(_testContext.Config.TestSettings.ExistingGroups[0].GroupId);
                         break;
                 }
                 case Scenario.Nonexistent:
@@ -102,7 +102,7 @@ namespace UserApi.IntegrationTests.Steps
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = _testContext.Config.TestSettings.ExistingUserId,
-                GroupName = _testContext.Config.TestSettings.ExistingGroups.First().DisplayName
+                GroupName = _testContext.Config.TestSettings.ExistingGroups[0].DisplayName
             };
             switch (scenario)
             {
@@ -134,13 +134,13 @@ namespace UserApi.IntegrationTests.Steps
             var addUserRequest = new AddUserToGroupRequest()
             {
                 UserId = _testContext.Config.TestSettings.ExistingUserId,
-                GroupName = _testContext.Config.TestSettings.ExistingGroups.First().DisplayName
+                GroupName = _testContext.Config.TestSettings.ExistingGroups[0].DisplayName
             };
             switch (scenario)
             {               
                 case Scenario.Existing:
                 {
-                    addUserRequest.GroupName = _testContext.Config.TestSettings.ExistingGroups.First().DisplayName;
+                    addUserRequest.GroupName = _testContext.Config.TestSettings.ExistingGroups[0].DisplayName;
                     break;
                 }
                 case Scenario.Nonexistent:
@@ -165,8 +165,8 @@ namespace UserApi.IntegrationTests.Steps
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
             var model = RequestHelper.Deserialise<GroupsResponse>(json);
             model.Should().NotBeNull();
-            model.DisplayName.Should().Be(_testContext.Config.TestSettings.ExistingGroups.First().DisplayName);
-            model.GroupId.Should().Be(_testContext.Config.TestSettings.ExistingGroups.First().GroupId);
+            model.DisplayName.Should().Be(_testContext.Config.TestSettings.ExistingGroups[0].DisplayName);
+            model.GroupId.Should().Be(_testContext.Config.TestSettings.ExistingGroups[0].GroupId);
         }
 
         [Then(@"a list of ad groups should be retrieved")]
@@ -186,9 +186,9 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenUserShouldBeAddedToTheGroup()
         {
             var userIsInTheGroup = await ActiveDirectoryUser.IsUserInAGroupAsync(_testContext.Config.TestSettings.ExistingUserId,
-                _testContext.Config.TestSettings.ExistingGroups.First().DisplayName, _testContext.Tokens.GraphApiBearerToken);
+                _testContext.Config.TestSettings.ExistingGroups[0].DisplayName, _testContext.Tokens.GraphApiBearerToken);
             userIsInTheGroup.Should().BeTrue();
-            _testContext.Test.NewGroupId = _testContext.Config.TestSettings.ExistingGroups.First().GroupId;
+            _testContext.Test.NewGroupId = _testContext.Config.TestSettings.ExistingGroups[0].GroupId;
         }
 
         [AfterScenario]

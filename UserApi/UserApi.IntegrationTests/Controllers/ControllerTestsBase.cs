@@ -53,13 +53,7 @@ namespace UserApi.IntegrationTests.Controllers
 
         private static IConfigurationRoot ConfigurationRoot => new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-        private VhServices TestConfiguration
-        {
-            get
-            {
-                return ConfigurationRoot.GetSection("VhServices").Get<VhServices>();
-            }
-        }
+        private static VhServices TestConfiguration => ConfigurationRoot.GetSection("VhServices").Get<VhServices>();
 
         private HttpClient CreateClient()
         {

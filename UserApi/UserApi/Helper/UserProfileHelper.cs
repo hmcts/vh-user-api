@@ -75,32 +75,32 @@ namespace UserApi.Helper
             return UserRole.None;
         }
 
-        private bool IsVirtualRoomAdministrator(Group group)
+        private static bool IsVirtualRoomAdministrator(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.VirtualRoomAdministrator), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsStaffMember(Group group)
+        private static bool IsStaffMember(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.StaffMember), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsVirtualRoomJudge(Group group)
+        private static bool IsVirtualRoomJudge(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.VirtualRoomJudge), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsVirtualRoomProfessionalUser(Group group)
+        private static bool IsVirtualRoomProfessionalUser(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.VirtualRoomProfessionalUser), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsExternal(Group group)
+        private static bool IsExternal(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.External), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsJudicialOfficeHolder(Group group)
+        private static bool IsJudicialOfficeHolder(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.JudicialOfficeHolder), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }

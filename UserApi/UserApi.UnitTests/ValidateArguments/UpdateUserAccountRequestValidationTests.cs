@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using FizzWare.NBuilder;
 using FluentAssertions;
@@ -37,7 +36,7 @@ namespace UserApi.UnitTests.ValidateArguments
 
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-            result.Errors.Any(x => x.ErrorMessage == UpdateUserAccountRequestValidation.MissingFirstNameErrorMessage)
+            result.Errors.Exists(x => x.ErrorMessage == UpdateUserAccountRequestValidation.MissingFirstNameErrorMessage)
                 .Should().BeTrue();
         }
         
@@ -50,7 +49,7 @@ namespace UserApi.UnitTests.ValidateArguments
 
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-            result.Errors.Any(x => x.ErrorMessage == UpdateUserAccountRequestValidation.MissingLastNameErrorMessage)
+            result.Errors.Exists(x => x.ErrorMessage == UpdateUserAccountRequestValidation.MissingLastNameErrorMessage)
                 .Should().BeTrue();
         }
 

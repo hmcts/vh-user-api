@@ -1,7 +1,6 @@
 ﻿using System;
 using FluentAssertions;
 using System.Collections.Generic;
-using System.Linq;
 using AcceptanceTests.Common.Api.Helpers;
 using TechTalk.SpecFlow;
 using UserApi.AcceptanceTests.Contexts;
@@ -16,12 +15,10 @@ namespace UserApi.AcceptanceTests.Steps
     {
         private readonly TestContext _context;
         private string _newUsername;
-        private readonly CommonSteps _commonSteps;
 
         public UserSteps(TestContext context, CommonSteps commonSteps)
         {
             _context = context;
-            _commonSteps = commonSteps;
         }
         
         [Given(@"I have an existing user")]
@@ -75,7 +72,7 @@ namespace UserApi.AcceptanceTests.Steps
         {
             var judges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
             judges.Should().NotBeNull();
-            judges.Any(x => x.FirstName == "TP").Should().BeFalse();
+            judges.Exists(x => x.FirstName == "TP").Should().BeFalse();
         }
     }
 }

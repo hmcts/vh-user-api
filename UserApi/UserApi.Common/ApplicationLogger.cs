@@ -4,7 +4,6 @@ using System.Security.Principal;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Newtonsoft.Json;
 
 namespace UserApi.Common
 {
@@ -21,95 +20,22 @@ namespace UserApi.Common
             return client;
         }
 
-        public static void Trace(string traceCategory, string eventTitle, string information)
-        {
-            var telematryTrace = new TraceTelemetry(traceCategory, SeverityLevel.Information);
-            telematryTrace.Properties.Add("Information", information);
-            telematryTrace.Properties.Add("Event", eventTitle);
-            TelemetryClient.TrackTrace(telematryTrace);
-        }
-
-        public static void TraceWithProperties(string traceCategory, string eventTitle, string user,
-            IDictionary<string, string> properties)
-        {
-            var telematryTrace = new TraceTelemetry(traceCategory, SeverityLevel.Information);
-
-            telematryTrace.Properties.Add("Event", eventTitle);
-
-            telematryTrace.Properties.Add("User", user);
-
-            if (properties != null)
-                foreach (var entry in properties)
-                    telematryTrace.Properties.Add(entry.Key, entry.Value);
-
-            TelemetryClient.TrackTrace(telematryTrace);
-        }
-
-        public static void TraceWithProperties(string traceCategory, string eventTitle, string user)
-        {
-            TraceWithProperties(traceCategory, eventTitle, user, null);
-        }
-
-        public static void TraceWithObject(string traceCategory, string eventTitle, string user,
-            object valueToSerialized)
-        {
-            var telematryTrace = new TraceTelemetry(traceCategory, SeverityLevel.Information);
-
-            telematryTrace.Properties.Add("Event", eventTitle);
-
-            telematryTrace.Properties.Add("User", user);
-
-            if (valueToSerialized != null)
-                telematryTrace.Properties.Add(valueToSerialized.GetType().Name,
-                    JsonConvert.SerializeObject(valueToSerialized, Formatting.None));
-
-            TelemetryClient.TrackTrace(telematryTrace);
-        }
-
-        public static void TraceWithObject(string traceCategory, string eventTitle, string user)
-        {
-            TraceWithObject(traceCategory, eventTitle, user, null);
-        }
-
         public static void TraceException(string traceCategory, string eventTitle, Exception exception, IPrincipal user,
             IDictionary<string, string> properties)
         {
             if (exception == null) throw new ArgumentNullException(nameof(exception));
 
-            var telematryException = new ExceptionTelemetry(exception);
+            var telemetryException = new ExceptionTelemetry(exception);
 
-            telematryException.Properties.Add("Event", traceCategory + " " + eventTitle);
+            telemetryException.Properties.Add("Event", traceCategory + " " + eventTitle);
 
-            if (user != null && user.Identity != null) telematryException.Properties.Add("User", user.Identity.Name);
-
-            if (properties != null)
-                foreach (var entry in properties)
-                    telematryException.Properties.Add(entry.Key, entry.Value);
-
-            TelemetryClient.TrackException(telematryException);
-        }
-
-        public static void TraceException(string traceCategory, string eventTitle, Exception exception, IPrincipal user)
-        {
-            TraceException(traceCategory, eventTitle, exception, user, null);
-        }
-
-        public static void TraceEvent(string eventTitle, IDictionary<string, string> properties)
-        {
-            var telemetryEvent = new EventTelemetry(eventTitle);
+            if (user != null && user.Identity != null) telemetryException.Properties.Add("User", user.Identity.Name);
 
             if (properties != null)
                 foreach (var entry in properties)
-                    telemetryEvent.Properties.Add(entry.Key, entry.Value);
+                    telemetryException.Properties.Add(entry.Key, entry.Value);
 
-            TelemetryClient.TrackEvent(telemetryEvent);
-        }
-
-        public static void TraceRequest(string operationName, DateTimeOffset startTime, TimeSpan duration,
-            string responseCode, bool success)
-        {
-            var telemetryOperation = new RequestTelemetry(operationName, startTime, duration, responseCode, success);
-            TelemetryClient.TrackRequest(telemetryOperation);
+            TelemetryClient.TrackException(telemetryException);
         }
     }
 }
