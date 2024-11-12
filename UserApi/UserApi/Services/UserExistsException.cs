@@ -1,19 +1,9 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace UserApi.Services
 {
-    [Serializable]
-    public class UserExistsException : Exception
+    public class UserExistsException(string message, string username) : Exception(message)
     {
-        protected UserExistsException(SerializationInfo info, StreamingContext context) : base(info, context) 
-        {}
-
-        public UserExistsException(string message, string username) : base(message)
-        {
-            Username = username;
-        }
-
-        public string Username { get; }
+        public string Username { get; } = username;
     }
 }

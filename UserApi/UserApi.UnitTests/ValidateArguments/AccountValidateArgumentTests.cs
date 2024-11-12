@@ -1,7 +1,6 @@
 ﻿using FizzWare.NBuilder;
 using FluentAssertions;
 using NUnit.Framework;
-using System.Linq;
 using System.Threading.Tasks;
 using UserApi.Contract.Requests;
 using UserApi.Validations;
@@ -37,11 +36,11 @@ namespace UserApi.UnitTests.ValidateArguments
 
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-            result.Errors.Any(x => x.ErrorMessage == AddUserToGroupRequestValidation.MissingUserIdErrorMessage)
+            result.Errors.Exists(x => x.ErrorMessage == AddUserToGroupRequestValidation.MissingUserIdErrorMessage)
                 .Should().BeTrue();
         }
 
-        private AddUserToGroupRequest BuildRequest()
+        private static AddUserToGroupRequest BuildRequest()
         {
             return Builder<AddUserToGroupRequest>.CreateNew()
                 .With(x => x.GroupName = "TestGroup")

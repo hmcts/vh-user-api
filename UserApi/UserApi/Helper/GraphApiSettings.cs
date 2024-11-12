@@ -1,4 +1,5 @@
-﻿using UserApi.Common;
+﻿using System.Threading.Tasks;
+using UserApi.Common;
 using UserApi.Security;
 
 namespace UserApi.Helper
@@ -6,7 +7,7 @@ namespace UserApi.Helper
     public interface IGraphApiSettings
     {
         string GraphApiBaseUri { get; }
-        string AccessToken { get; }
+        Task<string> GetAccessToken();
         string TenantId { get; }
     }
 
@@ -23,8 +24,8 @@ namespace UserApi.Helper
 
         public string TenantId => _azureAdConfiguration.TenantId;
 
-        public string AccessToken =>
-            _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
+        public async Task<string> GetAccessToken() =>
+            await _tokenProvider.GetClientAccessToken(_azureAdConfiguration.ClientId,
                 _azureAdConfiguration.ClientSecret,
                 _azureAdConfiguration.GraphApiBaseUri);
 

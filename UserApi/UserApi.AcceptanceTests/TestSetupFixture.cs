@@ -8,7 +8,7 @@ namespace UserApi.AcceptanceTests
     [SetUpFixture]
     public class TestSetupFixture
     {
-        private VhServices VhServices => new ConfigurationBuilder()
+        private static VhServices VhServices => new ConfigurationBuilder()
                                                             .AddJsonFile("appsettings.json")
                                                             .Build()
                                                             .GetSection("VhServices")

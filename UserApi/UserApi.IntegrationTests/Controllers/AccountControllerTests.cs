@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,7 +8,6 @@ using AcceptanceTests.Common.Api.Helpers;
 using FluentAssertions;
 using NUnit.Framework;
 using Testing.Common.Configuration;
-using Testing.Common.Helpers;
 using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 
@@ -42,8 +40,8 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_get_group_by_id()
         {
-            var groupId = TestConfig.Instance.TestSettings.ExistingGroups.First().GroupId;
-            var groupName = TestConfig.Instance.TestSettings.ExistingGroups.First().DisplayName;
+            var groupId = TestConfig.Instance.TestSettings.ExistingGroups[0].GroupId;
+            var groupName = TestConfig.Instance.TestSettings.ExistingGroups[0].DisplayName;
             var getResponse = await SendGetRequestAsync(GetGroupById(groupId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var groupResponseModel = RequestHelper.Deserialise<GroupsResponse>(getResponse.Content
@@ -70,7 +68,7 @@ namespace UserApi.IntegrationTests.Controllers
                     .ReadAsStringAsync().Result);
 
             const string expectedGroupName = "External";
-            var group = groupsForUserModel.FirstOrDefault(g => g.DisplayName == expectedGroupName);
+            var group = groupsForUserModel.Find(g => g.DisplayName == expectedGroupName);
             Assert.IsNotNull(group, $"User should have group '{expectedGroupName}'");
         }
 

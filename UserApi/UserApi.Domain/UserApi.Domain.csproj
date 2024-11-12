@@ -2,9 +2,6 @@
 
   <PropertyGroup>
     <ProjectGuid>201D0BEF-9B82-4253-A98F-5C95EC602BAC</ProjectGuid>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
 
   <ItemGroup>

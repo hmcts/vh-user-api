@@ -43,8 +43,9 @@ namespace UserApi.IntegrationTests.Services
             if (_createdAccount != null)
             {
                 TestContext.WriteLine($"Attempting to delete account {_createdAccount.UserId}");
+                var accessToken = await _graphApiSettings.GetAccessToken();
                 await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_createdAccount.UserId,
-                    _graphApiSettings.AccessToken);
+                    accessToken);
             }
         }
 
@@ -75,7 +76,8 @@ namespace UserApi.IntegrationTests.Services
             username.ToLower().Should().Contain(firstName.ToLower());
             username.ToLower().Should().Contain(lastName.ToLower());
 
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, _graphApiSettings.AccessToken);
+            var accessToken = await _graphApiSettings.GetAccessToken();
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, accessToken);
         }
 
         [Test]
@@ -140,6 +142,7 @@ namespace UserApi.IntegrationTests.Services
             Guid.TryParse(settings.AdGroup.TestAccount, out _).Should().BeTrue();
             Guid.TryParse(settings.AdGroup.VirtualRoomAdministrator, out _).Should().BeTrue();
             Guid.TryParse(settings.AdGroup.StaffMember, out _).Should().BeTrue();
+            Guid.TryParse(settings.AdGroup.UserApiTestGroup, out _).Should().BeTrue();
         }
 
         private async Task CreateAccount()

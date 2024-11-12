@@ -81,7 +81,8 @@ namespace UserApi.UnitTests.Services
 
             response.Should().NotBeNull();
             response.OneTimePassword.Should().Be(_defaultPassword);
-            _secureHttpRequest.Verify(x => x.PostAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
+            var accessToken = await _graphApiSettings.Object.GetAccessToken();
+            _secureHttpRequest.Verify(x => x.PostAsync(accessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
         }
 
         [Test]
@@ -102,7 +103,8 @@ namespace UserApi.UnitTests.Services
             var users = response.ToList();
             users.Count.Should().Be(1);
             users[0].Should().Be("TestUser");
-            _secureHttpRequest.Verify(x => x.GetAsync(_graphApiSettings.Object.AccessToken, _queryUrl), Times.Once);
+            var accessToken = await _graphApiSettings.Object.GetAccessToken();
+            _secureHttpRequest.Verify(x => x.GetAsync(accessToken, _queryUrl), Times.Once);
         }
         
         [Test]
@@ -208,7 +210,7 @@ namespace UserApi.UnitTests.Services
         }
         
         [Test]
-        public void Should_be_successful_response_on_delete()
+        public async Task Should_be_successful_response_on_delete()
         {
             _queryUrl += $"/{UserName}";
             var responseMessage = new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -217,11 +219,12 @@ namespace UserApi.UnitTests.Services
                 .ReturnsAsync(responseMessage);
 
             Assert.DoesNotThrowAsync(() => _client.DeleteUserAsync(UserName));
-            _secureHttpRequest.Verify(x => x.DeleteAsync(_graphApiSettings.Object.AccessToken, _queryUrl), Times.Once);
+            var accessToken = await _graphApiSettings.Object.GetAccessToken();
+            _secureHttpRequest.Verify(x => x.DeleteAsync(accessToken, _queryUrl), Times.Once);
         }
 
         [Test]
-        public void Should_be_successful_response_on_update()
+        public async Task Should_be_successful_response_on_update()
         {
             var user = new
             {
@@ -244,7 +247,8 @@ namespace UserApi.UnitTests.Services
 
             Assert.DoesNotThrowAsync(() => _client.UpdateUserPasswordAsync(UserName));
 
-            _secureHttpRequest.Verify(x => x.PatchAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
+            var accessToken = await _graphApiSettings.Object.GetAccessToken();
+            _secureHttpRequest.Verify(x => x.PatchAsync(accessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
         }
 
         [Test]
@@ -274,7 +278,8 @@ namespace UserApi.UnitTests.Services
 
             result.Should().Be(password);
 
-            _secureHttpRequest.Verify(x => x.PatchAsync(_graphApiSettings.Object.AccessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
+            var accessToken = await _graphApiSettings.Object.GetAccessToken();
+            _secureHttpRequest.Verify(x => x.PatchAsync(accessToken, It.Is<StringContent>(s => s.ReadAsStringAsync().Result == json), _queryUrl), Times.Once);
         }
 
         [Test]

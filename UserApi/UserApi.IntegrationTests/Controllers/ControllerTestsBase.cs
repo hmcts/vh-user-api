@@ -20,7 +20,7 @@ namespace UserApi.IntegrationTests.Controllers
         protected string GraphApiToken;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
+        public async Task OneTimeSetup()
         {
             var webHostBuilder = WebHost.CreateDefaultBuilder()
                 .UseKestrel(c => c.AddServerHeader = false)
@@ -28,19 +28,19 @@ namespace UserApi.IntegrationTests.Controllers
                 .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
 
-            GetClientAccessTokenForBookHearingApi();
+            await GetClientAccessTokenForBookHearingApi();
         }
 
-        private void GetClientAccessTokenForBookHearingApi()
+        private async Task GetClientAccessTokenForBookHearingApi()
         {
             var azureAdConfig = TestConfig.Instance.AzureAd;
             var vhServicesConfig = TestConfig.Instance.VhServices;
 
-            _bearerToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
+            _bearerToken = await new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 vhServicesConfig.UserApiResourceId);
 
-            GraphApiToken = new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
+            GraphApiToken = await new TokenProvider(TestConfig.Instance.AzureAd).GetClientAccessToken(
                 azureAdConfig.ClientId, azureAdConfig.ClientSecret,
                 "https://graph.microsoft.com");
         }
@@ -51,15 +51,9 @@ namespace UserApi.IntegrationTests.Controllers
             _server.Dispose();
         }
 
-        private IConfigurationRoot ConfigurationRoot => new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        private static IConfigurationRoot ConfigurationRoot => new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-        private VhServices TestConfiguration
-        {
-            get
-            {
-                return ConfigurationRoot.GetSection("VhServices").Get<VhServices>();
-            }
-        }
+        private static VhServices TestConfiguration => ConfigurationRoot.GetSection("VhServices").Get<VhServices>();
 
         private HttpClient CreateClient()
         {
@@ -103,12 +97,6 @@ namespace UserApi.IntegrationTests.Controllers
         {
             using var client = CreateClient();
             return await client.PatchAsync(uri, httpContent);
-        }
-
-        protected async Task<HttpResponseMessage> SendPutRequestAsync(string uri, StringContent httpContent)
-        {
-            using var client = CreateClient();
-            return await client.PutAsync(uri, httpContent);
         }
 
         protected async Task<HttpResponseMessage> SendDeleteRequestAsync(string uri)

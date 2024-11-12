@@ -1,7 +1,6 @@
 ﻿using FizzWare.NBuilder;
 using FluentAssertions;
 using NUnit.Framework;
-using System.Linq;
 using System.Threading.Tasks;
 using UserApi.Contract.Requests;
 using UserApi.Validations;
@@ -37,11 +36,11 @@ namespace UserApi.UnitTests.ValidateArguments
 
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-            result.Errors.Any(x => x.ErrorMessage == CreateUserRequestValidation.InvalidEmailErrorMessage)
+            result.Errors.Exists(x => x.ErrorMessage == CreateUserRequestValidation.InvalidEmailErrorMessage)
                 .Should().BeTrue();
         }
 
-        private CreateUserRequest BuildRequest()
+        private static CreateUserRequest BuildRequest()
         {
             return Builder<CreateUserRequest>.CreateNew()
                 .With(x => x.FirstName = "John")

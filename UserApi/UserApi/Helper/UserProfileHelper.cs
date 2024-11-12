@@ -9,29 +9,22 @@ using UserApi.Services;
 
 namespace UserApi.Helper
 {
-    public class UserProfileHelper
+    public class UserProfileHelper(IUserAccountService userAccountService, Settings settings)
     {
-        private readonly IUserAccountService _userAccountService;
-        private readonly Settings _settings;
-        
-        public UserProfileHelper(IUserAccountService userAccountService, Settings settings)
-        {
-            _userAccountService = userAccountService;
-            _settings = settings;
-        }
+        private readonly Settings _settings = settings;
 
         public async Task<UserProfile> GetUserProfileAsync(string filter)
         {
-            var user = await _userAccountService.GetUserByFilterAsync(filter);
+            var user = await userAccountService.GetUserByFilterAsync(filter);
 
             if (user == null)
             {
                 return null;
             }
 
-            var isUserAdmin = await _userAccountService.IsUserAdminAsync(user.Id);
+            var isUserAdmin = await userAccountService.IsUserAdminAsync(user.Id);
 
-            var groups = (await _userAccountService.GetGroupsForUserAsync(user.Id))
+            var groups = (await userAccountService.GetGroupsForUserAsync(user.Id))
                 .Where(x => !string.IsNullOrWhiteSpace(x.DisplayName))
                 .ToList();
 
@@ -40,7 +33,7 @@ namespace UserApi.Helper
             return GraphUserMapper.MapToUserProfile(user, userRole, isUserAdmin);
         }
 
-        private UserRole GetUserRole(ICollection<Group> userGroups)
+        private static UserRole GetUserRole(ICollection<Group> userGroups)
         {
             if (userGroups.Any(IsVirtualRoomAdministrator))
             {
@@ -75,32 +68,32 @@ namespace UserApi.Helper
             return UserRole.None;
         }
 
-        private bool IsVirtualRoomAdministrator(Group group)
+        private static bool IsVirtualRoomAdministrator(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.VirtualRoomAdministrator), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsStaffMember(Group group)
+        private static bool IsStaffMember(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.StaffMember), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsVirtualRoomJudge(Group group)
+        private static bool IsVirtualRoomJudge(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.VirtualRoomJudge), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsVirtualRoomProfessionalUser(Group group)
+        private static bool IsVirtualRoomProfessionalUser(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.VirtualRoomProfessionalUser), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsExternal(Group group)
+        private static bool IsExternal(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.External), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private bool IsJudicialOfficeHolder(Group group)
+        private static bool IsJudicialOfficeHolder(Group group)
         {
             return string.Equals(nameof(_settings.AdGroup.JudicialOfficeHolder), group.DisplayName, StringComparison.InvariantCultureIgnoreCase);
         }

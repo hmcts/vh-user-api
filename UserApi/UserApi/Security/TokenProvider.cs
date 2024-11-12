@@ -1,47 +1,42 @@
 using System;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using System.Threading.Tasks;
+using Microsoft.Identity.Client;
 using UserApi.Common;
 
 namespace UserApi.Security
 {
     public interface ITokenProvider
     {
-        string GetClientAccessToken(string clientId, string clientSecret, string clientResource);
-        AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string clientResource);
+        Task<string> GetClientAccessToken(string clientId, string clientSecret, string clientResource);
+        Task<AuthenticationResult> GetAuthorisationResult(string clientId, string clientSecret, string clientResource);
     }
 
-    public class TokenProvider : ITokenProvider
+    public class TokenProvider(AzureAdConfiguration azureAdConfiguration) : ITokenProvider
     {
-        private readonly AzureAdConfiguration _azureAdConfiguration;
-
-        public TokenProvider(AzureAdConfiguration azureAdConfiguration)
+        public async Task<string> GetClientAccessToken(string clientId, string clientSecret, string clientResource)
         {
-            _azureAdConfiguration = azureAdConfiguration;
-        }
-
-        public string GetClientAccessToken(string clientId, string clientSecret, string clientResource)
-        {
-            var result = GetAuthorisationResult(clientId, clientSecret, clientResource);
+            var result = await GetAuthorisationResult(clientId, clientSecret, clientResource);
             return result.AccessToken;
         }
 
-        public AuthenticationResult GetAuthorisationResult(string clientId, string clientSecret, string clientResource)
+        public async Task<AuthenticationResult> GetAuthorisationResult(string clientId, string clientSecret, string clientResource)
         {
-            AuthenticationResult result;
-            var credential = new ClientCredential(clientId, clientSecret);
-            var authContext =
-                new AuthenticationContext($"{_azureAdConfiguration.Authority}{_azureAdConfiguration.TenantId}");
+            var authority = $"{azureAdConfiguration.Authority}{azureAdConfiguration.TenantId}";
+            var app = ConfidentialClientApplicationBuilder.Create(clientId)
+                .WithClientSecret(clientSecret)
+                .WithAuthority(new Uri(authority))
+                .Build();
+
+            var scopes = new[] { $"{clientResource}/.default" };
 
             try
             {
-                result = authContext.AcquireTokenAsync(clientResource, credential).Result;
+                return await app.AcquireTokenForClient(scopes).ExecuteAsync();
             }
-            catch (AdalException)
+            catch (MsalServiceException)
             {
                 throw new UnauthorizedAccessException();
             }
-
-            return result;
         }
     }
 }
