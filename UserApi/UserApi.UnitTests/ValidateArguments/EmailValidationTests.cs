@@ -1,17 +1,18 @@
 ﻿using NUnit.Framework;
 using System;
-using Faker;
 using UserApi.Validations;
 using FluentAssertions;
+using Bogus;
 
 namespace UserApi.UnitTests.ValidateArguments
 {
     public class EmailValidationTests
     {
+        private static readonly Faker Faker = new();
         [Test]
         public void Should_pass_validation_with_good_email()
         {
-            var email = $"{RandomNumber.Next()}@hmcts.net";
+            var email = $"{Faker.Random.Number(0, 9999999)}@hmcts.net";
             email.IsValidEmail().Should().BeTrue();
         }
 
