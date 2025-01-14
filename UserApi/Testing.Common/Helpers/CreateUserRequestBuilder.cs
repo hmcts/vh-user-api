@@ -1,4 +1,4 @@
-﻿using Faker;
+﻿using Bogus;
 using UserApi.Contract.Requests;
 
 namespace Testing.Common.Helpers
@@ -6,13 +6,14 @@ namespace Testing.Common.Helpers
     public class CreateUserRequestBuilder
     {
         private readonly CreateUserRequest _request;
+        private static readonly Faker Faker = new();
 
         public CreateUserRequestBuilder()
         {
             _request = new CreateUserRequest()
             {
-                FirstName = $"Automation_{Name.First()}",
-                LastName = $"Automation_{Name.Last()}",
+                FirstName = $"Automation_{Faker.Name.FirstName()}",
+                LastName = $"Automation_{Faker.Name.LastName()}",
                 IsTestUser = false
             };
             _request.RecoveryEmail = $"{_request.FirstName}.{_request.LastName}@hmcts.net";

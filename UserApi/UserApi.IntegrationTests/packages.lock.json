@@ -8,15 +8,6 @@
         "resolved": "6.0.2",
         "contentHash": "8b4jBNH7mcQy1otyQErjjIUuGD74XxKZ1wvDufbY7jhWwckl7wIa+icjwdPYeI0aYMS4Tp63LIZvyMFjWwOMDw=="
       },
-      "Faker.NETCore": {
-        "type": "Direct",
-        "requested": "[1.0.2, )",
-        "resolved": "1.0.2",
-        "contentHash": "teRWZFwtBSuMRo2jxB4/DfCo3nprjMtjb7tjBfhrnz+BPhQMivW9cVo06kLr4GAJjrCOvCNQ2sJckRwGvMmK0Q==",
-        "dependencies": {
-          "NETStandard.Library": "1.6.0"
-        }
-      },
       "FluentAssertions": {
         "type": "Direct",
         "requested": "[6.12.0, )",
@@ -140,6 +131,11 @@
         "resolved": "1.5.0",
         "contentHash": "CzIPzdIAFSd2zuLxI+0K9s48Qv3HQDbWiApn9h96j284rHs2bSPrn/PMca3mi4q3xLSEqOp+GUJ6+mXDD9prKg=="
       },
+      "Bogus": {
+        "type": "Transitive",
+        "resolved": "35.6.1",
+        "contentHash": "QPJ8zLL0ScEunEoUNhMDigD4ykA/n7vXCZUQdGCFGHBfP2mNYjiCzR9Cj12eaFaDlwkhIC1HKQZihWl8OgbLsw=="
+      },
       "Castle.Core": {
         "type": "Transitive",
         "resolved": "4.4.0",
@@ -163,6 +159,14 @@
         "contentHash": "DJCLQ3beq1fzqpeQ5jTZwDqmzbOD2Xxsb/jCyShYam88CNwGGn5aBBqu4LVSj0sy0Ai76OauQQncYlC48VvQUQ==",
         "dependencies": {
           "Selenium.WebDriver": "3.10.0"
+        }
+      },
+      "Faker.NETCore": {
+        "type": "Transitive",
+        "resolved": "1.0.2",
+        "contentHash": "teRWZFwtBSuMRo2jxB4/DfCo3nprjMtjb7tjBfhrnz+BPhQMivW9cVo06kLr4GAJjrCOvCNQ2sJckRwGvMmK0Q==",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0"
         }
       },
       "FluentValidation": {
@@ -3191,7 +3195,7 @@
       "testing.common": {
         "type": "Project",
         "dependencies": {
-          "Faker.NETCore": "[1.0.2, )",
+          "Bogus": "[35.6.1, )",
           "FluentAssertions": "[6.12.0, )",
           "Microsoft.Extensions.Configuration.Json": "[8.0.0, )",
           "NBuilder": "[6.1.0, )",

@@ -69,20 +69,17 @@
           "StackExchange.Redis": "2.7.4"
         }
       },
+      "Bogus": {
+        "type": "Transitive",
+        "resolved": "35.6.1",
+        "contentHash": "QPJ8zLL0ScEunEoUNhMDigD4ykA/n7vXCZUQdGCFGHBfP2mNYjiCzR9Cj12eaFaDlwkhIC1HKQZihWl8OgbLsw=="
+      },
       "Castle.Core": {
         "type": "Transitive",
         "resolved": "5.1.1",
         "contentHash": "rpYtIczkzGpf+EkZgDr9CClTdemhsrwA/W5hMoPjLkRFnXzH44zDLoovXeKtmxb1ykXK9aJVODSpiJml8CTw2g==",
         "dependencies": {
           "System.Diagnostics.EventLog": "6.0.0"
-        }
-      },
-      "Faker.NETCore": {
-        "type": "Transitive",
-        "resolved": "1.0.2",
-        "contentHash": "teRWZFwtBSuMRo2jxB4/DfCo3nprjMtjb7tjBfhrnz+BPhQMivW9cVo06kLr4GAJjrCOvCNQ2sJckRwGvMmK0Q==",
-        "dependencies": {
-          "NETStandard.Library": "1.6.0"
         }
       },
       "FluentValidation": {
@@ -2933,7 +2930,7 @@
       "testing.common": {
         "type": "Project",
         "dependencies": {
-          "Faker.NETCore": "[1.0.2, )",
+          "Bogus": "[35.6.1, )",
           "FluentAssertions": "[6.12.0, )",
           "Microsoft.Extensions.Configuration.Json": "[8.0.0, )",
           "NBuilder": "[6.1.0, )",
