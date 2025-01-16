@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -59,8 +60,7 @@ namespace UserApi
             services.AddCustomTypes();
 
             RegisterAuth(services);
-            services.AddMvc()
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>());
+            services.AddValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>();
             services.AddApplicationInsightsTelemetry();
             services.AddVhHealthChecks();
         }

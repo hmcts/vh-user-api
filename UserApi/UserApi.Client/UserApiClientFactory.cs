@@ -1,10 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace UserApi.Client
 {
+    [ExcludeFromCodeCoverage]
     public partial class UserApiClient
     {
         public static UserApiClient GetClient(HttpClient httpClient)
@@ -13,9 +14,7 @@ namespace UserApi.Client
             {
                 ReadResponseAsString = true
             };
-            apiClient.JsonSerializerSettings.ContractResolver = new DefaultContractResolver {NamingStrategy = new SnakeCaseNamingStrategy()};
-            apiClient.JsonSerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-            apiClient.JsonSerializerSettings.Converters.Add(new StringEnumConverter());
+            
             return apiClient;
         }
         
@@ -24,6 +23,14 @@ namespace UserApi.Client
             var apiClient = GetClient(httpClient);
             apiClient.BaseUrl = baseUrl;
             return apiClient;
+        }
+        
+        static partial void UpdateJsonSerializerSettings(JsonSerializerOptions settings)
+        {
+            settings.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+            settings.WriteIndented = true;
+            settings.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            settings.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         }
     }
 }
