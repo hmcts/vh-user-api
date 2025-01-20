@@ -35,7 +35,6 @@ pool:
 stages:
 #####################################################
 # Pre Run Tasks. ####################################
-stages:
 - stage: Pre_Run_Tasks
   displayName: Pre-Release Tasks
   variables:
