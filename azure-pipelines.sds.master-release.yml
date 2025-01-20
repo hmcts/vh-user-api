@@ -19,17 +19,14 @@ parameters:
   default:
   - env: 'dev'
     buildPushImage: true
-    publishNuget: true
     pushHelmChart: true
   - env: 'demo'
     requireApproval: true
     buildPushImage: true
-    publishNuget: false
     pushHelmChart: false
   - env: 'test'
     requireApproval: true
     buildPushImage: true
-    publishNuget: false
     pushHelmChart: false
 
 pool: 
@@ -52,6 +49,24 @@ stages:
           nugetProjectPath: '${{ variables.appName }}/${{ variables.nuget_package_name }}'
           vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
           gitVersionConfigPath: ${{ variables.git_version_config_path }}
+
+#####################################################
+# Deploy Nuget Packages. ############################
+  - stage: Push_Nuget_Dev
+    displayName: Deploy Nuget Packages Dev
+    dependsOn:
+      - Pre_Run_Tasks
+    variables:
+    - template: variables/shared.yaml
+      parameters:
+        env: dev
+    jobs: 
+    - job: Publish_Nuget_Dev
+      displayName: Publish NuGet Packages Dev
+      steps:
+      - template: templates\dotnet\push-nuget-packages.yml@azTemplates
+        parameters:
+          vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
 
 #####################################################
 # CI Build Tasks. ###################################
@@ -132,24 +147,6 @@ stages:
             imageTags:
               - '${{ variables.imageTagName }}'
 
-#####################################################
-# Deploy Nuget Packages. ############################
-  - ${{ if eq(stage.publishNuget, true) }}:
-    - stage: Push_Nuget_${{ stage.env }}
-      displayName: Deploy Nuget Packages ${{ stage.env }}
-      dependsOn:
-        - Pre_Run_Tasks
-      variables:
-      - template: variables/shared.yaml
-        parameters:
-          env: ${{ variables.env }}
-      jobs: 
-      - job: Publish_Nuget_${{ stage.env }}
-        displayName: Publish NuGet Packages ${{ stage.env }}
-        steps:
-        - template: templates\dotnet\push-nuget-packages.yml@azTemplates
-          parameters:
-            vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
   #########################################
   # Push Helm Charts to Repo. #############
   - ${{ if eq(stage.pushHelmChart, true) }}:
