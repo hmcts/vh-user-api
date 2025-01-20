@@ -34,6 +34,24 @@ pool:
 
 stages:
 #####################################################
+# Pre Run Tasks. ####################################
+stages:
+- stage: Pre_Run_Tasks
+  displayName: Pre-Release Tasks
+  variables:
+  - template: variables/shared.yaml
+  - template: variables/dev.yaml
+  jobs:
+  - job: package_nuget
+    displayName: "Package Nuget Packages"
+    steps:
+      - template: templates\dotnet\package-nuget-packages.yml@azTemplates
+        parameters:
+          nugetProjectPath: '${{ variables.appName }}/${{ variables.nuget_package_name }}'
+          vstsFeed: "${{ variables.nuget_org_name }}/${{ variables.nuget_feed_name }}"
+          gitVersionConfigPath: ${{ variables.git_version_config_path }}
+
+#####################################################
 # CI Build Tasks. ###################################
 - stage: CI_Build
   dependsOn: []
@@ -62,6 +80,7 @@ stages:
   - stage: Manual_Approval_${{ stage.env }}
     displayName: Approval ${{ stage.env }}
     condition: eq('${{ stage.requireApproval }}', true)
+    dependsOn: Pre_Run_Tasks
     jobs:
       - job: Approve
         displayName: 'Approve to ${{ stage.env }}'
