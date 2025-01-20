@@ -10,7 +10,7 @@ resources:
     - repository: azTemplates
       type: github
       name: hmcts/azure-devops-templates
-      ref: master
+      ref: update_git_version_task
       endpoint: hmcts
 
 parameters:
