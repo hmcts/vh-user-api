@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using UserApi.Common;
+using UserApi.Common.Security;
 using UserApi.Security;
 
 namespace UserApi.Helper

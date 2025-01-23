@@ -1,18 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using AcceptanceTests.Common.Configuration.Users;
-using FluentAssertions;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using TechTalk.SpecFlow;
 using Testing.Common.Configuration;
+using Testing.Common.Models;
 using UserApi.Common;
+using UserApi.Common.Security;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.Security;
-using ConfigurationManager = AcceptanceTests.Common.Configuration.ConfigurationManager;
 using Test = Testing.Common.Configuration.Test;
 
 namespace UserApi.IntegrationTests.Hooks
@@ -24,7 +21,7 @@ namespace UserApi.IntegrationTests.Hooks
 
         public ConfigHooks(TestContext context)
         {
-            _configRoot = ConfigurationManager.BuildConfig("CF55F1BB-0EE3-456A-A566-70E56AC24C95");
+            _configRoot = ConfigRootBuilder.Build();
             context.Config = new Config();
             context.UserAccounts = new List<UserAccount>();
             context.Tokens = new UserApiTokens();
@@ -45,13 +42,11 @@ namespace UserApi.IntegrationTests.Hooks
         private void RegisterAzureSecrets(TestContext context)
         {
             context.Config.AzureAdConfiguration = Options.Create(_configRoot.GetSection("AzureAd").Get<AzureAdConfiguration>()).Value;
-            ConfigurationManager.VerifyConfigValuesSet(context.Config.AzureAdConfiguration);
         }
 
         private void RegisterTestUserSecrets(TestContext context)
         {
             context.Config.TestSettings = Options.Create(_configRoot.GetSection("Testing").Get<TestSettings>()).Value;
-            ConfigurationManager.VerifyConfigValuesSet(context.Config.TestSettings);
         }
 
         private void RegisterTestUsers(TestContext context)
@@ -77,7 +72,6 @@ namespace UserApi.IntegrationTests.Hooks
         private void RegisterHearingServices(TestContext context)
         {
             context.Config.VhServices = Options.Create(_configRoot.GetSection("VhServices").Get<VhServices>()).Value;
-            ConfigurationManager.VerifyConfigValuesSet(context.Config.VhServices);
         }
 
         private static void RegisterServer(TestContext context)

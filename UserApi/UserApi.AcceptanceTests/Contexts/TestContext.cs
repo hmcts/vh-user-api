@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using AcceptanceTests.Common.Api;
-using AcceptanceTests.Common.Api.Helpers;
-using AcceptanceTests.Common.Configuration.Users;
-using RestSharp;
+﻿using RestSharp;
 using Testing.Common.Configuration;
 
 namespace UserApi.AcceptanceTests.Contexts
@@ -18,7 +14,7 @@ namespace UserApi.AcceptanceTests.Contexts
 
         public RestClient Client()
         {
-            var client = new RestClient(Config.VhServices.UserApiUrl) { Proxy = Zap.WebProxy };
+            var client = new RestClient(Config.VhServices.UserApiUrl);
             client.AddDefaultHeader("Accept", "application/json");
             client.AddDefaultHeader("Authorization", $"Bearer {Tokens.UserApiBearerToken}");
             return client;
@@ -29,7 +25,7 @@ namespace UserApi.AcceptanceTests.Contexts
         public static RestRequest Patch(string path, object requestBody = null)
         {
             var request = new RestRequest(path, Method.PATCH);
-            request.AddParameter("Application/json", RequestHelper.Serialise(requestBody),
+            request.AddParameter("Application/json", ApiRequestHelper.Serialise(requestBody),
                 ParameterType.RequestBody);
             return request;
         }

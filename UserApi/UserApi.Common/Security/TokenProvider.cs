@@ -1,9 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
-using UserApi.Common;
 
-namespace UserApi.Security
+namespace UserApi.Common.Security
 {
     public interface ITokenProvider
     {

@@ -10,9 +10,9 @@
       },
       "FluentAssertions": {
         "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "mTLbcU991EQ1SEmNbVBaGGGJy0YFzvGd1sYJGNZ07nlPKuyHSn1I22aeKzqQXgEiaKyRO6MSCto9eN9VxMwBdA==",
+        "requested": "[7.1.0, )",
+        "resolved": "7.1.0",
+        "contentHash": "98Dt8m2ZYAjxAzoVGnv+yYh441lhM/SLIxWXp9aZU1rF0mRtA8W49GzTPhwQcclqAiRnjeM0VydVkM1OwKF4NQ==",
         "dependencies": {
           "System.Configuration.ConfigurationManager": "6.0.0"
         }
@@ -29,9 +29,9 @@
       },
       "Microsoft.TestPlatform": {
         "type": "Direct",
-        "requested": "[17.9.0, )",
-        "resolved": "17.9.0",
-        "contentHash": "lqPzfM6C5eIXLtp1TvLf329jBFkRrtatfvdxb79S6+t2X2XQVJxyigpoV4g3rBkqn1AGbLOa6/fGV0ef4CoHJQ=="
+        "requested": "[17.12.0, )",
+        "resolved": "17.12.0",
+        "contentHash": "asEPFo3cFftjlf3P5Ayx+xT4UdNCvSI+ar7q8UBd9M1JaR+zYie0X8yQVkicClp73AtbXcPnlivsIdpjC0WUJA=="
       },
       "Moq": {
         "type": "Direct",
@@ -1612,16 +1612,16 @@
       },
       "Polly": {
         "type": "Transitive",
-        "resolved": "8.3.1",
-        "contentHash": "xN9AxOudus8u4a//Tfu6Wxd5Oj7S4pjh/651S6FfIiVrbxQ8TeM+ieZC8c0y7Qto70zKBM5g8rBTqbAJnbetOA==",
+        "resolved": "8.5.1",
+        "contentHash": "/kMFDkE3Tl6rKA1o+JJZ+r3ij8kHVRkIcHhx2fjvoTDl6risPH3KfCb0g9tfFni4qUbcPqkhDNcb0EvMPpyRKw==",
         "dependencies": {
-          "Polly.Core": "8.3.1"
+          "Polly.Core": "8.5.1"
         }
       },
       "Polly.Core": {
         "type": "Transitive",
-        "resolved": "8.3.1",
-        "contentHash": "b9mMAjqXuCXFCtf/RtRPwFUkAm/sz37s7G+taDvS5EqfkJsLiWfO2xO2cSISjIgIY+88oIZTGguP6UrRGRlqzg=="
+        "resolved": "8.5.1",
+        "contentHash": "47BFjJJhlfSrwLgKoouCJYOYd+IRtFSrvaI9/QL3hbs6qGRtByw7D3QBVnGiDPNNSZ7oHfE7Fm/QIg/gd2ypWw=="
       },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl": {
         "type": "Transitive",
@@ -2684,10 +2684,10 @@
         "type": "Project",
         "dependencies": {
           "Bogus": "[35.6.1, )",
-          "FluentAssertions": "[7.0.0, )",
+          "FluentAssertions": "[7.1.0, )",
           "Microsoft.Extensions.Configuration.Json": "[8.0.0, )",
           "NBuilder": "[6.1.0, )",
-          "Polly": "[8.3.1, )",
+          "Polly": "[8.5.1, )",
           "UserApi": "[1.0.0, )",
           "UserApi.Common": "[1.0.0, )",
           "UserApi.Contract": "[1.0.0, )"
@@ -2718,6 +2718,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.ApplicationInsights.AspNetCore": "[2.22.0, )",
+          "Microsoft.Identity.Client": "[4.67.2, )",
           "Newtonsoft.Json": "[13.0.3, )"
         }
       },

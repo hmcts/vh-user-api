@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <ApplicationIcon />
-    <OutputType>Exe</OutputType>
     <StartupObject />
     <ProjectGuid>89499A84-9814-4480-AE89-CD49B7FF3B4E</ProjectGuid>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
@@ -18,7 +17,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="FluentAssertions" Version="7.0.0" />
+    <PackageReference Include="FluentAssertions" Version="7.1.0" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -28,7 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="VH.AcceptanceTests.Common" Version="1.24.1" />
+    <PackageReference Include="SpecFlow" Version="3.9.74" />
   </ItemGroup>
 
   <ItemGroup>

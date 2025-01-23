@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Helpers;
-using Faker;
-using FluentAssertions;
+using Bogus;
+using Bogus.DataSets;
 using NUnit.Framework;
 using Polly;
 using Testing.Common.Configuration;
@@ -22,18 +15,19 @@ namespace UserApi.IntegrationTests.Controllers
     public class UserController : ControllerTestsBase
     {
         private string _newUserId;
+        private readonly Name Name = new Faker().Name;
 
         [Test]
         public async Task Should_create_citizen_user_on_ad()
         {
             var createUserRequest = new CreateUserRequest
             {
-                RecoveryEmail = $"Automation_{Name.First()}@hmcts.net",
-                FirstName = $"Automation_{Name.First()}",
-                LastName = $"Automation_{Name.Last()}"
+                RecoveryEmail = $"Automation_{Name.FirstName()}@hmcts.net",
+                FirstName = $"Automation_{Name.FirstName()}",
+                LastName = $"Automation_{Name.LastName()}"
             };
             var createUserHttpRequest = new StringContent(
-                RequestHelper.Serialise(createUserRequest),
+                ApiRequestHelper.Serialise(createUserRequest),
                 Encoding.UTF8, "application/json");
 
             var createUserResponse =
@@ -41,9 +35,9 @@ namespace UserApi.IntegrationTests.Controllers
 
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel =
-                RequestHelper.Deserialise<NewUserResponse>(createUserResponse.Content
+                ApiRequestHelper.Deserialise<NewUserResponse>(createUserResponse.Content
                     .ReadAsStringAsync().Result);
-            TestContext.WriteLine($"Response:{RequestHelper.Serialise(createUserModel)}");
+            TestContext.WriteLine($"Response:{ApiRequestHelper.Serialise(createUserModel)}");
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
             createUserModel.Username.ToLower().Should()
@@ -55,7 +49,7 @@ namespace UserApi.IntegrationTests.Controllers
             var addExternalGroupRequest = new AddUserToGroupRequest
                 {UserId = createUserModel.UserId, GroupName = nameof(TestConfig.Instance.Settings.AdGroup.External)};
             var addExternalGroupHttpRequest = new StringContent(
-                RequestHelper.Serialise(addExternalGroupRequest),
+                ApiRequestHelper.Serialise(addExternalGroupRequest),
                 Encoding.UTF8, "application/json");
             var addExternalGroupHttpResponse =
                 await SendPatchRequestAsync(AddUserToGroup, addExternalGroupHttpRequest);
@@ -65,9 +59,9 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task Should_return_objectconflict_when_crate_user_with_email_for_which_account_exists()
         {
-            var email = $"Automation_{Name.First()}@hmcts.net";
+            var email = $"Automation_{Name.FirstName()}@hmcts.net";
             var createUserModel = await CreateNewUser(email);
-            TestContext.WriteLine($"Response:{RequestHelper.Serialise(createUserModel)}");
+            TestContext.WriteLine($"Response:{ApiRequestHelper.Serialise(createUserModel)}");
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
             createUserModel.OneTimePassword.Should().NotBeNullOrEmpty();
@@ -84,7 +78,7 @@ namespace UserApi.IntegrationTests.Controllers
             var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                RequestHelper.Deserialise<UserProfile>(getResponse.Content
+                ApiRequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserId.Should().Be(userId);
             userResponseModel.FirstName.Should().NotBeNullOrWhiteSpace();
@@ -106,7 +100,7 @@ namespace UserApi.IntegrationTests.Controllers
             var getResponse = await SendGetRequestAsync(GetUserByAdUserName(username));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var userResponseModel =
-                RequestHelper.Deserialise<UserProfile>(getResponse.Content
+                ApiRequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -130,7 +124,7 @@ namespace UserApi.IntegrationTests.Controllers
             var email = $"Admin.Kinly@{TestConfig.Instance.Settings.ReformEmail}";
             var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel = RequestHelper.Deserialise<UserProfile>(getResponse.Content
+            var userResponseModel = ApiRequestHelper.Deserialise<UserProfile>(getResponse.Content
                     .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -152,10 +146,10 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_get_none_user_role_for_user_not_in_group()
         {
             // Create User
-            var createUserResponse = await CreateAdUser($"Automation_{Name.First()}@hmcts.net");
+            var createUserResponse = await CreateAdUser($"Automation_{Name.FirstName()}@hmcts.net");
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
+            var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>
             (
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
@@ -168,7 +162,7 @@ namespace UserApi.IntegrationTests.Controllers
             
             var getResponse = await policy.ExecuteAsync(async () => await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username)));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel = RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
+            var userResponseModel = ApiRequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
             userResponseModel.UserRole.Should().Be("None");
 
             // Delete User
@@ -180,10 +174,10 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task Should_delete_user()
         {
             // Create User
-            var createUserResponse = await CreateAdUser($"Automation_{Name.First()}@hmcts.net");
+            var createUserResponse = await CreateAdUser($"Automation_{Name.FirstName()}@hmcts.net");
             
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
+            var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>
             (
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
@@ -191,7 +185,7 @@ namespace UserApi.IntegrationTests.Controllers
             //Add User to group
             var addExternalGroupHttpRequest = new StringContent
             (
-                RequestHelper.Serialise(new AddUserToGroupRequest
+                ApiRequestHelper.Serialise(new AddUserToGroupRequest
                 {
                     UserId = createUserModel.UserId, GroupName = nameof(TestConfig.Instance.Settings.AdGroup.External)
                 }),
@@ -214,7 +208,7 @@ namespace UserApi.IntegrationTests.Controllers
             {
                 LastName = "Doe"
             };
-            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             var result = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -229,7 +223,7 @@ namespace UserApi.IntegrationTests.Controllers
                 FirstName = "John",
                 LastName = "Doe"
             };
-            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             var result = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             result.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -238,7 +232,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_return_ok_and_updated_user_when_updating_an_account_successfully()
         {
-            var existingUser = await CreateNewUser($"Automation_{Name.First()}@hmcts.net");
+            var existingUser = await CreateNewUser($"Automation_{Name.FirstName()}@hmcts.net");
             var userId = Guid.Parse(existingUser.UserId);
             var username = existingUser.Username;
             var updateUserRequest = new UpdateUserAccountRequest
@@ -246,13 +240,13 @@ namespace UserApi.IntegrationTests.Controllers
                 FirstName = "RandomTest",
                 LastName = "UpdatedTest"
             };
-            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             
             var responseMessage = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             
             responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-            var updatedUserResponse = RequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
+            var updatedUserResponse = ApiRequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
             updatedUserResponse.FirstName.Should().Be(updateUserRequest.FirstName);
             updatedUserResponse.LastName.Should().Be(updateUserRequest.LastName);
             updatedUserResponse.Email.Should().NotBe(username);
@@ -261,7 +255,7 @@ namespace UserApi.IntegrationTests.Controllers
         [Test]
         public async Task should_return_ok_and_updated_user_when_updating_an_account_contact_email_successfully()
         {
-            var newUser = await CreateNewUser($"Automation_{Name.First()}@hmcts.net");
+            var newUser = await CreateNewUser($"Automation_{Name.FirstName()}@hmcts.net");
             var existingUser = await GetUser(newUser.UserId);
             var userId = Guid.Parse(existingUser.UserId);
             var updateUserRequest = new UpdateUserAccountRequest
@@ -270,13 +264,13 @@ namespace UserApi.IntegrationTests.Controllers
                 LastName = existingUser.LastName,
                 ContactEmail = "newEmail@email.com"
             };
-            var jsonBody = RequestHelper.Serialise(updateUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             
             var responseMessage = await SendPatchRequestAsync(UpdateUserAccount(userId), stringContent);
             
             responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
-            var updatedUserResponse = RequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
+            var updatedUserResponse = ApiRequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
             updatedUserResponse.FirstName.Should().Be(updateUserRequest.FirstName);
             updatedUserResponse.LastName.Should().Be(updateUserRequest.LastName);
             updatedUserResponse.ContactEmail.Should().Be(updateUserRequest.ContactEmail);
@@ -288,7 +282,7 @@ namespace UserApi.IntegrationTests.Controllers
             var email = "Automation02/Individual01@hmcts.net";
             var getResponse = await SendGetRequestAsync(GetUserByEmail(email));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var userResponseModel = RequestHelper.Deserialise<UserProfile>(getResponse.Content
+            var userResponseModel = ApiRequestHelper.Deserialise<UserProfile>(getResponse.Content
                 .ReadAsStringAsync().Result);
             userResponseModel.UserName.Should().NotBeNullOrWhiteSpace();
             userResponseModel.Email.Should().NotBeNullOrWhiteSpace();
@@ -302,7 +296,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(GetJudgesByUsername());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var judges = RequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content
+            var judges = ApiRequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content
                 .ReadAsStringAsync().Result);
 
             judges.Count().Should().BeGreaterThan(0);
@@ -328,11 +322,11 @@ namespace UserApi.IntegrationTests.Controllers
                 CreateUser,
                 new StringContent
                 (
-                    RequestHelper.Serialise(new CreateUserRequest
+                    ApiRequestHelper.Serialise(new CreateUserRequest
                     {
                         RecoveryEmail = email,
-                        FirstName = $"Automation_{Name.First()}",
-                        LastName = $"Automation_{Name.Last()}"
+                        FirstName = $"Automation_{Name.FirstName()}",
+                        LastName = $"Automation_{Name.LastName()}"
                     }),
                     Encoding.UTF8, "application/json"
                 )
@@ -344,7 +338,7 @@ namespace UserApi.IntegrationTests.Controllers
             var createUserResponse = await CreateAdUser(email);
             createUserResponse.IsSuccessStatusCode.Should().BeTrue();
             
-            var createUserModel = RequestHelper.Deserialise<NewUserResponse>
+            var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>
             (
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
@@ -357,7 +351,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(GetUserByAdUserId(userId));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            return RequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
+            return ApiRequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
         }
     }
 }

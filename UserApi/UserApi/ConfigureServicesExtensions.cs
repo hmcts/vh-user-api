@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using NSwag;
 using NSwag.Generation.Processors.Security;
 using UserApi.Common;
+using UserApi.Common.Security;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;

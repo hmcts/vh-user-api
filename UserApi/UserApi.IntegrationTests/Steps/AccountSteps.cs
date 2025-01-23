@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Helpers;
-using FluentAssertions;
-using TechTalk.SpecFlow;
-using Testing.Common;
-using Testing.Common.ActiveDirectory;
+﻿using TechTalk.SpecFlow;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.IntegrationTests.Contexts;
@@ -122,7 +112,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
-            var jsonBody = RequestHelper.Serialise(addUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
@@ -155,7 +145,7 @@ namespace UserApi.IntegrationTests.Steps
                 }
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
-            var jsonBody = RequestHelper.Serialise(addUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
@@ -163,7 +153,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheAdGroupsShouldBeRetrieved()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.Deserialise<GroupsResponse>(json);
+            var model = ApiRequestHelper.Deserialise<GroupsResponse>(json);
             model.Should().NotBeNull();
             model.DisplayName.Should().Be(_testContext.Config.TestSettings.ExistingGroups[0].DisplayName);
             model.GroupId.Should().Be(_testContext.Config.TestSettings.ExistingGroups[0].GroupId);
@@ -173,7 +163,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenAListOfAdGroupsShouldBeRetrieved()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.Deserialise<List<GroupsResponse>>(json);
+            var model = ApiRequestHelper.Deserialise<List<GroupsResponse>>(json);
             model.Should().NotBeNull();
             foreach (var group in model)
             {
