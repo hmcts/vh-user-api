@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Testing.Common.Helpers
 {
@@ -12,7 +14,7 @@ namespace Testing.Common.Helpers
         {
             return new HttpResponseMessage(httpStatusCode)
             {
-                Content = new StringContent(Serialise(serializeObject), System.Text.Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(serializeObject), System.Text.Encoding.UTF8, "application/json")
             };
         }
 
