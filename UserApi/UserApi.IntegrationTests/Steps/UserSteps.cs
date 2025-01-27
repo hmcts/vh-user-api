@@ -1,19 +1,11 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using AcceptanceTests.Common.Api.Helpers;
-using AcceptanceTests.Common.Configuration.Users;
-using AcceptanceTests.Common.Model.UserRole;
-using FluentAssertions;
+﻿using System.Net;
 using Polly;
 using TechTalk.SpecFlow;
-using Testing.Common.ActiveDirectory;
 using Testing.Common.Configuration;
-using Testing.Common.Helpers;
+using Testing.Common.Models;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
+using UserApi.Helper;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
 using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
@@ -70,7 +62,7 @@ namespace UserApi.IntegrationTests.Steps
             }
 
             _testContext.HttpContent = new StringContent(
-                RequestHelper.Serialise(createUserRequest),
+                ApiRequestHelper.Serialise(createUserRequest),
                 Encoding.UTF8, "application/json");
         }
 
@@ -145,12 +137,12 @@ namespace UserApi.IntegrationTests.Steps
             _testContext.HttpMethod = HttpMethod.Post;
             var createUserRequest = new CreateUserRequestBuilder().Build();
             _testContext.HttpContent = new StringContent(
-                RequestHelper.Serialise(createUserRequest),
+                ApiRequestHelper.Serialise(createUserRequest),
                 Encoding.UTF8, "application/json");
             _testContext.ResponseMessage = await SendPostRequestAsync(_testContext);
             _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            return RequestHelper.Deserialise<NewUserResponse>(json);
+            return ApiRequestHelper.Deserialise<NewUserResponse>(json);
         }
 
         private async Task AddUserToExternalGroup(string userId)
@@ -162,7 +154,7 @@ namespace UserApi.IntegrationTests.Steps
                 UserId = userId,
                 GroupName = TestConfig.Instance.Settings.AdGroup.External
             };
-            var jsonBody = RequestHelper.Serialise(addUserRequest);
+            var jsonBody = ApiRequestHelper.Serialise(addUserRequest);
             _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             _testContext.ResponseMessage = await SendPatchRequestAsync(_testContext);
             _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -231,7 +223,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheUserShouldBeAdded()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.Deserialise<NewUserResponse>(json);
+            var model = ApiRequestHelper.Deserialise<NewUserResponse>(json);
             model.Should().NotBeNull();
             model.OneTimePassword.Should().NotBeNullOrEmpty();
             model.UserId.Should().NotBeNullOrEmpty();
@@ -243,7 +235,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheUserDetailsShouldBeRetrieved()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.Deserialise<UserProfile>(json);
+            var model = ApiRequestHelper.Deserialise<UserProfile>(json);
             model.Should().NotBeNull();
             model.DisplayName.Should().NotBeNullOrEmpty();
             model.FirstName.Should().NotBeNullOrEmpty();
@@ -263,7 +255,7 @@ namespace UserApi.IntegrationTests.Steps
         public async Task ThenTheResponseShouldBeEmpty()
         {
             var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            var model = RequestHelper.Deserialise<UserProfile>(json);
+            var model = ApiRequestHelper.Deserialise<UserProfile>(json);
             model.Should().BeNull();
         }
 

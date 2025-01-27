@@ -2588,6 +2588,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.ApplicationInsights.AspNetCore": "[2.22.0, )",
+          "Microsoft.Identity.Client": "[4.67.2, )",
           "Newtonsoft.Json": "[13.0.3, )"
         }
       },

@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-using UserApi.IntegrationTests.Contexts;
+﻿using UserApi.IntegrationTests.Contexts;
 
 namespace UserApi.IntegrationTests.Steps
 {

@@ -1,7 +1,4 @@
-﻿using System.Net;
-using FluentAssertions;
-using TechTalk.SpecFlow;
-using UserApi.AcceptanceTests.Contexts;
+﻿using UserApi.AcceptanceTests.Contexts;
 
 namespace UserApi.AcceptanceTests.Steps
 {

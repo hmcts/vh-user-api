@@ -1,6 +1,3 @@
-using System.Net.Http;
-using System.Threading.Tasks;
-using AcceptanceTests.Common.Api;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -8,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using Testing.Common.Configuration;
 using UserApi.Common;
+using UserApi.Common.Security;
 using UserApi.Security;
 
 namespace UserApi.IntegrationTests.Controllers
@@ -57,26 +55,7 @@ namespace UserApi.IntegrationTests.Controllers
 
         private HttpClient CreateClient()
         {
-            HttpClient client;
-            if (Zap.SetupProxy)
-            {
-                var handler = new HttpClientHandler
-                {
-                    Proxy = Zap.WebProxy,
-                    UseProxy = true,
-                };
-
-                client = new HttpClient(handler)
-                {
-                    
-                    BaseAddress = new System.Uri(TestConfiguration.UserApiUrl)
-                };
-            }
-            else
-            {
-                client = _server.CreateClient();
-            }
-
+            var client = _server.CreateClient();
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
             return client;
         }

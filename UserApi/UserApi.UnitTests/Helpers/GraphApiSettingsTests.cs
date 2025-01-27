@@ -3,6 +3,7 @@ using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Common;
+using UserApi.Common.Security;
 using UserApi.Helper;
 using UserApi.Security;
 

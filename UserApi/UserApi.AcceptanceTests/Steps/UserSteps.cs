@@ -1,9 +1,4 @@
-﻿using System;
-using FluentAssertions;
-using System.Collections.Generic;
-using AcceptanceTests.Common.Api.Helpers;
-using TechTalk.SpecFlow;
-using UserApi.AcceptanceTests.Contexts;
+﻿using UserApi.AcceptanceTests.Contexts;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
@@ -26,7 +21,7 @@ namespace UserApi.AcceptanceTests.Steps
         {
             _context.Request = TestContext.Get(GetUserByAdUserId(_context.Config.TestSettings.ExistingUserId));
             _context.Response = _context.Client().Execute(_context.Request);
-            var model = RequestHelper.Deserialise<UserProfile>(_context.Response.Content);
+            var model = ApiRequestHelper.Deserialise<UserProfile>(_context.Response.Content);
             _context.Test.NewUserId = model.UserId;
             _newUsername = model.UserName;
         }
@@ -58,7 +53,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"a list of ad judges should be retrieved")]
         public void ThenAListOfAdJudgesShouldBeRetrieved()
         {
-            var judges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
+            var judges = ApiRequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
             judges.Should().NotBeEmpty();
             foreach (var judge in judges)
             {
@@ -70,7 +65,7 @@ namespace UserApi.AcceptanceTests.Steps
         [Then(@"the list of ad judges should not contain performance test users")]
         public void TheListOfAdJudgesShouldNotContainPerformanceTestUsers()
         {
-            var judges = RequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
+            var judges = ApiRequestHelper.Deserialise<List<UserResponse>>(_context.Response.Content);
             judges.Should().NotBeNull();
             judges.Exists(x => x.FirstName == "TP").Should().BeFalse();
         }

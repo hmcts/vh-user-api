@@ -1,9 +1,6 @@
-using System;
-using System.Threading.Tasks;
-using FluentAssertions;
 using NUnit.Framework;
-using Testing.Common.ActiveDirectory;
 using Testing.Common.Configuration;
+using UserApi.Common.Security;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services;

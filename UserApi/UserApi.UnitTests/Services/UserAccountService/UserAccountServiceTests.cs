@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using UserApi.Common;
+using UserApi.Common.Security;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
@@ -47,6 +48,8 @@ namespace UserApi.UnitTests.Services.UserAccountService
                 ClientId = "TestClientId",
                 ClientSecret = "TestSecret",
                 Authority = "https://Test/Authority",
+                GraphApiBaseUri = "https://graph.microsoft.com/",
+                TenantId = "1234567"
             };
             var tokenProvider = new Mock<ITokenProvider>();
             GraphApiSettings = new GraphApiSettings(tokenProvider.Object, azureAdConfig);
