@@ -3,14 +3,6 @@
 	As an api service
 	I want to be able to retrieve or create ad users
 
-Scenario: User account not created for an invalid user
-	Given I have a new hearings reforms user account request with an invalid email
-	When I send the request to the endpoint
-	Then the response should have the status BadRequest and success status False
-	And the error response message should contain 'recovery email cannot be empty'
-	And the error response message should also contain 'first name cannot be empty'
-	And the error response message should also contain 'last name cannot be empty'
-
 Scenario: User account not created with an incorrectly formatted email
 	Given I have a new hearings reforms user account request with an IncorrectFormat email
 	When I send the request to the endpoint

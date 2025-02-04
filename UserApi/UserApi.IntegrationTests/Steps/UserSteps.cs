@@ -1,14 +1,11 @@
 ﻿using System.Net;
 using Polly;
 using TechTalk.SpecFlow;
-using Testing.Common.Configuration;
 using Testing.Common.Models;
-using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.IntegrationTests.Contexts;
 using UserApi.IntegrationTests.Helpers;
-using static Testing.Common.Helpers.UserApiUriFactory.AccountEndpoints;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
 namespace UserApi.IntegrationTests.Steps
@@ -123,43 +120,7 @@ namespace UserApi.IntegrationTests.Steps
                 default: throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null);
             }
         }
-
-        [Given(@"I have a new user")]
-        public async Task GivenIHaveANewUser()
-        {
-            _newUser = await CreateTheNewUser();
-            await AddUserToExternalGroup(_newUser.UserId);
-        }
-
-        private async Task<NewUserResponse> CreateTheNewUser()
-        {
-            _testContext.Uri = CreateUser;
-            _testContext.HttpMethod = HttpMethod.Post;
-            var createUserRequest = new CreateUserRequestBuilder().Build();
-            _testContext.HttpContent = new StringContent(
-                ApiRequestHelper.Serialise(createUserRequest),
-                Encoding.UTF8, "application/json");
-            _testContext.ResponseMessage = await SendPostRequestAsync(_testContext);
-            _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Created);
-            var json = await _testContext.ResponseMessage.Content.ReadAsStringAsync();
-            return ApiRequestHelper.Deserialise<NewUserResponse>(json);
-        }
-
-        private async Task AddUserToExternalGroup(string userId)
-        {
-            _testContext.HttpMethod = HttpMethod.Patch;
-            _testContext.Uri = AddUserToGroup;
-            var addUserRequest = new AddUserToGroupRequest()
-            {
-                UserId = userId,
-                GroupName = TestConfig.Instance.Settings.AdGroup.External
-            };
-            var jsonBody = ApiRequestHelper.Serialise(addUserRequest);
-            _testContext.HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-            _testContext.ResponseMessage = await SendPatchRequestAsync(_testContext);
-            _testContext.ResponseMessage.StatusCode.Should().Be(HttpStatusCode.Accepted);
-        }
-
+        
         [Given(@"I have a delete user request for the new user")]
         public void GivenIHaveADeleteUserRequestForTheNewUser()
         {

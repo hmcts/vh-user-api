@@ -26,10 +26,10 @@ namespace UserApi.IntegrationTests.Controllers
                 .UseStartup<Startup>();
             _server = new TestServer(webHostBuilder);
 
-            await GetClientAccessTokenForBookHearingApi();
+            await GetClientAccessToken();
         }
 
-        private async Task GetClientAccessTokenForBookHearingApi()
+        private async Task GetClientAccessToken()
         {
             var azureAdConfig = TestConfig.Instance.AzureAd;
             var vhServicesConfig = TestConfig.Instance.VhServices;
@@ -48,10 +48,6 @@ namespace UserApi.IntegrationTests.Controllers
         {
             _server.Dispose();
         }
-
-        private static IConfigurationRoot ConfigurationRoot => new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-
-        private static VhServices TestConfiguration => ConfigurationRoot.GetSection("VhServices").Get<VhServices>();
 
         private HttpClient CreateClient()
         {

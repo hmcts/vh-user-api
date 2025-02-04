@@ -4,15 +4,6 @@ namespace Testing.Common.Helpers
 {
     public static class UserApiUriFactory
     {
-        public static class AccountEndpoints
-        {
-            private const string ApiRoot = "accounts";
-            public const string AddUserToGroup = $"{ApiRoot}/user/group";
-            public static string GetGroupByName(string groupName) => $"{ApiRoot}/group/?name={groupName}";
-            public static string GetGroupById(string groupId) => $"{ApiRoot}/group/{groupId}";
-            public static string GetGroupsForUser(string userId) => $"{ApiRoot}/user/{userId}/groups";
-        }
-
         public static class UserEndpoints
         {
             private const string ApiRoot = "users";
