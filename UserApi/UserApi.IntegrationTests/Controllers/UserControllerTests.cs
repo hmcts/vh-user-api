@@ -272,7 +272,7 @@ namespace UserApi.IntegrationTests.Controllers
 
             judges.Count().Should().BeGreaterThan(0);
         }
-
+       
         [TearDown]
         public async Task ClearUp()
         {

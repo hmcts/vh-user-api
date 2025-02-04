@@ -11,6 +11,7 @@ using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Mappers;
+using UserApi.Security;
 using UserApi.Services;
 using UserApi.Validations;
 
@@ -307,5 +308,50 @@ public class UserController(
         var password = await userAccountService.UpdateUserPasswordAsync(userProfile.UserName);
 
         return Ok(new UpdateUserResponse {NewPassword = password});
+    }
+    
+    
+    /// <summary>
+    ///     Add a user to a group
+    /// </summary>
+    [HttpPatch("user/group", Name = "AddUserToGroup")]
+    [OpenApiOperation("AddUserToGroup")]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.NotFound)]
+    public async Task<IActionResult> AddUserToGroup(AddUserToGroupRequest request)
+    {
+        var result = new AddUserToGroupRequestValidation().Validate(request);
+
+        if (!result.IsValid)
+        {
+            foreach (var failure in result.Errors)
+                ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
+
+            var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
+            telemetryClient.TrackTrace(new TraceTelemetry(
+                $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}",
+                SeverityLevel.Error));
+            return ValidationProblem(ModelState);
+        }
+
+        var groupId = userAccountService.GetGroupIdFromSettings(request.GroupName);
+        if (string.IsNullOrEmpty(groupId))
+        {
+            telemetryClient.TrackTrace(new TraceTelemetry($"Group not found '{request.GroupName}'",
+                SeverityLevel.Error));
+            return NotFound(ModelState);
+        }
+        try
+        {
+            await userAccountService.AddUserToGroupAsync(request.UserId, groupId);
+        }
+        catch (UserServiceException e)
+        {
+            ModelState.AddModelError(nameof(request.UserId), e.Reason);
+            return NotFound(ModelState);
+        }
+
+        return Accepted();
     }
 }
