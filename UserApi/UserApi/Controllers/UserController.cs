@@ -19,20 +19,13 @@ namespace UserApi.Controllers;
 [Produces("application/json")]
 [Route("users")]
 [ApiController]
-public class UserController : ControllerBase
+public class UserController(
+    IUserAccountService userAccountService,
+    TelemetryClient telemetryClient,
+    Settings settings)
+    : ControllerBase
 {
-    private readonly TelemetryClient _telemetryClient;
-    private readonly IUserAccountService _userAccountService;
     private const string Separator = "; ";
-    private readonly Settings _settings;
-
-    public UserController(IUserAccountService userAccountService, TelemetryClient telemetryClient,
-        Settings settings)
-    {
-        _userAccountService = userAccountService;
-        _telemetryClient = telemetryClient;
-        _settings = settings;
-    }
 
     /// <summary>
     ///     Create a new hearings reforms user account
@@ -53,7 +46,7 @@ public class UserController : ControllerBase
                 ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
-            _telemetryClient.TrackTrace(new TraceTelemetry(
+            telemetryClient.TrackTrace(new TraceTelemetry(
                 $"CreateUserRequest validation failed: {string.Join(Separator, errors)}",
                 SeverityLevel.Error));
             return BadRequest(ModelState);
@@ -62,7 +55,7 @@ public class UserController : ControllerBase
         try
         {
             var adUserAccount =
-                await _userAccountService.CreateUserAsync(request.FirstName, request.LastName,
+                await userAccountService.CreateUserAsync(request.FirstName, request.LastName,
                     request.RecoveryEmail, request.IsTestUser);
 
             var response = new NewUserResponse
@@ -104,7 +97,7 @@ public class UserController : ControllerBase
     {
         var filterText = userId.Replace("'", "''");
         var filter = $"id  eq '{filterText}'";
-        var profile = new UserProfileHelper(_userAccountService, _settings);
+        var profile = new UserProfileHelper(userAccountService, settings);
         var userProfile = await profile.GetUserProfileAsync(filter);
 
         if (userProfile == null)
@@ -135,7 +128,7 @@ public class UserController : ControllerBase
         var filterText = userName.Replace("'", "''");
         var filter = $"userPrincipalName  eq '{filterText}'";
 
-        var profile = new UserProfileHelper(_userAccountService, _settings);
+        var profile = new UserProfileHelper(userAccountService, settings);
         try
         {
             var userProfile = await profile.GetUserProfileAsync(filter);
@@ -179,7 +172,7 @@ public class UserController : ControllerBase
 
         var emailText = email.Replace("'", "''");
         var filter = $"otherMails/any(c:c eq '{emailText}')";
-        var profile = new UserProfileHelper(_userAccountService, _settings);
+        var profile = new UserProfileHelper(userAccountService, settings);
         var userProfile = await profile.GetUserProfileAsync(filter);
 
         if (userProfile == null) return NotFound();
@@ -195,7 +188,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
     public async Task<IActionResult> GetJudgesByUsername(string username)
     {
-        var adJudges = await _userAccountService.GetJudgesAsync(username);
+        var adJudges = await userAccountService.GetJudgesAsync(username);
 
         if (adJudges == null || !adJudges.Any())
         {
@@ -213,7 +206,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
     public async Task<IActionResult> GetEjudiciaryJudgesByUsername(string username)
     {
-        var ejudiciaryJudges = await _userAccountService.GetEjudiciaryJudgesAsync(username);
+        var ejudiciaryJudges = await userAccountService.GetEjudiciaryJudgesAsync(username);
 
         if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
         {
@@ -235,7 +228,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            await _userAccountService.DeleteUserAsync(username);
+            await userAccountService.DeleteUserAsync(username);
         }
         catch (UserDoesNotExistException)
         {
@@ -266,7 +259,7 @@ public class UserController : ControllerBase
                 ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
-            _telemetryClient.TrackTrace(new TraceTelemetry(
+            telemetryClient.TrackTrace(new TraceTelemetry(
                 $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}",
                 SeverityLevel.Error));
             return BadRequest(ModelState);
@@ -274,7 +267,7 @@ public class UserController : ControllerBase
 
         try
         {
-            var user = await _userAccountService.UpdateUserAccountAsync(userId, payload.FirstName,
+            var user = await userAccountService.UpdateUserAccountAsync(userId, payload.FirstName,
                 payload.LastName, payload.ContactEmail);
             var response = GraphUserMapper.MapToUserResponse(user);
             return Ok(response);
@@ -304,14 +297,14 @@ public class UserController : ControllerBase
 
         var filterText = username.Replace("'", "''");
         var filter = $"userPrincipalName  eq '{filterText}'";
-        var profile = new UserProfileHelper(_userAccountService, _settings);
+        var profile = new UserProfileHelper(userAccountService, settings);
         var userProfile = await profile.GetUserProfileAsync(filter);
         if (userProfile == null)
         {
             return NotFound();
         }
 
-        var password = await _userAccountService.UpdateUserPasswordAsync(userProfile.UserName);
+        var password = await userAccountService.UpdateUserPasswordAsync(userProfile.UserName);
 
         return Ok(new UpdateUserResponse {NewPassword = password});
     }

@@ -39,6 +39,6 @@ namespace Testing.Common.Configuration
             return _configuration.GetSection(sectionName).Get<TType>();
         }
         
-        public static readonly TestConfig Instance = new TestConfig();
+        public static readonly TestConfig Instance = new ();
     }
 }

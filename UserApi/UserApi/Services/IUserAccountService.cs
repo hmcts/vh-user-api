@@ -17,15 +17,11 @@ namespace UserApi.Services
         Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser);
         Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null);
         Task DeleteUserAsync(string username);
-        Task AddUserToGroupAsync(string userId, string groupId);
-        Task<Group> GetGroupByNameAsync(string groupName);
-        Task<Group> GetGroupByIdAsync(string groupId);
         Task<List<Group>> GetGroupsForUserAsync(string userId);
         Task<User> GetUserByFilterAsync(string filter);
         Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null);
         Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username);
         Task<string> UpdateUserPasswordAsync(string username);
         Task<bool> IsUserAdminAsync(string principalId);
-        string GetGroupIdFromSettings(string groupName);
     }
 }

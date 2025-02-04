@@ -2,154 +2,137 @@ using NUnit.Framework;
 using Testing.Common.Configuration;
 using UserApi.Common.Security;
 using UserApi.Helper;
-using UserApi.Security;
 using UserApi.Services;
 using UserApi.Services.Models;
 
-namespace UserApi.IntegrationTests.Services
+namespace UserApi.IntegrationTests.Services;
+
+public class UserAccountServiceTests
 {
-    public class UserAccountServiceTests
+    private UserAccountService _service;
+    private GraphApiSettings _graphApiSettings;
+    private SecureHttpRequest _secureHttpRequest;
+    private GraphApiClient _identityServiceApiClient;
+    private IPasswordService _passwordService;
+    private NewAdUserAccount _createdAccount;
+
+    [SetUp]
+    public void Setup()
     {
-        private UserAccountService _service;
-        private GraphApiSettings _graphApiSettings;
-        private SecureHttpRequest _secureHttpRequest;
-        private GraphApiClient _identityServiceApiClient;
-        private IPasswordService _passwordService;
-        private NewAdUserAccount _createdAccount;
+        _createdAccount = null;
 
-        [SetUp]
-        public void Setup()
+        _secureHttpRequest = new SecureHttpRequest();
+
+        var settings = TestConfig.Instance.Settings;
+        var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
+        _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
+        _passwordService = new PasswordService();
+        _identityServiceApiClient =
+            new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
+        _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient,
+            settings);
+    }
+
+    [TearDown]
+    public async Task TearDown()
+    {
+        if (_createdAccount != null)
         {
-            _createdAccount = null;
-
-            _secureHttpRequest = new SecureHttpRequest();
-
-            var settings = TestConfig.Instance.Settings;
-            var tokenProvider = new TokenProvider(TestConfig.Instance.AzureAd);
-            _graphApiSettings = new GraphApiSettings(tokenProvider, TestConfig.Instance.AzureAd);
-            _passwordService = new PasswordService();
-            _identityServiceApiClient =
-                new GraphApiClient(_secureHttpRequest, _graphApiSettings, _passwordService, settings);
-            _service = new UserAccountService(_secureHttpRequest, _graphApiSettings, _identityServiceApiClient,
-                settings);
-        }
-
-        [TearDown]
-        public async Task TearDown()
-        {
-            if (_createdAccount != null)
-            {
-                TestContext.WriteLine($"Attempting to delete account {_createdAccount.UserId}");
-                var accessToken = await _graphApiSettings.GetAccessToken();
-                await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_createdAccount.UserId,
-                    accessToken);
-            }
-        }
-
-        [Test]
-        public async Task should_generate_username_based_on_firstname_lastname()
-        {
-            var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Missing", "User", null);
-            nextUsername.Should().Be($"missing.user@{TestConfig.Instance.Settings.ReformEmail}");
-        }
-
-        [Test]
-        public async Task should_get_next_available_username_for_firstname_lastname()
-        {
-         
-            var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual", null);
-            nextUsername.Should().Be($"existing.individual@{TestConfig.Instance.Settings.ReformEmail}");
-        }
-
-        [Test]
-        public async Task should_create_user()
-        {
-            const string firstName = "Automatically";
-            const string lastName = "Created";
-            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
-            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
-            var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
-            var username = createdAccount.Username;
-            username.ToLower().Should().Contain(firstName.ToLower());
-            username.ToLower().Should().Contain(lastName.ToLower());
-
+            TestContext.WriteLine($"Attempting to delete account {_createdAccount.UserId}");
             var accessToken = await _graphApiSettings.GetAccessToken();
-            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, accessToken);
+            await ActiveDirectoryUser.DeleteTheUserFromAdAsync(_createdAccount.UserId,
+                accessToken);
         }
+    }
 
-        [Test]
-        public void should_throw_exception_when_attempting_to_create_user_with_invalid_email()
-        {
-            const string firstName = "Automatically";
-            const string lastName = "Created";
-            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
-            var recoveryEmail = $"{firstName}.{lastName}.{unique}.@{TestConfig.Instance.Settings.ReformEmail}";
-            var result = Assert.ThrowsAsync<InvalidEmailException>(() => _service.CreateUserAsync(firstName, lastName, recoveryEmail, false));
-            result.Email.Should().Be(recoveryEmail);
-        }
+    [Test]
+    public async Task should_generate_username_based_on_firstname_lastname()
+    {
+        var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Missing", "User", null);
+        nextUsername.Should().Be($"missing.user@{TestConfig.Instance.Settings.ReformEmail}");
+    }
 
-        [Test]
-        public void should_throw_exception_when_attempting_to_delete_nonexistent_user()
-        {
-            const string username = "does.notexist@anywhere.com";
-            var result = Assert.ThrowsAsync<UserDoesNotExistException>(() => _service.DeleteUserAsync(username));
-            result.Username.Should().Be(username);
-        }
+    [Test]
+    public async Task should_get_next_available_username_for_firstname_lastname()
+    {
+         
+        var nextUsername = await _service.CheckForNextAvailableUsernameAsync("Existing", "Individual", null);
+        nextUsername.Should().Be($"existing.individual@{TestConfig.Instance.Settings.ReformEmail}");
+    }
 
-        [Test]
-        public void should_throw_exception_when_attempting_to_update_nonexistent_user()
-        {
-            var userId = Guid.NewGuid();
-            var firstName = "Foo";
-            var lastName = "Bar";
-            Assert.ThrowsAsync<UserDoesNotExistException>(() =>
-                _service.UpdateUserAccountAsync(userId, firstName, lastName));
-        }
+    [Test]
+    public async Task should_create_user()
+    {
+        const string firstName = "Automatically";
+        const string lastName = "Created";
+        var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+        var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
+        var createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
+        var username = createdAccount.Username;
+        username.ToLower().Should().Contain(firstName.ToLower());
+        username.ToLower().Should().Contain(lastName.ToLower());
 
-        [Test]
-        public async Task should_update_existing_user()
-        {
-            await CreateAccount();
-            var newFirstName = "Auto";
-            var newLastName = "Updated";
+        var accessToken = await _graphApiSettings.GetAccessToken();
+        await ActiveDirectoryUser.DeleteTheUserFromAdAsync(username, accessToken);
+    }
 
-            var id = Guid.Parse(_createdAccount.UserId);
-            await _service.UpdateUserAccountAsync(id, newFirstName, newLastName);
+    [Test]
+    public void should_throw_exception_when_attempting_to_create_user_with_invalid_email()
+    {
+        const string firstName = "Automatically";
+        const string lastName = "Created";
+        var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+        var recoveryEmail = $"{firstName}.{lastName}.{unique}.@{TestConfig.Instance.Settings.ReformEmail}";
+        var result = Assert.ThrowsAsync<InvalidEmailException>(() => _service.CreateUserAsync(firstName, lastName, recoveryEmail, false));
+        result.Email.Should().Be(recoveryEmail);
+    }
 
-            var filter = $"id  eq '{_createdAccount.UserId}'";
-            var updatedUser = await _service.GetUserByFilterAsync(filter);
+    [Test]
+    public void should_throw_exception_when_attempting_to_delete_nonexistent_user()
+    {
+        const string username = "does.notexist@anywhere.com";
+        var result = Assert.ThrowsAsync<UserDoesNotExistException>(() => _service.DeleteUserAsync(username));
+        result.Username.Should().Be(username);
+    }
+
+    [Test]
+    public void should_throw_exception_when_attempting_to_update_nonexistent_user()
+    {
+        var userId = Guid.NewGuid();
+        var firstName = "Foo";
+        var lastName = "Bar";
+        Assert.ThrowsAsync<UserDoesNotExistException>(() =>
+            _service.UpdateUserAccountAsync(userId, firstName, lastName));
+    }
+
+    [Test]
+    public async Task should_update_existing_user()
+    {
+        await CreateAccount();
+        var newFirstName = "Auto";
+        var newLastName = "Updated";
+
+        var id = Guid.Parse(_createdAccount.UserId);
+        await _service.UpdateUserAccountAsync(id, newFirstName, newLastName);
+
+        var filter = $"id  eq '{_createdAccount.UserId}'";
+        var updatedUser = await _service.GetUserByFilterAsync(filter);
             
-            updatedUser.GivenName.Should().Be(newFirstName);
-            updatedUser.Surname.Should().Be(newLastName);
-            var username = updatedUser.UserPrincipalName;
-            username.Should().NotBe(_createdAccount.Username);
-            username.ToLower().Should().Contain(newFirstName.ToLower());
-            username.ToLower().Should().Contain(newLastName.ToLower());
-        }
-
-        [Test]
-        public void should_have_all_groupid_values()
-        {
-            var settings = TestConfig.Instance.Settings;
-            Guid.TryParse(settings.AdGroup.External, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.Internal, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.VirtualRoomProfessionalUser, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.JudicialOfficeHolder, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.VirtualRoomJudge, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.TestAccount, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.VirtualRoomAdministrator, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.StaffMember, out _).Should().BeTrue();
-            Guid.TryParse(settings.AdGroup.UserApiTestGroup, out _).Should().BeTrue();
-        }
-
-        private async Task CreateAccount()
-        {
-            const string firstName = "Automatically";
-            const string lastName = "Created";
-            var unique = DateTime.Now.ToString("yyyyMMddhmmss");
-            var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
-            _createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
-            TestContext.WriteLine($"Created new account {_createdAccount.UserId}");
-        }
+        updatedUser.GivenName.Should().Be(newFirstName);
+        updatedUser.Surname.Should().Be(newLastName);
+        var username = updatedUser.UserPrincipalName;
+        username.Should().NotBe(_createdAccount.Username);
+        username.ToLower().Should().Contain(newFirstName.ToLower());
+        username.ToLower().Should().Contain(newLastName.ToLower());
+    }
+        
+    private async Task CreateAccount()
+    {
+        const string firstName = "Automatically";
+        const string lastName = "Created";
+        var unique = DateTime.Now.ToString("yyyyMMddhmmss");
+        var recoveryEmail = $"{firstName}.{lastName}.{unique}@{TestConfig.Instance.Settings.ReformEmail}";
+        _createdAccount = await _service.CreateUserAsync(firstName, lastName, recoveryEmail, false);
+        TestContext.WriteLine($"Created new account {_createdAccount.UserId}");
     }
 }
