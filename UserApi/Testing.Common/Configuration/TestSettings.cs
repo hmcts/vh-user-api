@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Testing.Common.Configuration
+﻿namespace Testing.Common.Configuration
 {
     public class TestSettings
     {
@@ -9,6 +7,5 @@ namespace Testing.Common.Configuration
         public string ExistingEmail { get; set; }
         public string ExistingUserFirstname { get; set; }
         public string ExistingUserLastname { get; set; }
-        public List<Group> ExistingGroups { get; set; }
     }
 }

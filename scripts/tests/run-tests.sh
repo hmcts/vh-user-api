@@ -11,7 +11,12 @@ dotnet test UserApi/UserApi.UnitTests/UserApi.UnitTests.csproj -c $configuration
     "/p:Exclude=\"${exclusions}\"" \
     "/p:CoverletOutput=${PWD}/Coverage/" \
     "/p:MergeWith=${PWD}/Coverage/coverage.json" \
-    "/p:CoverletOutputFormat=\"opencover,json,cobertura,lcov\""
+    "/p:CoverletOutputFormat=\"opencover,json,cobertura,lcov\""||
+{
+   echo "##vso[task.logissue type=error]DotNet Unit Tests Failed."
+   echo "##vso[task.complete result=Failed]"
+   exit 1
+}
 
 ## Enable this when integration tests are ready
 # dotnet test UserApi/UserApi.IntegrationTests/UserApi.IntegrationTests.csproj -c $configuration --results-directory ./TestResults --logger "trx;LogFileName=UserApi-Integration-Tests-TestResults.trx" \

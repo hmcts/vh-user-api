@@ -17,6 +17,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="7.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.12" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NUnit" Version="4.3.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0">
@@ -33,6 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Testing.Common\Testing.Common.csproj" />
+    <ProjectReference Include="..\UserApi.Client\UserApi.Client.csproj" />
     <ProjectReference Include="..\UserApi.Common\UserApi.Common.csproj" />
     <ProjectReference Include="..\UserApi\UserApi.csproj" />
   </ItemGroup>
@@ -40,9 +42,6 @@
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="useraccounts.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

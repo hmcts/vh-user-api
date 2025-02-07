@@ -26,7 +26,8 @@ namespace UserApi.UnitTests.Controllers
         private UserController _controller;
         private Mock<IUserAccountService> _userAccountService;
         private CreateUserRequest _request;
-        private NewAdUserAccount _newAdUserAccount;
+        private NewAdUserAccount _newAdUserAccount;       
+        private AddUserToGroupRequest _groupRequest;
         private Settings _settings;
         protected const string Domain = "@hearings.test.server.net";
 
@@ -50,7 +51,11 @@ namespace UserApi.UnitTests.Controllers
                 .Build();
             _newAdUserAccount = new NewAdUserAccount { UserId = "TestUserId", Username = "TestUserName", OneTimePassword = "TestPassword" };
             _userAccountService.Setup(u => u.CreateUserAsync(_request.FirstName, _request.LastName, _request.RecoveryEmail, _request.IsTestUser)).ReturnsAsync(_newAdUserAccount);
-            
+            _groupRequest = Builder<AddUserToGroupRequest>.CreateNew()
+                .With(x => x.GroupName = "TestGroup")
+                .With(x => x.UserId = "johndoe")
+                .Build();
+
             _controller = new UserController(_userAccountService.Object, client, _settings);
         }
 
@@ -518,5 +523,51 @@ namespace UserApi.UnitTests.Controllers
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
         }
+        
+         
+        [Test]
+        public async Task Should_add_user_to_group_for_given_request()
+        {
+            _userAccountService.Setup(x => x.GetGroupIdFromSettings(_groupRequest.GroupName)).Returns(System.Guid.NewGuid().ToString());
+            var response = await _controller.AddUserToGroup(_groupRequest);
+            response.Should().NotBeNull();
+            var result = (AcceptedResult)response;
+            result.StatusCode.Should().Be((int)HttpStatusCode.Accepted);
+            _userAccountService.Verify(u => u.AddUserToGroupAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Test]
+        public async Task Should_return_bad_request_with_invalid_AddUserToGroupRequest()
+        {
+            _groupRequest.GroupName = string.Empty;
+
+            var result = await _controller.AddUserToGroup(_groupRequest);
+            ((ObjectResult)result).Value.Should().BeOfType<ValidationProblemDetails>().Which.Errors[nameof(_groupRequest.GroupName)]
+                .Should()
+                .Contain("Require a GroupName");
+        }
+
+        [Test]
+        public async Task Should_return_not_found_with_no_matching_group_by_name()
+        {
+            _userAccountService.Setup(u => u.GetGroupIdFromSettings(_groupRequest.GroupName)).Returns(string.Empty);
+
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(_groupRequest);
+
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
+        [Test]
+        public async Task Should_return_not_found_with_no_matching_user_by_filter()
+        {
+            _userAccountService.Setup(u => u.GetGroupIdFromSettings(It.IsAny<string>()));
+
+            var actionResult = (NotFoundObjectResult)await _controller.AddUserToGroup(_groupRequest);
+
+            actionResult.Should().NotBeNull();
+            actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
     }
 }
