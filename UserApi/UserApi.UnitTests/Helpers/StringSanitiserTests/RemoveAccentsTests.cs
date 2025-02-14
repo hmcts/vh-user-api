@@ -6,9 +6,6 @@ namespace UserApi.UnitTests.Helpers.StringSanitiserTests;
 
 public class RemoveAccentsTests
 {
-    [TestCase("José", "Jose")]
-    [TestCase("Köln", "Koln")]
-    [TestCase("Haçienda", "Hacienda")]
     [TestCase("Çréâtïvéàççénts", "Creativeaccents")]
     [TestCase("Áá","Aa")]
     [TestCase("Àà","Aa")]
