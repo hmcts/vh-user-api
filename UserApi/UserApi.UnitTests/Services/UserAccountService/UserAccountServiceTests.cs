@@ -111,18 +111,23 @@ namespace UserApi.UnitTests.Services.UserAccountService
             IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername, null, firstName, lastName), Times.Once);
         }
 
-        [Test]
-        public async Task Should_sanitise_names()
+        [TestCase(".Name.", "Name")]
+        [TestCase(".Na.me.", "Na.me")]
+        [TestCase("José", "Jose")]
+        [TestCase("Köln", "Koln")]
+        [TestCase("Haçienda", "Hacienda")]
+        [TestCase("Çréâtïvéàççénts", "Creativeaccents")] // Full list of accent test cases are covered in RemoveAccentsTests
+        public async Task Should_sanitise_names(string name, string expected)
         {
-            const string firstName = ".First.";
-            const string lastName = ".La.st.";
+            var firstName = name;
+            var lastName = name;
             const string contactEmail = "first.name@test.com";
-            var baseUsername = "First.La.st".ToLowerInvariant();
+            var expectedBaseUsername = $"{expected}.{expected}".ToLowerInvariant();
 
             var nextAvailable = await Service.CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
 
-            nextAvailable.Should().Be(baseUsername + Domain);
-            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(baseUsername, contactEmail, firstName, lastName), Times.Once);
+            nextAvailable.Should().Be(expectedBaseUsername + Domain);
+            IdentityServiceApiClient.Verify(i => i.GetUsernamesStartingWithAsync(expectedBaseUsername, contactEmail, firstName, lastName), Times.Once);
         }
 
         [Test]

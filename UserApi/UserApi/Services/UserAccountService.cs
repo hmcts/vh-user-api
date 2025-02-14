@@ -290,11 +290,8 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName, string contactEmail)
         {
-            var sanitisedFirstName = PeriodRegex().Replace(firstName, string.Empty);
-            var sanitisedLastName = PeriodRegex().Replace(lastName, string.Empty);
-
-            sanitisedFirstName = sanitisedFirstName.Replace(" ", string.Empty);
-            sanitisedLastName = sanitisedLastName.Replace(" ", string.Empty);
+            var sanitisedFirstName = SanitiseName(firstName);
+            var sanitisedLastName = SanitiseName(lastName);
 
             var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, settings.ReformEmail);
@@ -382,6 +379,16 @@ namespace UserApi.Services
         public async Task<string> UpdateUserPasswordAsync(string username)
         {
             return await client.UpdateUserPasswordAsync(username);
+        }
+
+        private static string SanitiseName(string name)
+        {
+            var sanitisedName = PeriodRegex()
+                .Replace(name, string.Empty)
+                .Replace(" ", string.Empty)
+                .RemoveAccents();
+            
+            return sanitisedName;
         }
     }
 }
