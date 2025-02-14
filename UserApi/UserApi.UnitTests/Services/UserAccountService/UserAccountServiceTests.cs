@@ -113,9 +113,6 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
         [TestCase(".Name.", "Name")]
         [TestCase(".Na.me.", "Na.me")]
-        [TestCase("José", "Jose")]
-        [TestCase("Köln", "Koln")]
-        [TestCase("Haçienda", "Hacienda")]
         [TestCase("Çréâtïvéàççénts", "Creativeaccents")] // Full list of accent test cases are covered in RemoveAccentsTests
         public async Task Should_sanitise_names(string name, string expected)
         {
