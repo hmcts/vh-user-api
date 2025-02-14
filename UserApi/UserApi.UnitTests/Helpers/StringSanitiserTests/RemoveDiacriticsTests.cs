@@ -4,7 +4,7 @@ using UserApi.Helper;
 
 namespace UserApi.UnitTests.Helpers.StringSanitiserTests;
 
-public class RemoveAccentsTests
+public class RemoveDiacriticsTests
 {
     [TestCase("Çréâtïvéàççénts", "Creativeaccents")]
     [TestCase("Áá","Aa")]
@@ -96,9 +96,9 @@ public class RemoveAccentsTests
     [TestCase("Żż","Zz")]
     [TestCase("Žž","Zz")]
     [TestCase("ÐĦħIŁØŦðıłøŧ", "DHhILOTdilot")]
-    public void Should_remove_accent(string input, string expected)
+    public void Should_remove_diacritic(string input, string expected)
     {
-        var result = input.RemoveAccents();
+        var result = input.RemoveDiacritics();
         result.Should().Be(expected);
     }
 }

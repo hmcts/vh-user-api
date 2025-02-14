@@ -5,7 +5,12 @@ namespace UserApi.Helper;
 
 public static class StringSanitiser
 {
-    public static string RemoveAccents(this string input)
+    /// <summary>
+    /// Replace diacritic characters (eg é) with their closest ASCII equivalent (e)
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public static string RemoveDiacritics(this string input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return input;

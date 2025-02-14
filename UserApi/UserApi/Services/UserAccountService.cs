@@ -386,7 +386,7 @@ namespace UserApi.Services
             var sanitisedName = PeriodRegex()
                 .Replace(name, string.Empty)
                 .Replace(" ", string.Empty)
-                .RemoveAccents();
+                .RemoveDiacritics();
             
             return sanitisedName;
         }
