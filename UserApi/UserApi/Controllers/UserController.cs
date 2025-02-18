@@ -93,7 +93,7 @@ public class UserController(
     [HttpGet("{userId}", Name = "GetUserByAdUserId")]
     [OpenApiOperation("GetUserByAdUserId")]
     [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.NotFound)]
+    [ProducesResponseType((int) HttpStatusCode.NotFound)]
     public async Task<IActionResult> GetUserByAdUserId(string userId)
     {
         var filterText = userId.Replace("'", "''");
@@ -102,11 +102,8 @@ public class UserController(
         var userProfile = await profile.GetUserProfileAsync(filter);
 
         if (userProfile == null)
-        {
-            ModelState.AddModelError(nameof(userId), "user does not exist");
-            return NotFound(ModelState);
-        }
-
+            return NotFound("user does not exist");
+        
         return Ok(userProfile);
     }
 
