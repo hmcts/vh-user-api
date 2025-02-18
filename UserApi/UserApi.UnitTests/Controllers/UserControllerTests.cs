@@ -177,7 +177,7 @@ namespace UserApi.UnitTests.Controllers
 
             actionResult.Should().NotBeNull();
             actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-            ((ModelStateDictionary)actionResult.Value).ContainsKeyAndErrorMessage(nameof(userId), "user does not exist");
+            actionResult.Value.Should().Be("user does not exist");
         }
 
         [Test]
