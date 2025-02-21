@@ -1,8 +1,8 @@
 using FluentAssertions;
 using NUnit.Framework;
-using UserApi.Helper;
+using UserApi.Extensions;
 
-namespace UserApi.UnitTests.Helpers.StringSanitiserTests;
+namespace UserApi.UnitTests.Extensions.StringExtensionsTests;
 
 public class RemoveDiacriticCharactersTests
 {

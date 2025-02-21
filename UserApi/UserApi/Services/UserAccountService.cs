@@ -12,6 +12,7 @@ using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
 using System.Text.RegularExpressions;
+using UserApi.Extensions;
 using UserApi.Mappers;
 using Group = Microsoft.Graph.Group;
 using UserApi.Validations;

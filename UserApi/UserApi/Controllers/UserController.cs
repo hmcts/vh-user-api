@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
+using UserApi.Extensions;
 using UserApi.Helper;
 using UserApi.Mappers;
 using UserApi.Security;

@@ -1,4 +1,5 @@
 using System;
+using Diacritics.Extensions;
 
 namespace UserApi.Extensions
 {
@@ -13,6 +14,16 @@ namespace UserApi.Extensions
                 return text.Substring(startIndex);
             }
             return null;
+        }
+        
+        /// <summary>
+        /// Replace diacritic characters (eg é) with their closest ASCII equivalent (e)
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string RemoveDiacriticCharacters(this string input)
+        {
+            return input.RemoveDiacritics();
         }
     }
 }

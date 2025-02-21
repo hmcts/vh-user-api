@@ -7,7 +7,7 @@ using Polly;
 using Testing.Common.Configuration;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
-using UserApi.Helper;
+using UserApi.Extensions;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
 namespace UserApi.IntegrationTests.Controllers
