@@ -388,14 +388,14 @@ namespace UserApi.Services
             var sanitisedName = PeriodRegex()
                 .Replace(name, string.Empty)
                 .Replace(" ", string.Empty)
-                .RemoveDiacritics();
+                .RemoveDiacriticCharacters();
             
             return sanitisedName;
         }
 
         private static string SanitiseEmail(string email)
         {
-            return email?.RemoveDiacritics();
+            return email?.RemoveDiacriticCharacters();
         }
     }
 }
