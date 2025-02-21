@@ -4,7 +4,7 @@ using UserApi.Extensions;
 
 namespace UserApi.UnitTests.Extensions.StringExtensionsTests;
 
-public class RemoveDiacriticCharactersTests
+public class ReplaceDiacriticCharactersTests
 {
     [TestCase("Çréâtïvéàççénts", "Creativeaccents")]
     [TestCase("Áá","Aa")]
@@ -70,9 +70,9 @@ public class RemoveDiacriticCharactersTests
     [TestCase("Źź","Zz")]
     [TestCase("Żż","Zz")]
     [TestCase("Žž","Zz")]
-    public void Should_remove_diacritic_characters(string input, string expected)
+    public void Should_replace_diacritic_characters(string input, string expected)
     {
-        var result = input.RemoveDiacriticCharacters();
+        var result = input.ReplaceDiacriticCharacters();
         result.Should().Be(expected);
     }
 }

@@ -169,7 +169,7 @@ public class UserController(
             return NotFound(ModelState);
         }
 
-        var emailText = email.Replace("'", "''").RemoveDiacriticCharacters();
+        var emailText = email.Replace("'", "''").ReplaceDiacriticCharacters();
         var filter = $"otherMails/any(c:c eq '{emailText}')";
         var profile = new UserProfileHelper(userAccountService, settings);
         var userProfile = await profile.GetUserProfileAsync(filter);

@@ -81,7 +81,7 @@ namespace UserApi.IntegrationTests.Controllers
             response.Should().NotBeNull();
             response.FirstName.Should().Be(updatedFirstName);
             response.LastName.Should().Be(updatedLastName);
-            response.ContactEmail.Should().Be(email.RemoveDiacriticCharacters());
+            response.ContactEmail.Should().Be(email.ReplaceDiacriticCharacters());
         }
 
         [Test]
