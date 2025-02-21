@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
+using UserApi.Extensions;
 using UserApi.Helper;
 using UserApi.Mappers;
 using UserApi.Security;
@@ -149,12 +150,12 @@ public class UserController(
     /// <summary>
     ///     Get user profile by email
     /// </summary>
-    [HttpGet("email/{**email}", Name = "GetUserByEmail")]
+    [HttpGet("email", Name = "GetUserByEmail")]
     [OpenApiOperation("GetUserByEmail")]
     [ProducesResponseType(typeof(UserProfile), (int) HttpStatusCode.OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
     [ProducesResponseType((int) HttpStatusCode.NotFound)]
-    public async Task<IActionResult> GetUserByEmail(string email)
+    public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
     {
         if (string.IsNullOrEmpty(email))
         {
@@ -168,7 +169,7 @@ public class UserController(
             return NotFound(ModelState);
         }
 
-        var emailText = email.Replace("'", "''");
+        var emailText = email.Replace("'", "''").ReplaceDiacriticCharacters();
         var filter = $"otherMails/any(c:c eq '{emailText}')";
         var profile = new UserProfileHelper(userAccountService, settings);
         var userProfile = await profile.GetUserProfileAsync(filter);

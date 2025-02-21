@@ -12,6 +12,7 @@ using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
 using System.Text.RegularExpressions;
+using UserApi.Extensions;
 using UserApi.Mappers;
 using Group = Microsoft.Graph.Group;
 using UserApi.Validations;
@@ -43,7 +44,8 @@ namespace UserApi.Services
                 throw new InvalidEmailException("Recovery email is not a valid email", recoveryEmail);
             }
 
-            var recoveryEmailText = recoveryEmail.Replace("'", "''");
+            var sanitisedRecoveryEmail = SanitiseEmail(recoveryEmail);
+            var recoveryEmailText = sanitisedRecoveryEmail.Replace("'", "''");
             var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
             var user = await GetUserByFilterAsync(filter);
             if (user != null)
@@ -52,10 +54,10 @@ namespace UserApi.Services
                 throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
             }
 
-            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, recoveryEmail);
+            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, sanitisedRecoveryEmail);
             var displayName = $"{firstName} {lastName}";
 
-            return await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
+            return await client.CreateUserAsync(username, firstName, lastName, displayName, sanitisedRecoveryEmail, isTestUser);
         }
 
         public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null)
@@ -68,13 +70,14 @@ namespace UserApi.Services
             }
 
             var username = user.UserPrincipalName;
+            var sanitisedContactEmail = SanitiseEmail(contactEmail);
             if (!user.GivenName.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) ||
                 !user.Surname.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
             {
-                username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
+                username = await CheckForNextAvailableUsernameAsync(firstName, lastName, sanitisedContactEmail);
             }
 
-            return await client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: contactEmail);
+            return await client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: sanitisedContactEmail);
         }
 
         public async Task DeleteUserAsync(string username)
@@ -290,11 +293,8 @@ namespace UserApi.Services
         /// <returns>next available user principal name</returns>
         public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName, string contactEmail)
         {
-            var sanitisedFirstName = PeriodRegex().Replace(firstName, string.Empty);
-            var sanitisedLastName = PeriodRegex().Replace(lastName, string.Empty);
-
-            sanitisedFirstName = sanitisedFirstName.Replace(" ", string.Empty);
-            sanitisedLastName = sanitisedLastName.Replace(" ", string.Empty);
+            var sanitisedFirstName = SanitiseName(firstName);
+            var sanitisedLastName = SanitiseName(lastName);
 
             var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
             var username = new IncrementingUsername(baseUsername, settings.ReformEmail);
@@ -382,6 +382,21 @@ namespace UserApi.Services
         public async Task<string> UpdateUserPasswordAsync(string username)
         {
             return await client.UpdateUserPasswordAsync(username);
+        }
+
+        private static string SanitiseName(string name)
+        {
+            var sanitisedName = PeriodRegex()
+                .Replace(name, string.Empty)
+                .Replace(" ", string.Empty)
+                .ReplaceDiacriticCharacters();
+            
+            return sanitisedName;
+        }
+
+        private static string SanitiseEmail(string email)
+        {
+            return email?.ReplaceDiacriticCharacters();
         }
     }
 }
