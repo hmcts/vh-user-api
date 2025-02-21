@@ -5,7 +5,7 @@ namespace UserApi.Validations
     /// <summary>Simple validator to check email formats</summary>
     public static partial class EmailValidation
     {
-        [GeneratedRegex(@"^([!#-'*/-9=?A-Z^-~-]+(\.[!#-'*/-9=?A-Z^-~-]+)*)@([!#-'*/-9=?A-Z^-~-]+(\.[!#-'*/-9=?A-Z^-~-]+)+)$")]
+        [GeneratedRegex(@"^([\p{L}\p{N}!#-'*/-9=?A-Z^-~-]+(\.[\p{L}\p{N}!#-'*/-9=?A-Z^-~-]+)*)@([\p{L}\p{N}!#-'*/-9=?A-Z^-~-]+(\.[\p{L}\p{N}!#-'*/-9=?A-Z^-~-]+)+)$")]
         private static partial Regex EmailRegex();
 
         /// <summary>
