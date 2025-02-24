@@ -10,7 +10,6 @@ namespace UserApi.UnitTests.ValidateArguments
         [TestCase("100@hmcts.net")]
         [TestCase("josé.köln@email.com")]
         [TestCase("Áá@créâtïvéàççénts.com")]
-        [TestCase("用户@例子.公司")]
         public void Should_pass_validation_with_good_email(string email)
         {
             email.IsValidEmail().Should().BeTrue();

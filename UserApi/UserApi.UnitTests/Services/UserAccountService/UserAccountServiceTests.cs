@@ -113,7 +113,7 @@ namespace UserApi.UnitTests.Services.UserAccountService
 
         [TestCase(".Name.", "Name")]
         [TestCase(".Na.me.", "Na.me")]
-        [TestCase("Çréâtïvéàççénts", "Creativeaccents")] // Full list of accent test cases are covered in RemoveAccentsTests
+        [TestCase("Çréâtïvéàççénts", "Creativeaccents")] // Full list of accent test cases are covered in RemoveDiacriticCharactersTests
         public async Task Should_sanitise_names(string name, string expected)
         {
             var firstName = name;
