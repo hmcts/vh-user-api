@@ -654,9 +654,6 @@ namespace UserApi.Client
         /// <exception cref="UserApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<UserProfile> GetUserByEmailAsync(string email, System.Threading.CancellationToken cancellationToken)
         {
-            if (email == null)
-                throw new System.ArgumentNullException("email");
-
             var client_ = _httpClient;
             var disposeClient_ = false;
             try
@@ -668,9 +665,14 @@ namespace UserApi.Client
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "users/email/{email}"
-                    urlBuilder_.Append("users/email/");
-                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(email, System.Globalization.CultureInfo.InvariantCulture)));
+                    // Operation Path: "users/email"
+                    urlBuilder_.Append("users/email");
+                    urlBuilder_.Append('?');
+                    if (email != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("email")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(email, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
 

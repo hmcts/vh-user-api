@@ -12,6 +12,12 @@
           "StackExchange.Redis": "2.7.4"
         }
       },
+      "Diacritics": {
+        "type": "Direct",
+        "requested": "[3.3.31-pre, )",
+        "resolved": "3.3.31-pre",
+        "contentHash": "nBxpdy9UQD+PmJbhahk/soSIGoJNPbr5xFbByiEHL4lc8qcrIbKODZssF4lPzOvnxySPx2Vg6GGx4i5flk0YVg=="
+      },
       "FluentValidation.AspNetCore": {
         "type": "Direct",
         "requested": "[11.3.0, )",

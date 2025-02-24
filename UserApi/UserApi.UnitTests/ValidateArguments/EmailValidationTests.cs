@@ -2,17 +2,16 @@
 using System;
 using UserApi.Validations;
 using FluentAssertions;
-using Bogus;
 
 namespace UserApi.UnitTests.ValidateArguments
 {
     public class EmailValidationTests
     {
-        private static readonly Faker Faker = new();
-        [Test]
-        public void Should_pass_validation_with_good_email()
+        [TestCase("100@hmcts.net")]
+        [TestCase("josé.köln@email.com")]
+        [TestCase("Áá@créâtïvéàççénts.com")]
+        public void Should_pass_validation_with_good_email(string email)
         {
-            var email = $"{Faker.Random.Number(0, 9999999)}@hmcts.net";
             email.IsValidEmail().Should().BeTrue();
         }
 

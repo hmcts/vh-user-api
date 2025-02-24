@@ -82,6 +82,11 @@
           "System.Diagnostics.EventLog": "6.0.0"
         }
       },
+      "Diacritics": {
+        "type": "Transitive",
+        "resolved": "3.3.31-pre",
+        "contentHash": "nBxpdy9UQD+PmJbhahk/soSIGoJNPbr5xFbByiEHL4lc8qcrIbKODZssF4lPzOvnxySPx2Vg6GGx4i5flk0YVg=="
+      },
       "FluentValidation": {
         "type": "Transitive",
         "resolved": "11.5.1",
@@ -2697,6 +2702,7 @@
         "type": "Project",
         "dependencies": {
           "AspNetCore.HealthChecks.Redis": "[8.0.1, )",
+          "Diacritics": "[3.3.31-pre, )",
           "FluentValidation.AspNetCore": "[11.3.0, )",
           "Microsoft.ApplicationInsights.AspNetCore": "[2.22.0, )",
           "Microsoft.AspNet.WebApi.Client": "[6.0.0, )",
