@@ -4,6 +4,7 @@ java:
   applicationPort: 8080
   replicas: 2
   ingressHost: vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
+  disableTraefikTLS: false
   releaseNameOverride: vh-user-api
   livenessPath: /health/liveness
   readinessPath: /health/readiness
