@@ -2,7 +2,7 @@
 java:
   image: '${IMAGE_NAME}'
   ingressHost: ${SERVICE_FQDN}
-  disableTraefikTLS: false
+  disableTraefikTls: false
   releaseNameOverride: ${RELEASE_NAME}
   environment:
     VHSERVICES__USERAPIURL: https://${RELEASE_NAME}.dev.platform.hmcts.net/
