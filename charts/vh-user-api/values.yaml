@@ -4,23 +4,21 @@ java:
   applicationPort: 8080
   replicas: 2
   ingressHost: vh-user-api.{{ .Values.global.environment }}.platform.hmcts.net
+  disableTraefikTls: false
   releaseNameOverride: vh-user-api
   livenessPath: /health/liveness
   readinessPath: /health/readiness
   startupPath: /health/startup
-  aadIdentityName: vh-aad-identity
   keyVaults:
     vh-admin-web:
       excludeEnvironmentSuffix: false
       resourceGroup: vh-infra-core-{{ .Values.global.environment }}
-      usePodIdentity: true
       secrets:
         - name: FeatureToggles--SDK-Key
           alias: FeatureToggle--SdkKey
     vh-infra-core:
       excludeEnvironmentSuffix: false
       resourceGroup: vh-infra-core-{{ .Values.global.environment }}
-      usePodIdentity: true
       secrets:
         - name: connectionstrings--applicationinsights
           alias: applicationinsights--connectionstring
@@ -29,7 +27,6 @@ java:
     vh-user-api:
       excludeEnvironmentSuffix: false
       resourceGroup: vh-infra-core-{{ .Values.global.environment }}
-      usePodIdentity: true
       secrets:
         - name: azuread--identifieruri
           alias: azuread--VhUserApiResourceId
