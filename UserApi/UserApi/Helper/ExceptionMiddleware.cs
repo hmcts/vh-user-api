@@ -1,53 +1,55 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using OpenTelemetry.Trace;
 using UserApi.Common;
 
-namespace UserApi.Helper
+namespace UserApi.Helper;
+
+public class ExceptionMiddleware(RequestDelegate next)
 {
-    public class ExceptionMiddleware
+    public async Task InvokeAsync(HttpContext httpContext)
     {
-        private readonly RequestDelegate _next;
-
-
-        public ExceptionMiddleware(RequestDelegate next)
+        try
         {
-            _next = next;
+            await next(httpContext);
         }
-
-        public async Task InvokeAsync(HttpContext httpContext)
+        catch (BadRequestException ex)
         {
-            try
-            {
-                await _next(httpContext);
-            }
-            catch (BadRequestException ex)
-            {
-                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "400 Exception",
-                    ex, null, null);
-                await HandleExceptionAsync(httpContext, HttpStatusCode.BadRequest, ex);
-            }
-            catch (Exception ex)
-            {
-                ApplicationLogger.TraceException(Common.Helpers.TraceCategory.APIException.ToString(), "API Exception",
-                    ex, null, null);
-                await HandleExceptionAsync(httpContext, HttpStatusCode.InternalServerError, ex);
-            }
+            TraceException("400 Exception", ex);
+            await HandleExceptionAsync(httpContext, HttpStatusCode.BadRequest, ex);
         }
-
-        private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, Exception exception)
+        catch (Exception ex)
         {
-            context.Response.StatusCode = (int) statusCode;
-            var sb = new StringBuilder(exception.Message);
-            var innerException = exception.InnerException;
-            while (innerException != null)
-            {
-                sb.Append($" {innerException.Message}");
-                innerException = innerException.InnerException;
-            }
-            return context.Response.WriteAsJsonAsync(sb.ToString());
+            TraceException("API Exception", ex);
+            await HandleExceptionAsync(httpContext, HttpStatusCode.InternalServerError, ex);
         }
+    }
+
+    private static Task HandleExceptionAsync(HttpContext context, HttpStatusCode statusCode, Exception exception)
+    {
+        context.Response.StatusCode = (int) statusCode;
+        var sb = new StringBuilder(exception.Message);
+        var innerException = exception.InnerException;
+        while (innerException != null)
+        {
+            sb.Append($" {innerException.Message}");
+            innerException = innerException.InnerException;
+        }
+        return context.Response.WriteAsJsonAsync(sb.ToString());
+    }
+    
+    private static void TraceException(string eventTitle, Exception exception)
+    {
+        var activity = Activity.Current;
+
+        if (activity == null)
+            return;
+        
+        activity.RecordException(exception);
+        activity.AddTag("Event", eventTitle);
     }
 }

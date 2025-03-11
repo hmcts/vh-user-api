@@ -1,12 +1,12 @@
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -20,14 +20,10 @@ namespace UserApi.Controllers;
 [Produces("application/json")]
 [Route("users")]
 [ApiController]
-public class UserController(
-    IUserAccountService userAccountService,
-    TelemetryClient telemetryClient,
-    Settings settings)
-    : ControllerBase
+public class UserController(IUserAccountService userAccountService, Settings settings, ILogger<UserController> logger) : ControllerBase
 {
     private const string Separator = "; ";
-
+    private static readonly ActivitySource ActivitySource = new("UserController");
     /// <summary>
     ///     Create a new hearings reforms user account
     /// </summary>
@@ -39,6 +35,7 @@ public class UserController(
     [ProducesResponseType(typeof(NewUserErrorResponse), (int) HttpStatusCode.Conflict)]
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
     {
+        using var activity = ActivitySource.StartActivity("CreateUser", ActivityKind.Server);
         var result = new CreateUserRequestValidation().Validate(request);
 
         if (!result.IsValid)
@@ -47,9 +44,8 @@ public class UserController(
                 ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
-            telemetryClient.TrackTrace(new TraceTelemetry(
-                $"CreateUserRequest validation failed: {string.Join(Separator, errors)}",
-                SeverityLevel.Error));
+            activity?.SetTag("validation.errors", string.Join(Separator, errors));
+            logger.LogError("CreateUser validation failed: {Errors}", errors);
             return BadRequest(ModelState);
         }
 
@@ -69,21 +65,11 @@ public class UserController(
         }
         catch (UserExistsException e)
         {
-            return new ConflictObjectResult(new NewUserErrorResponse
-            {
-                Message = "User already exists",
-                Code = "UserExists",
-                Username = e.Username
-            });
+            return Conflict(new NewUserErrorResponse { Message = "User already exists", Code = "UserExists", Username = e.Username });
         }
         catch (InvalidEmailException e)
         {
-            return new ConflictObjectResult(new NewUserErrorResponse
-            {
-                Message = e.Message,
-                Code = "InvalidEmail",
-                Email = e.Email
-            });
+            return Conflict(new NewUserErrorResponse { Message = e.Message, Code = "InvalidEmail", Email = e.Email });
         }
     }
 
@@ -247,9 +233,9 @@ public class UserController(
     [ProducesResponseType(typeof(UserResponse), (int) HttpStatusCode.OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int) HttpStatusCode.NotFound)]
-    public async Task<IActionResult> UpdateUserAccount([FromRoute] Guid userId,
-        [FromBody] UpdateUserAccountRequest payload)
+    public async Task<IActionResult> UpdateUserAccount([FromRoute] Guid userId, [FromBody] UpdateUserAccountRequest payload)
     {
+        using var activity = ActivitySource.StartActivity("UpdateUserAccount", ActivityKind.Server);
         var result = await new UpdateUserAccountRequestValidation().ValidateAsync(payload);
         if (!result.IsValid)
         {
@@ -257,9 +243,8 @@ public class UserController(
                 ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
-            telemetryClient.TrackTrace(new TraceTelemetry(
-                $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}",
-                SeverityLevel.Error));
+            activity?.SetTag("validation.errors", $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}");
+            logger.LogError("Update User Account validation failed: {Errors}", errors);
             return BadRequest(ModelState);
         }
 
@@ -318,6 +303,7 @@ public class UserController(
     [ProducesResponseType(typeof(ValidationProblemDetails), (int) HttpStatusCode.NotFound)]
     public async Task<IActionResult> AddUserToGroup(AddUserToGroupRequest request)
     {
+        using var activity = ActivitySource.StartActivity("AddUserToGroup", ActivityKind.Server);
         var result = new AddUserToGroupRequestValidation().Validate(request);
 
         if (!result.IsValid)
@@ -326,17 +312,15 @@ public class UserController(
                 ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
-            telemetryClient.TrackTrace(new TraceTelemetry(
-                $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}",
-                SeverityLevel.Error));
+            activity?.AddTag("validation.errors", $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}");
+            logger.LogError("Add User To Group validation failed: {Errors}", errors);
             return ValidationProblem(ModelState);
         }
 
         var groupId = userAccountService.GetGroupIdFromSettings(request.GroupName);
         if (string.IsNullOrEmpty(groupId))
         {
-            telemetryClient.TrackTrace(new TraceTelemetry($"Group not found '{request.GroupName}'",
-                SeverityLevel.Error));
+            logger.LogError("Group not found: {Group}", request.GroupName);
             return NotFound(ModelState);
         }
         try
