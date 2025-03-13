@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using FluentValidation;
-using FluentValidation.AspNetCore;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -15,9 +16,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using UserApi.Common;
 using UserApi.Health;
 using UserApi.Helper;
@@ -25,14 +29,9 @@ using UserApi.Validations;
 
 namespace UserApi
 {
-    public class Startup
+    public class Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        private IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; } = configuration;
         private AzureAdConfiguration AzureAdSettings { get; set; }
         private VhServices VhServices { get; set; }
         private Settings Settings { get; set; }
@@ -40,10 +39,7 @@ namespace UserApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers()
-                .AddNewtonsoftJson();
-            services.AddSingleton<ITelemetryInitializer, BadRequestTelemetry>();
-            
+            services.AddControllers().AddNewtonsoftJson();
             services.AddCors(options => options.AddPolicy("CorsPolicy",
                 builder =>
                 {
@@ -61,7 +57,36 @@ namespace UserApi
 
             RegisterAuth(services);
             services.AddValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>();
-            services.AddApplicationInsightsTelemetry();
+            var instrumentationKey = Configuration["ApplicationInsights:ConnectionString"];
+            if (String.IsNullOrWhiteSpace(instrumentationKey))
+            {
+                Console.WriteLine("Application Insights Instrumentation Key not found");
+            }
+            else
+            {
+                services.AddOpenTelemetry()
+                    .ConfigureResource(r =>
+                    {
+                        r.AddService("vh-user-api")
+                            .AddTelemetrySdk()
+                            .AddAttributes(new Dictionary<string, object>
+                                { ["service.instance.id"] = Environment.MachineName });
+                    })
+                    .UseAzureMonitor(options => options.ConnectionString = instrumentationKey) 
+                    .WithMetrics()
+                    .WithTracing(tracerProvider =>
+                    {
+                        tracerProvider
+                            .AddSource("UserController")
+                            .AddAspNetCoreInstrumentation(options => options.RecordException = true);
+                    });
+                services.AddLogging(builder =>
+                {
+                    builder.AddOpenTelemetry(options =>
+                        options.AddAzureMonitorLogExporter(o => o.ConnectionString = instrumentationKey));
+                });
+            }
+          
             services.AddVhHealthChecks();
         }
 
