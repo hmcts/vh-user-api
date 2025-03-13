@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -37,8 +39,7 @@ namespace UserApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers()
-                .AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson();
             services.AddCors(options => options.AddPolicy("CorsPolicy",
                 builder =>
                 {
@@ -57,9 +58,12 @@ namespace UserApi
             RegisterAuth(services);
             services.AddValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>();
             var instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
-            if(String.IsNullOrWhiteSpace(instrumentationKey))
+            if (String.IsNullOrWhiteSpace(instrumentationKey))
+            {
                 Console.WriteLine("Application Insights Instrumentation Key not found");
+            }
             else
+            {
                 services.AddOpenTelemetry()
                     .ConfigureResource(r =>
                     {
@@ -76,6 +80,18 @@ namespace UserApi
                             .AddSource("UserController")
                             .AddAspNetCoreInstrumentation(options => options.RecordException = true);
                     });
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders()
+                        .AddConsole()
+                        .AddDebug()
+                        .AddOpenTelemetry(options =>
+                        {
+                            options.AddAzureMonitorLogExporter(o => o.ConnectionString = instrumentationKey);
+                        });
+                });
+            }
+          
             services.AddVhHealthChecks();
         }
 
