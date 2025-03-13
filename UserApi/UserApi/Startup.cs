@@ -57,7 +57,7 @@ namespace UserApi
 
             RegisterAuth(services);
             services.AddValidatorsFromAssemblyContaining<AddUserToGroupRequestValidation>();
-            var instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+            var instrumentationKey = Configuration["ApplicationInsights:ConnectionString"];
             if (String.IsNullOrWhiteSpace(instrumentationKey))
             {
                 Console.WriteLine("Application Insights Instrumentation Key not found");
@@ -82,13 +82,8 @@ namespace UserApi
                     });
                 services.AddLogging(builder =>
                 {
-                    builder.ClearProviders()
-                        .AddConsole()
-                        .AddDebug()
-                        .AddOpenTelemetry(options =>
-                        {
-                            options.AddAzureMonitorLogExporter(o => o.ConnectionString = instrumentationKey);
-                        });
+                    builder.AddOpenTelemetry(options =>
+                        options.AddAzureMonitorLogExporter(o => o.ConnectionString = instrumentationKey));
                 });
             }
           
