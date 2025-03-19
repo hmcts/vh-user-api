@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -14,13 +13,15 @@ using UserApi.Mappers;
 using UserApi.Security;
 using UserApi.Services;
 using UserApi.Validations;
+using UserApi.Common.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace UserApi.Controllers;
 
 [Produces("application/json")]
 [Route("users")]
 [ApiController]
-public class UserController(IUserAccountService userAccountService, Settings settings, ILogger<UserController> logger) : ControllerBase
+public class UserController(IUserAccountService userAccountService, Settings settings, ILoggerAdapter<UserController> logger) : ControllerBase
 {
     private const string Separator = "; ";
     private static readonly ActivitySource ActivitySource = new("UserController");
@@ -335,4 +336,5 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
         return Accepted();
     }
+
 }
