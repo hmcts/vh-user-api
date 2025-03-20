@@ -24,7 +24,6 @@ namespace UserApi
             serviceCollection.AddScoped<ISecureHttpRequest, SecureHttpRequest>();
             serviceCollection.AddScoped<IGraphApiSettings, GraphApiSettings>();
             serviceCollection.AddScoped<IPasswordService, PasswordService>();
-            serviceCollection.AddScoped(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
             serviceCollection.BuildServiceProvider();
             serviceCollection.AddSwaggerToApi();
             

@@ -14,14 +14,14 @@ using UserApi.Security;
 using UserApi.Services;
 using UserApi.Validations;
 using UserApi.Common.Logging;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace UserApi.Controllers;
 
 [Produces("application/json")]
 [Route("users")]
 [ApiController]
-public class UserController(IUserAccountService userAccountService, Settings settings, ILoggerAdapter<UserController> logger) : ControllerBase
+public class UserController(IUserAccountService userAccountService, Settings settings, ILogger<UserController> logger) : ControllerBase
 {
     private const string Separator = "; ";
     private static readonly ActivitySource ActivitySource = new("UserController");
@@ -46,7 +46,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", string.Join(Separator, errors));
-            logger.LogError("CreateUser validation failed: {Errors}", errors);
+            LoggerAdapter.LogError(logger, "CreateUser validation failed: {errors}", errors);
             return BadRequest(ModelState);
         }
 
@@ -245,7 +245,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}");
-            logger.LogError("Update User Account validation failed: {Errors}", errors);
+            LoggerAdapter.LogError(logger, "Update User Account validation failed: {errors}", errors);
             return BadRequest(ModelState);
         }
 
@@ -314,14 +314,14 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.AddTag("validation.errors", $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}");
-            logger.LogError("Add User To Group validation failed: {Errors}", errors);
+            LoggerAdapter.LogError(logger, "Add User To Group validation failed: {errors}", errors);
             return ValidationProblem(ModelState);
         }
 
         var groupId = userAccountService.GetGroupIdFromSettings(request.GroupName);
         if (string.IsNullOrEmpty(groupId))
         {
-            logger.LogError("Group not found: {Group}", request.GroupName);
+            LoggerAdapter.LogError(logger, "Group not found: {GroupName}", request.GroupName);
             return NotFound(ModelState);
         }
         try
