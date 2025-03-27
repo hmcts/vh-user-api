@@ -31,8 +31,8 @@ namespace UserApi.Tests.Logging
                     It.IsAny<EventId>(),
                     It.IsAny<object>(),
                     null,
-                    It.IsAny<Func<object, Exception?, string>>()))
-                .Callback<LogLevel, EventId, object, Exception?, Delegate>((_, _, state, _, _) =>
+                    It.IsAny<Func<object, Exception, string>>()))
+                .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) =>
                 {
                     //Assert
                     Assert.That(state!.ToString(), Does.Contain(message));
@@ -58,8 +58,8 @@ namespace UserApi.Tests.Logging
                     It.IsAny<EventId>(),
                     It.IsAny<object>(),
                     null,
-                    It.IsAny<Func<object, Exception?, string>>()))
-                .Callback<LogLevel, EventId, object, Exception?, Delegate>((_, _, state, _, _) =>
+                    It.IsAny<Func<object, Exception, string>>()))
+                .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) =>
                 {
                     //Assert
                     Assert.That(state!.ToString(), Does.Contain(message));
@@ -82,8 +82,8 @@ namespace UserApi.Tests.Logging
                     It.IsAny<EventId>(),
                     It.IsAny<object>(),
                     null,
-                    It.IsAny<Func<object, Exception?, string>>()))
-                .Callback<LogLevel, EventId, object, Exception?, Delegate>((_, _, state, _, _) =>
+                    It.IsAny<Func<object, Exception, string>>()))
+                .Callback<LogLevel, EventId, object, Exception, Delegate>((_, _, state, _, _) =>
                 {
                     //Assert
                     Assert.That(state!.ToString(), Does.Contain(message));
