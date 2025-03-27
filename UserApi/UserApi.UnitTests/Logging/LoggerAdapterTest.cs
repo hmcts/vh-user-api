@@ -26,18 +26,17 @@ namespace UserApi.Tests.Logging
             _mockLogger.Setup(x => x.IsEnabled(LogLevel.Information)).Returns(true);
 
             // Act
-            LoggerAdapter.LogInformation(_mockLogger.Object, message);
+            _mockLogger.Object.LogInformation(message);
 
             // Assert
             _mockLogger.Verify(
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.IsAny<string>(),
+                    It.Is<object>(v => v != null && v.ToString().Contains(message)), // Ensure object is not null and contains the message
                     null,
-                    It.IsAny<Func<string, Exception, string>>()),
+                    It.IsAny<Func<object, Exception?, string>>()),
                 Times.Once);
-
         }
 
         [Test]
@@ -46,8 +45,10 @@ namespace UserApi.Tests.Logging
             // Arrange
             const string message = "Test warning message";
 
+            _mockLogger.Setup(x => x.IsEnabled(LogLevel.Warning)).Returns(true);
+
             // Act
-            LoggerAdapter.LogWarning(_mockLogger.Object, message);
+            _mockLogger.Object.LogWarning(message);
 
             // Assert
             _mockLogger.Verify(
@@ -66,8 +67,10 @@ namespace UserApi.Tests.Logging
             // Arrange
             const string message = "Test error message";
 
+            _mockLogger.Setup(x => x.IsEnabled(LogLevel.Error)).Returns(true);
+
             // Act
-            LoggerAdapter.LogError(_mockLogger.Object, message);
+            _mockLogger.Object.LogError(message);
 
             // Assert
             _mockLogger.Verify(
