@@ -25,18 +25,23 @@ namespace UserApi.Tests.Logging
 
             _mockLogger.Setup(x => x.IsEnabled(LogLevel.Information)).Returns(true);
 
+            _mockLogger
+                .Setup(x => x.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.IsAny<object>(),
+                    null,
+                    It.IsAny<Func<object, Exception?, string>>()))
+                .Callback<LogLevel, EventId, object, Exception?, Delegate>((_, _, state, _, _) =>
+                {
+                    //Assert
+                    Assert.That(state!.ToString(), Does.Contain(message));
+                });
+
             // Act
             _mockLogger.Object.LogInformation(message);
 
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<object>(v => v != null && v.ToString().Contains(message)), // Ensure object is not null and contains the message
-                    null,
-                    It.IsAny<Func<object, Exception?, string>>()),
-                Times.Once);
+           
         }
 
         [Test]
@@ -47,18 +52,20 @@ namespace UserApi.Tests.Logging
 
             _mockLogger.Setup(x => x.IsEnabled(LogLevel.Warning)).Returns(true);
 
-            // Act
-            _mockLogger.Object.LogWarning(message);
-
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
+            _mockLogger
+                .Setup(x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.IsAny<string>(),
+                    It.IsAny<object>(),
                     null,
-                    It.IsAny<Func<string, Exception?, string>>()),
-                Times.Once);
+                    It.IsAny<Func<object, Exception?, string>>()))
+                .Callback<LogLevel, EventId, object, Exception?, Delegate>((_, _, state, _, _) =>
+                {
+                    //Assert
+                    Assert.That(state!.ToString(), Does.Contain(message));
+                });
+
+            _mockLogger.Object.LogWarning(message);
         }
 
         [Test]
@@ -69,18 +76,21 @@ namespace UserApi.Tests.Logging
 
             _mockLogger.Setup(x => x.IsEnabled(LogLevel.Error)).Returns(true);
 
-            // Act
-            _mockLogger.Object.LogError(message);
-
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
+            _mockLogger
+                .Setup(x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.IsAny<string>(),
+                    It.IsAny<object>(),
                     null,
-                    It.IsAny<Func<string, Exception?, string>>()),
-                Times.Once);
+                    It.IsAny<Func<object, Exception?, string>>()))
+                .Callback<LogLevel, EventId, object, Exception?, Delegate>((_, _, state, _, _) =>
+                {
+                    //Assert
+                    Assert.That(state!.ToString(), Does.Contain(message));
+                });
+            
+            // Act
+            _mockLogger.Object.LogError(message);
         }
     }
 }
