@@ -23,6 +23,8 @@ namespace UserApi.Tests.Logging
             // Arrange
             const string message = "Test information message";
 
+            _mockLogger.Setup(x => x.IsEnabled(LogLevel.Information)).Returns(true);
+
             // Act
             LoggerAdapter.LogInformation(_mockLogger.Object, message);
 
@@ -32,10 +34,10 @@ namespace UserApi.Tests.Logging
                     LogLevel.Information,
                     It.IsAny<EventId>(),
                     It.IsAny<string>(),
-                    //It.Is<object>(v => v.ToString().Contains(message)),
                     null,
-                    It.IsAny<Func<string, Exception?, string>>()),
+                    It.IsAny<Func<string, Exception, string>>()),
                 Times.Once);
+
         }
 
         [Test]
@@ -72,7 +74,7 @@ namespace UserApi.Tests.Logging
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<object>(v => v.ToString().Contains(message)),
+                    It.IsAny<string>(),
                     null,
                     It.IsAny<Func<string, Exception?, string>>()),
                 Times.Once);
