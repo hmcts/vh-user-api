@@ -47,7 +47,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", string.Join(Separator, errors));
             var message = $"CreateUser validation failed: {string.Join(Separator, errors)}";
-            LoggerAdapter.LogError(logger, message);
+            logger.LogError(message);
             return BadRequest(ModelState);
         }
 
@@ -247,7 +247,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}");
             var message = $"Update User Account validation failed: {string.Join(Separator, errors)}";
-            LoggerAdapter.LogError(logger, message);
+            logger.LogError(message);
             return BadRequest(ModelState);
         }
 
@@ -317,14 +317,14 @@ public class UserController(IUserAccountService userAccountService, Settings set
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.AddTag("validation.errors", $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}");
             var message = $"Add User To Group validation failed: {string.Join(Separator, errors)}";
-            LoggerAdapter.LogError(logger, message);
+            logger.LogError(message);
             return ValidationProblem(ModelState);
         }
 
         var groupId = userAccountService.GetGroupIdFromSettings(request.GroupName);
         if (string.IsNullOrEmpty(groupId))
         {
-            LoggerAdapter.LogError(logger, "Group not found: {GroupName}", request.GroupName);  
+            logger.LogError("Group not fou  nd: {GroupName}", request.GroupName);
             return NotFound(ModelState);
         }
         try
