@@ -46,7 +46,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", string.Join(Separator, errors));
-            logger.LogError("CreateUser validation failed: {errors}", string.Join(Separator, errors));
+            logger.LogErrorCreateUserValidation(string.Join(Separator, errors));
             return BadRequest(ModelState);
         }
 
@@ -245,7 +245,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}");
-            logger.LogError("Update User Account validation failed: {errors}", errors);
+            logger.LogErrorUpdateUserAccount(string.Join(Separator, errors));
             return BadRequest(ModelState);
         }
 
@@ -314,14 +314,14 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.AddTag("validation.errors", $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}");
-            logger.LogError("Add User To Group validation failed: {errors}", errors);
+            logger.LogErrorAddUserToGroupvalidation(string.Join(Separator, errors));
             return ValidationProblem(ModelState);
         }
 
         var groupId = userAccountService.GetGroupIdFromSettings(request.GroupName);
         if (string.IsNullOrEmpty(groupId))
         {
-            logger.LogError("Group not fou  nd: {GroupName}", request.GroupName);
+            logger.LogErrorGroupNotFound(request.GroupName);
             return NotFound(ModelState );
         }
         try
