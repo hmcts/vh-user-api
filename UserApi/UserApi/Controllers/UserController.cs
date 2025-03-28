@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -14,6 +13,8 @@ using UserApi.Mappers;
 using UserApi.Security;
 using UserApi.Services;
 using UserApi.Validations;
+using UserApi.Common.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace UserApi.Controllers;
 
@@ -45,7 +46,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", string.Join(Separator, errors));
-            logger.LogError("CreateUser validation failed: {Errors}", errors);
+            logger.LogErrorCreateUserValidation(string.Join(Separator, errors));
             return BadRequest(ModelState);
         }
 
@@ -244,7 +245,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.SetTag("validation.errors", $"UpdateUserAccount validation failed: {string.Join(Separator, errors)}");
-            logger.LogError("Update User Account validation failed: {Errors}", errors);
+            logger.LogErrorUpdateUserAccount(string.Join(Separator, errors));
             return BadRequest(ModelState);
         }
 
@@ -313,15 +314,15 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.AddTag("validation.errors", $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}");
-            logger.LogError("Add User To Group validation failed: {Errors}", errors);
+            logger.LogErrorAddUserToGroupvalidation(string.Join(Separator, errors));
             return ValidationProblem(ModelState);
         }
 
         var groupId = userAccountService.GetGroupIdFromSettings(request.GroupName);
         if (string.IsNullOrEmpty(groupId))
         {
-            logger.LogError("Group not found: {Group}", request.GroupName);
-            return NotFound(ModelState);
+            logger.LogErrorGroupNotFound(request.GroupName);
+            return NotFound(ModelState );
         }
         try
         {
@@ -335,4 +336,5 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
         return Accepted();
     }
+
 }
