@@ -13,6 +13,7 @@ using Microsoft.Graph;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Assertions;
+using UserApi.Common.Logging;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
@@ -29,7 +30,7 @@ public class UserAccountsControllerTests
     private NewAdUserAccount _newAdUserAccount;       
     private AddUserToGroupRequest _groupRequest;
     private Settings _settings;
-    private Mock<ILogger<UserController>> _logger;
+    private Mock<ILogger<UserController>> _mockLogger;
     private ActivityListener _activityListener;
     protected const string Domain = "@hearings.test.server.net";
 
@@ -51,7 +52,7 @@ public class UserAccountsControllerTests
         _settings = new Settings { IsLive = true,
             ReformEmail = Domain.Replace("@", ""), AdGroup = new AdGroup(),
         };
-        _logger = new Mock<ILogger<UserController>>();
+        _mockLogger = new Mock<ILogger<UserController>>();
         _request = Builder<CreateUserRequest>.CreateNew()
             .With(x => x.FirstName = "John")
             .With(x => x.LastName = "doe")
@@ -64,7 +65,7 @@ public class UserAccountsControllerTests
             .With(x => x.UserId = "johndoe")
             .Build();
 
-        _controller = new UserController(_userAccountService.Object, _settings, _logger.Object);
+        _controller = new UserController(_userAccountService.Object, _settings, _mockLogger.Object);
     }
 
     [Test]
