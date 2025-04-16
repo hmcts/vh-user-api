@@ -42,8 +42,6 @@ java:
         - AdGroup--StaffMember
         - azuread--clientid
         - azuread--clientsecret
-        - DefaultPassword
-        - ZapConfiguration--BuildConfigMode
   environment:
     ASPNETCORE_URLS: http://+:8080
     DISABLEHTTPSREDIRECTION: true
