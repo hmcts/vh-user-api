@@ -2,7 +2,7 @@
 apiVersion: v2
 name: vh-user-api
 home: https://github.com/hmcts/vh-user-api
-version: 0.0.14
+version: 0.0.15
 description: Helm Chart for User API
 maintainers:
   - name: VH Devops
