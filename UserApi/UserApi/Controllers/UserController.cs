@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using UserApi.Contract;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
@@ -14,7 +16,8 @@ using UserApi.Security;
 using UserApi.Services;
 using UserApi.Validations;
 using UserApi.Common.Logging;
-using Microsoft.Extensions.Logging;
+using UserApi.Services.Exceptions;
+using UserApi.Services.Interfaces;
 
 namespace UserApi.Controllers;
 
@@ -175,30 +178,12 @@ public class UserController(IUserAccountService userAccountService, Settings set
     {
         var adJudges = await userAccountService.GetJudgesAsync(username);
 
-        if (adJudges == null || !adJudges.Any())
-        {
+        if (adJudges == null || adJudges.Count == 0)
             return Ok(new List<UserResponse>());
-        }
-
-        return Ok(adJudges);
-    }
-
-    /// <summary>
-    ///     Get Ejudiciary Judges from AD filtered by username
-    /// </summary>
-    [HttpGet("ejudJudges", Name = "GetEjudiciaryJudgesByUsername")]
-    [OpenApiOperation("GetEjudiciaryJudgesByUsername")]
-    [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
-    public async Task<IActionResult> GetEjudiciaryJudgesByUsername(string username)
-    {
-        var ejudiciaryJudges = await userAccountService.GetEjudiciaryJudgesAsync(username);
-
-        if (ejudiciaryJudges == null || !ejudiciaryJudges.Any())
-        {
-            return Ok(new List<UserResponse>());
-        }
-
-        return Ok(ejudiciaryJudges);
+        
+        var userResponses = adJudges.Select(UserMapper.MapToUserResponse).ToList();
+        
+        return Ok(userResponses);
     }
 
     /// <summary>
@@ -253,7 +238,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
         {
             var user = await userAccountService.UpdateUserAccountAsync(userId, payload.FirstName,
                 payload.LastName, payload.ContactEmail);
-            var response = GraphUserMapper.MapToUserResponse(user);
+            var response = UserMapper.MapToUserResponse(user);
             return Ok(response);
         }
         catch (UserDoesNotExistException e)
@@ -314,7 +299,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
             var errors = ModelState.Values.SelectMany(v => v.Errors.Select(b => b.ErrorMessage)).ToList();
             activity?.AddTag("validation.errors", $"AddUserToGroupRequest validation failed: {string.Join(Separator, errors)}");
-            logger.LogErrorAddUserToGroupvalidation(string.Join(Separator, errors));
+            logger.LogErrorAddUserToGroupValidation(string.Join(Separator, errors));
             return ValidationProblem(ModelState);
         }
 
@@ -335,6 +320,21 @@ public class UserController(IUserAccountService userAccountService, Settings set
         }
 
         return Accepted();
+    }
+    
+    [HttpGet("PerformanceTestAccounts/{testGroup}", Name = "GetPerformanceTestAccounts")]
+    [OpenApiOperation("GetPerformanceTestAccounts")]
+    [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
+    [ProducesResponseType((int) HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> GetPerformanceTestAccounts(GetPerformanceTestAccountsRequest request)
+    {
+        return request.Group switch
+        {
+            PerformanceTestGroup.TestAccounts => await GetJudgesByUsername("testuser"),
+            PerformanceTestGroup.JudgeAccounts => await GetJudgesByUsername("testuser"),
+            PerformanceTestGroup.PanelMemberAccounts => await GetJudgesByUsername("testuser"),
+            _ => BadRequest("Invalid test group")
+        };
     }
 
 }

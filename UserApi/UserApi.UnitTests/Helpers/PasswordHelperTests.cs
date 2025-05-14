@@ -1,18 +1,12 @@
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
-using UserApi.Services;
+using UserApi.Helper;
 
-namespace UserApi.UnitTests.Services
+namespace UserApi.UnitTests.Helpers
 {
-    public class PasswordServiceTests
+    public class PasswordHelperTests
     {
-        private readonly PasswordService _passwordService;
-
-        public PasswordServiceTests()
-        {
-            _passwordService = new PasswordService();
-        }
 
         [Test]
         public void Should_generate_random_password_for_one_hundred_thousand_iterations()
@@ -24,7 +18,7 @@ namespace UserApi.UnitTests.Services
 
             foreach (var index in Enumerable.Range(1, 100000))
             {
-                var result = _passwordService.GenerateRandomPasswordWithDefaultComplexity();
+                var result = PasswordHelper.GenerateRandomPasswordWithDefaultComplexity();
 
                 result.Should().NotBeNullOrWhiteSpace();
                 result.Length.Should().Be(12);

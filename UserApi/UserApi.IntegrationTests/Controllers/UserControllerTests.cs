@@ -267,9 +267,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(GetJudgesByUsername());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var judges = ApiRequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content
-                .ReadAsStringAsync().Result);
-
+            var judges = ApiRequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             judges.Count().Should().BeGreaterThan(0);
         }
        

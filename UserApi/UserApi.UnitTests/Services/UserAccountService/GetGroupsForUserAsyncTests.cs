@@ -1,66 +1,82 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using Moq;
 using NUnit.Framework;
-using Testing.Common.Helpers;
 using UserApi.Security;
+using UserApi.Services.Exceptions;
 
 namespace UserApi.UnitTests.Services.UserAccountService
 {
-    public class GetGroupsForUserAsyncTests: UserAccountServiceTests
+    public class GetGroupsForUserAsyncTests : UserAccountServiceTestsBase
     {
         private const string UserId = "userId";
-        private string accessUri => $"{GraphApiSettings.GraphApiBaseUri}v1.0/users/{UserId}/memberOf";
 
         [Test]
-        public async Task Should_get_group_by_given_id()
+        public async Task Should_return_groups_for_user()
         {
-            var directoryObject = new DirectoryObject() { AdditionalData = new Dictionary<string, object> ()};
-            const string json = @"[ 
-                                { ""@odata.type"" : ""#microsoft.graph.group"" },
-                                { ""@odata.type"" : ""#microsoft.graph.group"" },
-                                { ""@odata.type"" : ""#microsoft.graph.test"" }
-                            ]";
-            
-            directoryObject.AdditionalData.Add("value", json);
+            // Arrange
+            var groups = new List<Group>
+            {
+                new Group { Id = "1", DisplayName = "Group 1" },
+                new Group { Id = "2", DisplayName = "Group 2" }
+            };
 
-            var accessToken = await GraphApiSettings.GetAccessToken();
-            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(directoryObject, HttpStatusCode.OK));
+            GraphClient.Setup(x => x.GetGroupsForUserAsync(UserId))
+                .ReturnsAsync(groups);
 
-            var response = await Service.GetGroupsForUserAsync(UserId);
+            // Act
+            var result = await Service.GetGroupsForUserAsync(UserId);
 
-            response.Should().NotBeNull();
-            response.Count.Should().Be(2);
-            SecureHttpRequest.Verify(s => s.GetAsync(accessToken, accessUri), Times.Once);
+            // Assert
+            result.Should().NotBeNull();
+            result.Count.Should().Be(2);
+            result.Should().Contain(g => g.Id == "1" && g.DisplayName == "Group 1");
+            result.Should().Contain(g => g.Id == "2" && g.DisplayName == "Group 2");
         }
 
         [Test]
-        public async Task Should_return_empty_when_no_matching_group_by_given_userid()
-        { 
-            var accessToken = await GraphApiSettings.GetAccessToken();
-            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
+        public async Task Should_return_empty_list_when_no_groups_found()
+        {
+            // Arrange
+            GraphClient.Setup(x => x.GetGroupsForUserAsync(UserId))
+                .ReturnsAsync(new List<Group>());
 
-            var response = await Service.GetGroupsForUserAsync(UserId);
+            // Act
+            var result = await Service.GetGroupsForUserAsync(UserId);
 
-            response.Should().BeEmpty();
+            // Assert
+            result.Should().BeEmpty();
         }
 
         [Test]
-        public void Should_return_user_exception_for_other_responses()
+        public void Should_throw_UserServiceException_on_ODataError()
         {
-            const string reason = "User not authorised";
+            // Arrange
+            GraphClient.Setup(x => x.GetGroupsForUserAsync(UserId))
+                .ThrowsAsync(new ODataError());
 
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
+            // Act & Assert
+             Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupsForUserAsync(UserId));
+        }
 
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupsForUserAsync(UserId));
+        [Test]
+        public void Should_throw_UserServiceException_on_unexpected_error()
+        {
+            // Arrange
+            const string errorMessage = "Unexpected error";
+            GraphClient.Setup(x => x.GetGroupsForUserAsync(UserId))
+                .ThrowsAsync(new Exception(errorMessage));
 
-            response.Should().NotBeNull();
-            response!.Message.Should().Be($"Failed to get group for user {UserId}: {reason}");
-            response.Reason.Should().Be(reason);
+            // Act & Assert
+            var exception = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupsForUserAsync(UserId));
+            exception.Should().NotBeNull();
+            exception!.Message.Should().Be($"An unexpected error occurred while retrieving groups for user {UserId}.: {errorMessage}");
         }
     }
 }

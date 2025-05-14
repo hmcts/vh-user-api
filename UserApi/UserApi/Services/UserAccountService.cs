@@ -1,387 +1,362 @@
 using System;
-using Microsoft.Graph;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Security;
 using UserApi.Services.Models;
 using System.Text.RegularExpressions;
-using UserApi.Mappers;
-using Group = Microsoft.Graph.Group;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
+using UserApi.Services.Exceptions;
+using UserApi.Services.Interfaces;
 using UserApi.Validations;
+using Group = Microsoft.Graph.Models.Group;
+using UserType = UserApi.Services.Models.UserType;
 
-namespace UserApi.Services
+namespace UserApi.Services;
+
+public partial class UserAccountService(IGraphUserClient client, Settings settings) : IUserAccountService
 {
-    public partial class UserAccountService(
-        ISecureHttpRequest secureHttpRequest,
-        IGraphApiSettings graphApiSettings,
-        IIdentityServiceApiClient client,
-        Settings settings)
-        : IUserAccountService
+    private const string PerformanceTestUserFirstName = "TP";
+    
+    [GeneratedRegex(@"^\.|\.$")]
+    private static partial Regex PeriodRegex();
+    
+    public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser)
     {
-        private const string OdataType = "@odata.type";
-        private const string GraphGroupType = "#microsoft.graph.group";
-        private const string PerformanceTestUserFirstName = "TP";
+        if (!recoveryEmail.IsValidEmail())
+        {
+            throw new InvalidEmailException("Recovery email is not a valid email", recoveryEmail);
+        }
+
+        var recoveryEmailText = recoveryEmail.Replace("'", "''");
+        var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
+        var user = await GetUserByFilterAsync(filter);
+        if (user != null)
+        {
+            // Avoid including the exact email to not leak it to logs
+            throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
+        }
+
+        var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, recoveryEmail);
+        var displayName = $"{firstName} {lastName}";
+
+        var newPassword = isTestUser 
+            ? settings.TestDefaultPassword 
+            : PasswordHelper.GenerateRandomPasswordWithDefaultComplexity();
+
+        var periodRegex = PeriodRegex();
+        var newUser = new User
+        {
+            DisplayName = displayName,
+            GivenName = firstName,
+            Surname = lastName,
+            MailNickname = $"{periodRegex.Replace(firstName, string.Empty)}.{periodRegex.Replace(lastName, string.Empty)}".ToLower(),
+            UserPrincipalName = username,
+            Mail = recoveryEmail,
+            AccountEnabled = true,
+            PasswordProfile = new PasswordProfile
+            {
+                ForceChangePasswordNextSignIn = !isTestUser,
+                Password = newPassword
+            },
+            OtherMails = [recoveryEmail],
+            UserType = UserType.Guest
+        };
+
+        try
+        {
+            var createdUser = await client.CreateUserAsync(newUser);
+   
+            if (createdUser == null)
+            {
+                throw new UserServiceException("Failed to create the user in Microsoft Graph.", "User creation returned null");
+            }
+            
+            return new NewAdUserAccount
+            {
+                OneTimePassword = newPassword,
+                UserId = createdUser.Id,
+                Username = createdUser.UserPrincipalName
+            };
+        }
+        catch (ODataError odataError)
+        {
+            throw new UserServiceException("Failed to create the user in Microsoft Graph.", odataError.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException("An unexpected error occurred while creating the user.", ex.Message);
+        }
+    }
+    
+    public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null)
+    {
+        var filter = $"id  eq '{userId}'";
+        var user = await GetUserByFilterAsync(filter);
         
-        [GeneratedRegex("^\\.|\\.$")]
-        private static partial Regex PeriodRegex();
-
-        public static readonly Compare<UserResponse> CompareJudgeById =
-            Compare<UserResponse>.By((x, y) => x.Email == y.Email, x => x.Email.GetHashCode());
-
-        public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail,
-            bool isTestUser)
+        if (user == null)
+            throw new UserDoesNotExistException(userId);
+        
+        var username = user.UserPrincipalName;
+        
+        if (user.GivenName!.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) || user.Surname!.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
+            username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
+        
+        var updatedUser = new User
         {
-            if (!recoveryEmail.IsValidEmail())
-            {
-                throw new InvalidEmailException("Recovery email is not a valid email", recoveryEmail);
-            }
-
-            var recoveryEmailText = recoveryEmail.Replace("'", "''");
-            var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
-            var user = await GetUserByFilterAsync(filter);
-            if (user != null)
-            {
-                // Avoid including the exact email to not leak it to logs
-                throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
-            }
-
-            var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, recoveryEmail);
-            var displayName = $"{firstName} {lastName}";
-
-            return await client.CreateUserAsync(username, firstName, lastName, displayName, recoveryEmail, isTestUser);
-        }
-
-        public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null)
+            GivenName = firstName,
+            Surname = lastName,
+            DisplayName = $"{firstName} {lastName}",
+            UserPrincipalName = username
+        };
+        
+        if (!string.IsNullOrEmpty(contactEmail))
         {
-            var filter = $"id  eq '{userId}'";
-            var user = await GetUserByFilterAsync(filter);
-            if (user == null)
-            {
-                throw new UserDoesNotExistException(userId);
-            }
-
-            var username = user.UserPrincipalName;
-            if (!user.GivenName.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) ||
-                !user.Surname.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
-            {
-                username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
-            }
-
-            return await client.UpdateUserAccount(user.Id, firstName, lastName, username, contactEmail: contactEmail);
+            updatedUser.Mail = contactEmail;
+            updatedUser.OtherMails = [contactEmail];
         }
+        try
+        {
+            await client.UpdateUserAsync(user.Id, updatedUser);
+            return updatedUser;
+        }
+        catch (ODataError odataError)
+        {
+            throw new UserServiceException("Failed to update the user in Microsoft Graph.", odataError.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException("An unexpected error occurred while updating the user.", ex.Message);
+        }
+    }
 
-        public async Task DeleteUserAsync(string username)
+    public async Task DeleteUserAsync(string username)
+    {
+        try
         {
             await client.DeleteUserAsync(username);
         }
-
-        public async Task AddUserToGroupAsync(string userId, string groupId)
+        catch (ODataError odataError) 
         {
-            var existingGroups = await GetGroupsForUserAsync(userId);
-            if (existingGroups.Exists(x => x.Id == groupId))
-            {
-                return;
-            }
-            var body = new CustomDirectoryObject
-            {
-                ObjectDataId = $"{graphApiSettings.GraphApiBaseUri}v1.0/{graphApiSettings.TenantId}/directoryObjects/{userId}"
-            };
+            throw new UserServiceException("Failed to delete the user in Microsoft Graph.", odataError.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"An unexpected error occurred while deleting the user {username}.", ex.Message);
+        }
+    }
 
-            var stringContent = new StringContent(JsonConvert.SerializeObject(body));
-            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/{graphApiSettings.TenantId}/groups/{groupId}/members/$ref";
-            var accessToken = await graphApiSettings.GetAccessToken();
-            var responseMessage = await secureHttpRequest.PostAsync(accessToken, stringContent, accessUri);
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                return;
-            }
+    public async Task AddUserToGroupAsync(string userId, string groupId)
+    {
+        var existingGroups = await GetGroupsForUserAsync(userId);
+        if (existingGroups.Exists(x => x.Id == groupId))
+            return;
 
-            var reason = await responseMessage.Content.ReadAsStringAsync();
+        try
+        {
+            await client.AddUserToGroupAsync(userId, groupId);
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"Failed to add user {userId} to group {groupId}.", ex.Message);
+        }
+    }
 
-            // If we failed because the user is already in the group, consider it done anyway
-            if (reason.Contains("already exist"))
-            {
-                return;
-            }
+    public async Task<User> GetUserByFilterAsync(string filter)
+    {
+        try
+        {
+            var users = await client.GetUsersAsync(filter);
+            var adUser = users?.FirstOrDefault();
 
-            var message = $"Failed to add user {userId} to group {groupId}";
-            throw new UserServiceException(message, reason);
+            return adUser;
+        }
+        catch (ODataError odataError) when (odataError.ResponseStatusCode == (int)HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"Failed to search user with filter {filter}", ex.Message);
+        }
+    }
+    
+    public string GetGroupIdFromSettings(string groupName)
+    {
+        var prop = settings.AdGroup.GetType().GetProperty(groupName);
+        string groupId = string.Empty;
+
+        if (prop != null)
+        {
+            groupId = (string)prop.GetValue(settings.AdGroup);
         }
 
-        public async Task<User> GetUserByFilterAsync(string filter)
+        return groupId;
+    }
+
+    public async Task<Group> GetGroupByNameAsync(string groupName)
+    {
+        try
         {
-            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/{graphApiSettings.TenantId}/users?$filter={filter}&" +
-                            "$select=id,displayName,userPrincipalName,givenName,surname,otherMails,contactEmail,mobilePhone";
-            var accessToken = await graphApiSettings.GetAccessToken();
-            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var queryResponse = await responseMessage.Content
-                    .ReadAsAsync<GraphQueryResponse<GraphUserResponse>>();
-                if (queryResponse != null && queryResponse.Value != null && queryResponse.Value.Any())
-                {
-                    var adUser = queryResponse.Value[0];
-                    return new User
-                    {
-                        Id = adUser.Id,
-                        DisplayName = adUser.DisplayName,
-                        UserPrincipalName = adUser.UserPrincipalName,
-                        GivenName = adUser.GivenName,
-                        Surname = adUser.Surname,
-                        Mail = adUser.OtherMails?.FirstOrDefault() ?? adUser.ContactEmail,
-                        MobilePhone = adUser.MobilePhone
-                    };
-                }
-                else
-                {
-                    return null;
-                }
-            }
-
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            var message = $"Failed to search user with filter {filter}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
+            return await client.GetGroupByNameAsync(groupName);
         }
-
-        public string GetGroupIdFromSettings(string groupName)
+        catch (ODataError odataError)
         {
-            var prop = settings.AdGroup.GetType().GetProperty(groupName);
-            string groupId = string.Empty;
-
-            if (prop != null)
-            {
-                groupId = (string)prop.GetValue(settings.AdGroup);
-            }
-
-            return groupId;
+            throw new UserServiceException($"Failed to get group by name {groupName}.", odataError.Message);
         }
-
-        public async Task<Group> GetGroupByNameAsync(string groupName)
+        catch (Exception ex)
         {
-            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{groupName}'";
-            var accessToken = await graphApiSettings.GetAccessToken();
-            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var queryResponse = await responseMessage.Content.ReadAsAsync<GraphQueryResponse<Group>>();
-                return queryResponse.Value?.FirstOrDefault();
-            }
-
-            var message = $"Failed to get group by name {groupName}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
+            throw new UserServiceException($"An unexpected error occurred while retrieving the group {groupName}.", ex.Message);
         }
+    }
 
-        public async Task<Group> GetGroupByIdAsync(string groupId)
+    public async Task<Group> GetGroupByIdAsync(string groupId)
+    {
+        try
         {
-            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}";
-            var accessToken = await graphApiSettings.GetAccessToken();
-            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                return await responseMessage.Content.ReadAsAsync<Group>();
-            }
-
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            var message = $"Failed to get group by id {groupId}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-
-            throw new UserServiceException(message, reason);
+            return await client.GetGroupByIdAsync(groupId);
         }
-
-        public async Task<bool> IsUserAdminAsync(string principalId)
+        catch (ODataError odataError) when (odataError.ResponseStatusCode == (int)HttpStatusCode.NotFound)
         {
-            var userRoleAssignmentUri = $"{graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleAssignments?$filter=principalId eq '{principalId}'";  
+            return null;
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"Failed to get group by id {groupId}.", ex.Message);
+        }
+    }
+
+    public async Task<List<Group>> GetGroupsForUserAsync(string userId)
+    {
+        try
+        {
+            return await client.GetGroupsForUserAsync(userId);
+        }
+        catch (ODataError odataError)
+        {
+            throw new UserServiceException($"Failed to get groups for user {userId}.", odataError.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"An unexpected error occurred while retrieving groups for user {userId}.", ex.Message);
+        }
+    }
+    
+    public async Task<bool> IsUserAdminAsync(string principalId)
+    {
+        try
+        {
+            var userAssignedRoles = await client.GetRoleAssignmentsAsync(principalId);
+            var adminRole = await client.GetRoleDefinitionAsync("User Administrator");
             
-            var adminRoleUri = $"{graphApiSettings.GraphApiBaseUri}beta/roleManagement/directory/roleDefinitions?$filter=DisplayName eq 'User Administrator'";
+            return userAssignedRoles != null && userAssignedRoles.Any(r => r.RoleDefinitionId == adminRole.Id);
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException("An unexpected error occurred while checking admin status.", ex.Message);
+        }
+    }
 
-            var userAssignedRoles = (await ExecuteRequest<GraphQueryResponse<UserAssignedRole>>(userRoleAssignmentUri))?.Value;
+    /// <summary>
+    /// Determine the next available username for a participant based on username format [firstname].[lastname]
+    /// </summary>
+    /// <param name="firstName"></param>
+    /// <param name="lastName"></param>
+    /// <param name="contactEmail"></param>
+    /// <returns>next available user principal name</returns>
+    public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName, string contactEmail)
+    {
+        var regex = PeriodRegex();
+        var sanitisedFirstName = regex.Replace(firstName, string.Empty);
+        var sanitisedLastName = regex.Replace(lastName, string.Empty);
 
-            var adminRole = (await ExecuteRequest<GraphQueryResponse<RoleDefinition>>(adminRoleUri))?.Value[0];
+        sanitisedFirstName = sanitisedFirstName.Replace(" ", string.Empty);
+        sanitisedLastName = sanitisedLastName.Replace(" ", string.Empty);
 
-            if (userAssignedRoles == null || adminRole == null) return false;
-
-            return userAssignedRoles.Any(r => r.RoleDefinitionId == adminRole?.Id);
+        var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
+        var existingUsernames = await GetUsersMatchingNameAsync(baseUsername, contactEmail, firstName, lastName);
+        return UsernameGenerator.GetIncrementedUsername(baseUsername, settings.ReformEmail, existingUsernames);
+    }
+    
+    public async Task<List<User>> GetJudgesAsync(string username = null)
+    {
+        var judges = await client.GetUsersInGroupAsync(settings.AdGroup.VirtualRoomJudge);
+        if (settings.IsLive)
+        {
+            //graph doesn't support inverse filtering of groups so test accounts need to be queried separately
+            var testJudges = await client.GetUsersInGroupAsync(settings.AdGroup.TestAccount);
+            judges = judges.Except(testJudges).ToList();
         }
 
-        private async Task<T> ExecuteRequest<T>(string accessUri) where T : class
+        return judges
+            .Where(x => !(x.GivenName?.StartsWith(PerformanceTestUserFirstName, StringComparison.OrdinalIgnoreCase) ?? true)
+                        && (string.IsNullOrEmpty(username) || x.UserPrincipalName != null && x.UserPrincipalName.Contains(username, StringComparison.CurrentCultureIgnoreCase)))
+            .OrderBy(x => x.DisplayName)
+            .ToList();
+    }
+    
+    public async Task<string> UpdateUserPasswordAsync(string username)
+    {
+        var newPassword = PasswordHelper.GenerateRandomPasswordWithDefaultComplexity();
+        var userUpdate = new User
         {
-            var accessToken = await graphApiSettings.GetAccessToken();
-            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
+            PasswordProfile = new PasswordProfile
             {
-                var content = await responseMessage.Content.ReadAsStringAsync();
-
-                return JsonConvert.DeserializeObject<T>(content);
+                Password = newPassword,
+                ForceChangePasswordNextSignIn = true
             }
+        };
 
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return default;
-            }
-
-            throw new UserServiceException($"An error occurred processing request {accessUri}", responseMessage.ReasonPhrase );
-        }
-
-        public async Task<List<Group>> GetGroupsForUserAsync(string userId)
+        try
         {
-            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/users/{userId}/memberOf";
-            var accessToken = await graphApiSettings.GetAccessToken();
-            var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var queryResponse = await responseMessage.Content.ReadAsAsync<DirectoryObject>();
-                var groupArray = JArray.Parse(queryResponse?.AdditionalData["value"].ToString());
-
-                var groups = new List<Group>();
-                foreach (var item in groupArray.Children())
-                {
-                    var itemProperties = item.Children<JProperty>();
-                    var type = itemProperties.FirstOrDefault(x => x.Name == OdataType);
-
-                    // If #microsoft.graph.directoryRole ignore the group mappings
-                    if (type != null && type.Value.ToString() == GraphGroupType)
-                    {
-                        var group = JsonConvert.DeserializeObject<Group>(item.ToString());
-                        groups.Add(group);
-                    }
-                }
-
-                return groups;
-            }
-
-            if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-            {
-                return new List<Group>();
-            }
-
-            var message = $"Failed to get group for user {userId}";
-            var reason = await responseMessage.Content.ReadAsStringAsync();
-            throw new UserServiceException(message, reason);
+            await client.UpdateUserAsync(username, userUpdate);
+            return newPassword;
         }
-
-        /// <summary>
-        /// Determine the next available username for a participant based on username format [firstname].[lastname]
-        /// </summary>
-        /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        /// <param name="contactEmail"></param>
-        /// <returns>next available user principal name</returns>
-        public async Task<string> CheckForNextAvailableUsernameAsync(string firstName, string lastName, string contactEmail)
+        catch (ODataError odataError)
         {
-            var sanitisedFirstName = PeriodRegex().Replace(firstName, string.Empty);
-            var sanitisedLastName = PeriodRegex().Replace(lastName, string.Empty);
-
-            sanitisedFirstName = sanitisedFirstName.Replace(" ", string.Empty);
-            sanitisedLastName = sanitisedLastName.Replace(" ", string.Empty);
-
-            var baseUsername = $"{sanitisedFirstName}.{sanitisedLastName}".ToLowerInvariant();
-            var username = new IncrementingUsername(baseUsername, settings.ReformEmail);
-            var existingUsernames = await GetUsersMatchingNameAsync(baseUsername, contactEmail, firstName, lastName);
-            return username.GetGivenExistingUsers(existingUsernames);
+            throw new UserServiceException("Failed to update the user password in Microsoft Graph.", odataError.Message);
         }
-
-        private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername, string contactEmail,
-            string firstName, string lastName)
+        catch (Exception ex)
         {
-            var users = await client.GetUsernamesStartingWithAsync(baseUsername, contactEmail, firstName, lastName);
-            return users;
+            throw new UserServiceException("An unexpected error occurred while updating the user password.", ex.Message);
         }
+    }
+    
+    private async Task<IEnumerable<string>> GetUsersMatchingNameAsync(string baseUsername, string contactEmail, string firstName, string lastName)
+    {
+        var filterText = baseUsername.Replace("'", "''");
+        var filter = $"startswith(userPrincipalName,'{filterText}')";
+        var users = await client.GetUsersAsync(filter);
 
-        public async Task<IEnumerable<UserResponse>> GetJudgesAsync(string username = null)
+        var existingMatchedUsers = users?.Select(user => user.UserPrincipalName).ToList() ?? [];
+
+        if (!string.IsNullOrEmpty(contactEmail))
         {
-            var judges = await GetJudgesAsyncByGroupIdAndUsername(settings.AdGroup.VirtualRoomJudge, username);
-
-            if (settings.IsLive)
-            {
-                judges = await ExcludeTestJudgesAsync(judges);
-            }
-
-            return judges.OrderBy(x => x.DisplayName);
+            var deletedMatchedUsersByContactMail = await GetDeletedUsersWithPersonalMailAsync(contactEmail);
+            existingMatchedUsers.AddRange(deletedMatchedUsersByContactMail ?? []);
         }
 
-        public async Task<IEnumerable<UserResponse>> GetEjudiciaryJudgesAsync(string username)
+        if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
         {
-            var judges = await GetJudgesAsyncByGroupIdAndUsername(settings.AdGroup.VirtualRoomJudge, username);
-            return judges.OrderBy(x => x.DisplayName);
+            var deletedMatchedUsersByPrincipal = await GetDeletedUsersWithNameAsync(firstName, lastName);
+            existingMatchedUsers.AddRange(deletedMatchedUsersByPrincipal ?? []);
         }
 
-        private async Task<IEnumerable<UserResponse>> ExcludeTestJudgesAsync(IEnumerable<UserResponse> judgesList)
-        {
-            var testJudges = await GetJudgesAsyncByGroupIdAndUsername(settings.AdGroup.TestAccount);
+        return existingMatchedUsers;
+    }
+    
+    private async Task<List<string>> GetDeletedUsersWithPersonalMailAsync(string contactMail)
+    {
+        var filter = $"startswith(mail,'{contactMail}')";
+        return await client.GetDeletedUsernamesAsync(filter);
+    }
 
-            return judgesList.Except(testJudges, CompareJudgeById);
-        }
-
-        private async Task<IEnumerable<UserResponse>> GetJudgesAsyncByGroupIdAndUsername(string groupId, string username = null)
-        {
-            var users = new List<UserResponse>();
-
-            var accessUri = $"{graphApiSettings.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user?$filter=givenName ne null and not(startsWith(givenName, '{PerformanceTestUserFirstName}'))&$count=true" +
-                            "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname&$top=999";
-
-            while (true)
-            {
-                var accessToken = await graphApiSettings.GetAccessToken();
-                var responseMessage = await secureHttpRequest.GetAsync(accessToken, accessUri);
-
-                if (!responseMessage.IsSuccessStatusCode)
-                {
-                    if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        return Enumerable.Empty<UserResponse>();
-                    }
-
-                    var message = $"Failed to get users for group {groupId}";
-                    var reason = await responseMessage.Content.ReadAsStringAsync();
-
-                    throw new UserServiceException(message, reason);
-                }
-
-                var directoryObjectJson = await responseMessage.Content.ReadAsStringAsync();
-                JObject directoryObject = JsonConvert.DeserializeObject<JObject>(directoryObjectJson);
-                var response = JsonConvert.DeserializeObject<List<User>>(directoryObject["value"].ToString());
-
-                users.AddRange(response
-                    .Where(x => username != null 
-                        && x.UserPrincipalName.Contains(username, StringComparison.CurrentCultureIgnoreCase) 
-                        || string.IsNullOrEmpty(username))
-                    .Select(GraphUserMapper.MapToUserResponse));
-
-                
-                if (!directoryObject.TryGetValue("@odata.nextLink", out var value))
-                {
-                    return users;
-                }
-                    
-                accessUri = value.ToString();
-            }
-        }
-
-        public async Task<string> UpdateUserPasswordAsync(string username)
-        {
-            return await client.UpdateUserPasswordAsync(username);
-        }
+    private async Task<List<string>> GetDeletedUsersWithNameAsync(string firstName, string lastName)
+    {
+        var filter = $"givenName eq '{firstName}' and surname eq '{lastName}'";
+        return await client.GetDeletedUsernamesAsync(filter);
     }
 }

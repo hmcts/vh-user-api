@@ -1,11 +1,12 @@
-using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Graph.Models;
 using UserApi.Contract.Responses;
 using UserApi.Mappers;
 using UserApi.Services;
+using UserApi.Services.Interfaces;
 
 namespace UserApi.Helper
 {
@@ -30,7 +31,7 @@ namespace UserApi.Helper
 
             var userRole = GetUserRole(groups).ToString();
 
-            return GraphUserMapper.MapToUserProfile(user, userRole, isUserAdmin);
+            return UserMapper.MapToUserProfile(user, userRole, isUserAdmin);
         }
 
         private static UserRole GetUserRole(ICollection<Group> userGroups)
