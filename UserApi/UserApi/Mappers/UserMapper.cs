@@ -1,12 +1,12 @@
 using System.Linq;
+using Microsoft.Graph.Models;
 using UserApi.Contract.Responses;
-using GraphUser = Microsoft.Graph.User;
 
 namespace UserApi.Mappers
 {
-    public static class GraphUserMapper
+    public static class UserMapper
     {
-        public static UserResponse MapToUserResponse(GraphUser graphUser)
+        public static UserResponse MapToUserResponse(User graphUser)
         {
             return new UserResponse
             {
@@ -20,7 +20,7 @@ namespace UserApi.Mappers
             };
         }
 
-        public static UserProfile MapToUserProfile(GraphUser graphUser, string userRole, bool isUserAdmin)
+        public static UserProfile MapToUserProfile(User graphUser, string userRole, bool isUserAdmin)
         {
             return new UserProfile
             {

@@ -3,29 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
-using UserApi.Services;
+using UserApi.Helper;
 
-namespace UserApi.UnitTests.Services
+namespace UserApi.UnitTests.Helpers
 {
-    public class IncrementingUsernameTests
+    public class UsernameGeneratorTests
     {
         private IEnumerable<string> _existingUsernames;
-        private IncrementingUsername _username;
         private const string Domain = "hearings.test.server.net";
-
-        [SetUp]
-        public void Setup()
-        {
-            _username = new IncrementingUsername("existing.user", Domain);
-        }
+        private const string UsernameBase = "existing.user";
 
         [Test]
         public void Should_throw_if_given_bad_arguments()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername(null, "domain"));
+            var exception = Assert.Throws<ArgumentNullException>(() => UsernameGenerator.GetIncrementedUsername(null, "domain", _existingUsernames));
             exception.ParamName.Should().Be("usernameBase");
 
-            exception = Assert.Throws<ArgumentNullException>(() => new IncrementingUsername("username", null));
+            exception = Assert.Throws<ArgumentNullException>(() => UsernameGenerator.GetIncrementedUsername("username", null, _existingUsernames));
             exception.ParamName.Should().Be("domain");
         }
 
@@ -33,12 +27,11 @@ namespace UserApi.UnitTests.Services
         public void Should_increment_username_even_past_two_digits()
         {
             // given there are several existing users, not necessarily in order
-            const string username = "existing.user";
             var suffixes = new[] {"", "1", "2", "10", "5", "6", "4", "3", "7", "9", "8"};
-            var existingUsers = suffixes.Select(s => username + s).ToArray();
+            var existingUsers = suffixes.Select(s => UsernameBase + s).ToArray();
             GivenApiReturnsExistingUsers(existingUsers);
 
-            var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
+            var nextAvailable = UsernameGenerator.GetIncrementedUsername(UsernameBase, Domain, _existingUsernames);
             nextAvailable.Should().Be("existing.user11@" + Domain);
         }
 
@@ -49,7 +42,7 @@ namespace UserApi.UnitTests.Services
             const string username = "existing.user";
             GivenApiReturnsExistingUsers(username, username + "1", username + "3");
 
-            var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
+            var nextAvailable = UsernameGenerator.GetIncrementedUsername(UsernameBase, Domain, _existingUsernames);
             nextAvailable.Should().Be("existing.user2@" + Domain);
         }
 
@@ -59,7 +52,7 @@ namespace UserApi.UnitTests.Services
             // given there are some users already with partially matching usernames
             GivenApiReturnsExistingUsers("existing.user", "existing.username1", "existing.username2", "existing.user1");
 
-            var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
+            var nextAvailable = UsernameGenerator.GetIncrementedUsername(UsernameBase, Domain, _existingUsernames);
             nextAvailable.Should().Be("existing.user2@" + Domain);
         }
 
@@ -70,7 +63,7 @@ namespace UserApi.UnitTests.Services
             // now, this shouldn't naturally occur but in case someone adds a user manually we need to handle it gracefully
             GivenApiReturnsExistingUsers("EXisting.User", "ExistIng.UseR1");
 
-            var nextAvailable = _username.GetGivenExistingUsers(_existingUsernames);
+            var nextAvailable = UsernameGenerator.GetIncrementedUsername(UsernameBase, Domain, _existingUsernames);
             nextAvailable.Should().Be("existing.user2@" + Domain);
         }
 
