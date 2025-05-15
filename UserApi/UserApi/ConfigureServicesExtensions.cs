@@ -28,7 +28,7 @@ namespace UserApi
                 var secretCredential = new ClientSecretCredential(aadConfig.TenantId, aadConfig.ClientId, aadConfig.ClientSecret);
                 IGraphUserClient graphUserClient = settings.ClientStub 
                     ? new GraphUserClientStub() 
-                    : new GraphUserClient(new GraphServiceClient(secretCredential, [aadConfig.GraphApiBaseUri +"/.default"]));
+                    : new GraphUserClient(new GraphServiceClient(secretCredential, [aadConfig.GraphApiBaseUri +"/.default"]), aadConfig);
                 return new UserAccountService(graphUserClient, settings);
             });
             

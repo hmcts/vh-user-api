@@ -13,9 +13,9 @@ internal class GraphUserClientStub() : IGraphUserClient
         return Task.FromResult(user);
     }
 
-    public Task UpdateUserAsync(string userId, User user)
+    public Task<User> UpdateUserAsync(string userId, User user)
     {
-        return Task.CompletedTask;
+        return Task.FromResult(user);
     }
 
     public Task DeleteUserAsync(string userPrincipalName)
@@ -28,16 +28,25 @@ internal class GraphUserClientStub() : IGraphUserClient
         return Task.FromResult(new System.Collections.Generic.List<User>());
     }
 
+    public Task<User> GetUserAsync(string identifier)
+    {
+        return Task.FromResult(new User());
+    }
+
     public Task<List<string>> GetDeletedUsernamesAsync(string filter)
     {
         return Task.FromResult(new System.Collections.Generic.List<string>());
     }
 
-    public Task<List<User>> GetUsersInGroupAsync(string groupId, CancellationToken cancellationToken = default)
+    public Task<List<User>> GetUsersInGroupAsync(string groupId, string filter = null, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new List<User>());
+        return Task.FromResult(new List<User>
+        {
+            new User { Id = "1", DisplayName = "User 1" },
+            new User { Id = "2", DisplayName = "User 2" }
+        });
     }
-
+    
     public Task<List<Group>> GetGroupsForUserAsync(string userId)
     {
         return Task.FromResult(new List<Group>

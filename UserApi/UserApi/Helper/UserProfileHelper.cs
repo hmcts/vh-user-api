@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.Graph.Models;
 using UserApi.Contract.Responses;
 using UserApi.Mappers;
-using UserApi.Services;
 using UserApi.Services.Interfaces;
 
 namespace UserApi.Helper

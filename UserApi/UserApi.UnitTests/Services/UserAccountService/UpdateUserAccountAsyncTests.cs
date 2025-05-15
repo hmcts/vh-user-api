@@ -49,8 +49,9 @@ public class UpdateUserAccountAsyncTests : UserAccountServiceTestsBase
         };
 
         GraphClient
-            .Setup(client => client.GetUsersAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([_existingUser]);
+            .SetupSequence(client => client.GetUserAsync(It.IsAny<string>()))
+            .ReturnsAsync(_existingUser)
+            .ReturnsAsync(updatedUser);
 
         GraphClient
             .Setup(client => client.UpdateUserAsync(_userId.ToString(), updatedUser))
@@ -61,6 +62,7 @@ public class UpdateUserAccountAsyncTests : UserAccountServiceTestsBase
 
         // Assert
         GraphClient.Verify(client => client.UpdateUserAsync(_userId.ToString(), It.IsAny<User>()), Times.Once);
+        GraphClient.Verify(client => client.GetUserAsync(_userId.ToString()), Times.Exactly(2));
         
         result.GivenName.Should().Be(updatedUser.GivenName);
         result.Surname.Should().Be(updatedUser.Surname);

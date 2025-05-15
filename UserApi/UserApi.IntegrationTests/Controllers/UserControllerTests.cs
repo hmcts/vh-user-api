@@ -209,7 +209,8 @@ namespace UserApi.IntegrationTests.Controllers
             var updateUserRequest = new UpdateUserAccountRequest
             {
                 FirstName = "RandomTest",
-                LastName = "UpdatedTest"
+                LastName = "UpdatedTest",
+                ContactEmail = "differnt@email.com"
             };
             var jsonBody = ApiRequestHelper.Serialise(updateUserRequest);
             var stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
@@ -220,7 +221,8 @@ namespace UserApi.IntegrationTests.Controllers
             var updatedUserResponse = ApiRequestHelper.Deserialise<UserResponse>(await responseMessage.Content.ReadAsStringAsync());
             updatedUserResponse.FirstName.Should().Be(updateUserRequest.FirstName);
             updatedUserResponse.LastName.Should().Be(updateUserRequest.LastName);
-            updatedUserResponse.Email.Should().NotBe(username);
+            updatedUserResponse.ContactEmail.Should().Be(updateUserRequest.ContactEmail);
+            updatedUserResponse.Email.Should().Be(username);
         }
 
         [Test]
