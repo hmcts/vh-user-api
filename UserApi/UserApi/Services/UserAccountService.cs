@@ -27,26 +27,18 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
     public async Task<NewAdUserAccount> CreateUserAsync(string firstName, string lastName, string recoveryEmail, bool isTestUser)
     {
         if (!recoveryEmail.IsValidEmail())
-        {
             throw new InvalidEmailException("Recovery email is not a valid email", recoveryEmail);
-        }
-
+        
         var recoveryEmailText = recoveryEmail.Replace("'", "''");
-        var filter = $"otherMails/any(c:c eq '{recoveryEmailText}')";
-        var user = await GetUserByFilterAsync(filter);
+        var user = await GetUserByFilterAsync($"otherMails/any(c:c eq '{recoveryEmailText}')");
+        
         if (user != null)
-        {
             // Avoid including the exact email to not leak it to logs
             throw new UserExistsException("User with recovery email already exists", user.UserPrincipalName);
-        }
 
         var username = await CheckForNextAvailableUsernameAsync(firstName, lastName, recoveryEmail);
         var displayName = $"{firstName} {lastName}";
-
-        var newPassword = isTestUser 
-            ? settings.TestDefaultPassword 
-            : PasswordHelper.GenerateRandomPasswordWithDefaultComplexity();
-
+        var newPassword = isTestUser ? settings.TestDefaultPassword : PasswordHelper.GenerateRandomPasswordWithDefaultComplexity();
         var periodRegex = PeriodRegex();
         var newUser = new User
         {
@@ -71,9 +63,7 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
             var createdUser = await client.CreateUserAsync(newUser);
    
             if (createdUser == null)
-            {
                 throw new UserServiceException("Failed to create the user in Microsoft Graph.", "User creation returned null");
-            }
             
             return new NewAdUserAccount
             {
@@ -94,34 +84,37 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
     
     public async Task<User> UpdateUserAccountAsync(Guid userId, string firstName, string lastName, string contactEmail = null)
     {
-        var filter = $"id  eq '{userId}'";
-        var user = await GetUserByFilterAsync(filter);
-        
-        if (user == null)
-            throw new UserDoesNotExistException(userId);
-        
-        var username = user.UserPrincipalName;
-        
-        if (user.GivenName!.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) || user.Surname!.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
-            username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
-        
-        var updatedUser = new User
-        {
-            GivenName = firstName,
-            Surname = lastName,
-            DisplayName = $"{firstName} {lastName}",
-            UserPrincipalName = username
-        };
-        
-        if (!string.IsNullOrEmpty(contactEmail))
-        {
-            updatedUser.Mail = contactEmail;
-            updatedUser.OtherMails = [contactEmail];
-        }
         try
         {
+            var user = await client.GetUserAsync(userId.ToString());
+            
+            if (user == null)
+                throw new UserDoesNotExistException(userId);
+            
+            var username = user.UserPrincipalName;
+            
+            if (user.GivenName!.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) || user.Surname!.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
+                username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
+            
+            var updatedUser = new User
+            {
+                GivenName = firstName,
+                Surname = lastName,
+                DisplayName = $"{firstName} {lastName}",
+                UserPrincipalName = username
+            };
+            
+            if (!string.IsNullOrEmpty(contactEmail))
+            {
+                updatedUser.Mail = contactEmail;
+                updatedUser.OtherMails = [contactEmail];
+            }
             await client.UpdateUserAsync(user.Id, updatedUser);
-            return updatedUser;
+            return await client.GetUserAsync(user.Id);
+        }
+        catch (ODataError odataError) when (odataError.ResponseStatusCode == (int)HttpStatusCode.NotFound)
+        {
+            throw new UserDoesNotExistException(userId);
         }
         catch (ODataError odataError)
         {
@@ -283,19 +276,19 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
     
     public async Task<List<User>> GetJudgesAsync(string username = null)
     {
-        var judges = await client.GetUsersInGroupAsync(settings.AdGroup.VirtualRoomJudge);
+        var filter = "givenName ne null and not(startsWith(givenName, 'TP'))";
+        var judges = await client.GetUsersInGroupAsync(settings.AdGroup.VirtualRoomJudge, filter);
         if (settings.IsLive)
         {
             //graph doesn't support inverse filtering of groups so test accounts need to be queried separately
-            var testJudges = await client.GetUsersInGroupAsync(settings.AdGroup.TestAccount);
+            var testJudges = await client.GetUsersInGroupAsync(settings.AdGroup.TestAccount, filter);
             judges = judges.Except(testJudges).ToList();
         }
 
         return judges
-            .Where(x => !(x.GivenName?.StartsWith(PerformanceTestUserFirstName, StringComparison.OrdinalIgnoreCase) ?? true)
-                        && (string.IsNullOrEmpty(username) || x.UserPrincipalName != null && x.UserPrincipalName.Contains(username, StringComparison.CurrentCultureIgnoreCase)))
-            .OrderBy(x => x.DisplayName)
-            .ToList();
+        .Where(x => string.IsNullOrEmpty(username) || x.UserPrincipalName != null && x.UserPrincipalName.Contains(username, StringComparison.CurrentCultureIgnoreCase))
+        .OrderBy(x => x.DisplayName)
+        .ToList();
     }
     
     public async Task<string> UpdateUserPasswordAsync(string username)

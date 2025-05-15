@@ -29,7 +29,7 @@ public class GetJudgesAsyncTests : UserAccountServiceTestsBase
         var testJudge = new User { Id = "test-id", DisplayName = "Test Judge" };
         var liveJudge = new User { Id = "live-id", DisplayName = "Live Judge" };
 
-        GraphClient.SetupSequence(x => x.GetUsersInGroupAsync(It.IsAny<string>(), CancellationToken.None))
+        GraphClient.SetupSequence(x => x.GetUsersInGroupAsync(It.IsAny<string>(), It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync([testJudge, liveJudge])
             .ReturnsAsync([testJudge]);
 
@@ -37,7 +37,7 @@ public class GetJudgesAsyncTests : UserAccountServiceTestsBase
         var result = await Service.GetJudgesAsync();
 
         // Assert
-        GraphClient.Verify(x => x.GetUsersInGroupAsync(It.IsAny<string>(), CancellationToken.None), Times.AtLeastOnce);
+        GraphClient.Verify(x => x.GetUsersInGroupAsync(It.IsAny<string>(),It.IsAny<string>(),  CancellationToken.None), Times.AtLeastOnce);
         
         result.Should().Contain(j => j.Id == "live-id");
         if (isLive)

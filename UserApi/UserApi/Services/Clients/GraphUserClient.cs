@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UserApi.Common;
 using UserApi.Services.Interfaces;
 
 namespace UserApi.Services.Clients;
@@ -15,16 +19,16 @@ namespace UserApi.Services.Clients;
 /// Should only be consumed via the Service layer (UserAccountService).
 /// </summary>
 /// <param name="client"></param>
-public class GraphUserClient(GraphServiceClient client) : IGraphUserClient
+public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration config) : IGraphUserClient
 {
     public async Task<User> CreateUserAsync(User user)
     {
         return await client.Users.PostAsync(user);
     }
 
-    public async Task UpdateUserAsync(string userId, User user)
+    public async Task<User> UpdateUserAsync(string userId, User user)
     {
-        await client.Users[userId].PatchAsync(user);
+        return await client.Users[userId].PatchAsync(user);
     }
 
     public async Task DeleteUserAsync(string userPrincipalName)
@@ -32,6 +36,19 @@ public class GraphUserClient(GraphServiceClient client) : IGraphUserClient
         await client.Users[userPrincipalName].DeleteAsync();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="identifier"></param>
+    /// <returns></returns>
+    public async Task<User> GetUserAsync(string identifier)
+    {
+        return await client.Users[identifier].GetAsync(config =>
+        {
+            config.QueryParameters.Select = ["id", "displayName", "userPrincipalName", "givenName", "surname", "otherMails", "mobilePhone"];
+        });
+    }
+    
     public async Task<List<User>> GetUsersAsync(string filter, CancellationToken cancellationToken = default)
     {
         var users = new List<User>();
@@ -95,45 +112,64 @@ public class GraphUserClient(GraphServiceClient client) : IGraphUserClient
         return deletedUsers;
     }
 
-    public async Task<List<User>> GetUsersInGroupAsync(string groupId, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Retrieves users from a specific Azure AD group using a raw request for performance reasons.
+    ///
+    /// This implementation intentionally bypasses the standard Graph SDK navigation methods (e.g. client.Groups[groupId].Members)
+    /// because that path is capped at 100 results per page, regardless of the $top parameter, which leads to high request volume
+    /// and worse performance when groups contain hundreds or thousands of users.
+    ///
+    /// By using a raw query to the `members/microsoft.graph.user` endpoint and manually handling pagination with $top=999,
+    /// The request is still authenticated and executed using the Graph SDK's RequestAdapter for consistency with the rest of the system.
+    /// If Microsoft Graph adds support for $top > 100 on the standard SDK navigation builders in the future, this may be revisited.
+    /// </summary>
+    public async Task<List<User>> GetUsersInGroupAsync(string groupId, string? filter = null, CancellationToken cancellationToken = default)
     {
         var users = new List<User>();
-        var nextLink = string.Empty;
 
-        do
+        var accessUri = $"{config.GraphApiBaseUri}/groups/{groupId}/members/microsoft.graph.user" +
+                               (filter != null ? $"?$filter={filter}" : "") +
+                               "&$count=true" +
+                               "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname" +
+                               "&$top=999";
+
+        while (!string.IsNullOrEmpty(accessUri))
         {
-            var response = string.IsNullOrEmpty(nextLink)
-                ? await client.Groups[groupId].Members.GetAsync(config =>
-                {
-                    config.QueryParameters.Select = ["id", "displayName", "userPrincipalName", "givenName", "surname", "otherMails"];
-                    config.QueryParameters.Count = true;
-                    config.QueryParameters.Top = 999;
-                }, cancellationToken)
-                : await client.RequestAdapter.SendAsync(
-                    new RequestInformation
-                    {
-                        HttpMethod = Method.GET,
-                        URI = new Uri(nextLink)
-                    },
-                    DirectoryObjectCollectionResponse.CreateFromDiscriminatorValue,
-                    null,
-                    cancellationToken);
+            var requestInfo = new RequestInformation
+            {
+                HttpMethod = Method.GET,
+                URI = new Uri(accessUri)
+            };
 
-            if (response?.Value != null)
-                users.AddRange(response.Value.OfType<User>());
+            requestInfo.Headers.Add("ConsistencyLevel", "eventual");
 
-            nextLink = response?.OdataNextLink;
-        } while (!string.IsNullOrEmpty(nextLink));
+            var stream = await client.RequestAdapter.SendPrimitiveAsync<Stream>(
+                requestInfo,
+                errorMapping: null,
+                cancellationToken);
+
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync(cancellationToken);
+
+            var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+            var rawUsers = JsonConvert.DeserializeObject<List<User>>(jsonObject["value"]?.ToString() ?? "[]");
+            users.AddRange(rawUsers);
+
+            accessUri = jsonObject.TryGetValue("@odata.nextLink", out var nextLink)
+                ? nextLink.ToString()
+                : null;
+        }
 
         return users;
     }
+
 
     public async Task<List<Group>> GetGroupsForUserAsync(string userId)
     {
         var groups = new List<Group>();
         var response = await client.Users[userId].MemberOf.GetAsync(config =>
         {
-            config.QueryParameters.Select = ["id", "displayName", "@odata.type"];
+            config.QueryParameters.Select = ["id", "displayName"];
         });
 
         while (response != null)
@@ -197,7 +233,7 @@ public class GraphUserClient(GraphServiceClient client) : IGraphUserClient
     {
         var reference = new ReferenceCreate
         {
-            OdataId = $"https://graph.microsoft.com/v1.0/directoryObjects/{userId}"
+            OdataId = $"{config.GraphApiBaseUri}directoryObjects/{userId}"
         };
         await client.Groups[groupId].Members.Ref.PostAsync(reference);
     }

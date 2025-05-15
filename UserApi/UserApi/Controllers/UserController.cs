@@ -321,20 +321,5 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
         return Accepted();
     }
-    
-    [HttpGet("PerformanceTestAccounts/{testGroup}", Name = "GetPerformanceTestAccounts")]
-    [OpenApiOperation("GetPerformanceTestAccounts")]
-    [ProducesResponseType(typeof(List<UserResponse>), (int) HttpStatusCode.OK)]
-    [ProducesResponseType((int) HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> GetPerformanceTestAccounts(GetPerformanceTestAccountsRequest request)
-    {
-        return request.Group switch
-        {
-            PerformanceTestGroup.TestAccounts => await GetJudgesByUsername("testuser"),
-            PerformanceTestGroup.JudgeAccounts => await GetJudgesByUsername("testuser"),
-            PerformanceTestGroup.PanelMemberAccounts => await GetJudgesByUsername("testuser"),
-            _ => BadRequest("Invalid test group")
-        };
-    }
 
 }

@@ -26,7 +26,7 @@ namespace UserApi.Mappers
             {
                 UserId = graphUser.Id,
                 UserName = graphUser.UserPrincipalName,
-                Email = graphUser.Mail,
+                Email = graphUser.Mail ?? graphUser.OtherMails?.FirstOrDefault(),
                 DisplayName = graphUser.DisplayName,
                 FirstName = graphUser.GivenName,
                 LastName = graphUser.Surname,
