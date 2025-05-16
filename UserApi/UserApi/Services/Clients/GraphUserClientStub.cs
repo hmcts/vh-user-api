@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Graph.Models;
@@ -6,6 +7,7 @@ using UserApi.Services.Interfaces;
 
 namespace UserApi.Services.Clients;
 
+[ExcludeFromCodeCoverage]
 internal class GraphUserClientStub() : IGraphUserClient
 {
     public Task<User> CreateUserAsync(User user)
