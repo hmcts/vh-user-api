@@ -1,10 +1,12 @@
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Graph.Models.ODataErrors;
 using Moq;
 using NUnit.Framework;
 using UserApi.Security;
+using UserApi.Services.Exceptions;
 
 namespace UserApi.UnitTests.Services.UserAccountService;
 
@@ -27,16 +29,13 @@ public class DeleteUserAsyncTests : UserAccountServiceTestsBase
     }
 
     [Test]
-    public void Should_throw_UserServiceException_on_ODataError()
+    public void Should_throw_UserDoesNotExistException_on_ODataError()
     {
         // Arrange
-        var odataError = new ODataError();
-        
-        GraphClient.Setup(x => x.DeleteUserAsync(Username))
-            .ThrowsAsync(new UserServiceException("Failed to delete the user in Microsoft Graph.", odataError.Message));
-
+        var odataError = new ODataError { ResponseStatusCode = (int)HttpStatusCode.NotFound };
+        GraphClient.Setup(x => x.DeleteUserAsync(Username)).ThrowsAsync(odataError);
         // Act & Assert
-        Assert.ThrowsAsync<UserServiceException>(async () => await Service.DeleteUserAsync(Username));
+        Assert.ThrowsAsync<UserDoesNotExistException>(async () => await Service.DeleteUserAsync(Username));
     }
 
     [Test]
