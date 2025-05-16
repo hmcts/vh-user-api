@@ -72,10 +72,6 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
                 Username = createdUser.UserPrincipalName
             };
         }
-        catch (ODataError odataError)
-        {
-            throw new UserServiceException("Failed to create the user in Microsoft Graph.", odataError.Message);
-        }
         catch (Exception ex)
         {
             throw new UserServiceException("An unexpected error occurred while creating the user.", ex.Message);
@@ -87,22 +83,16 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
         try
         {
             var user = await client.GetUserAsync(userId.ToString());
-            
-            if (user == null)
-                throw new UserDoesNotExistException(userId);
-            
-            var username = user.UserPrincipalName;
-            
-            if (user.GivenName!.Equals(firstName, StringComparison.CurrentCultureIgnoreCase) || user.Surname!.Equals(lastName, StringComparison.CurrentCultureIgnoreCase))
-                username = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
-            
             var updatedUser = new User
             {
                 GivenName = firstName,
                 Surname = lastName,
                 DisplayName = $"{firstName} {lastName}",
-                UserPrincipalName = username
             };
+            var shouldUpdateUsername = !string.Equals(user.GivenName, firstName, StringComparison.OrdinalIgnoreCase) ||
+                                       !string.Equals(user.Surname, lastName, StringComparison.OrdinalIgnoreCase);
+            if (shouldUpdateUsername)
+                updatedUser.UserPrincipalName = await CheckForNextAvailableUsernameAsync(firstName, lastName, contactEmail);
             
             if (!string.IsNullOrEmpty(contactEmail))
             {
@@ -116,10 +106,6 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
         {
             throw new UserDoesNotExistException(userId);
         }
-        catch (ODataError odataError)
-        {
-            throw new UserServiceException("Failed to update the user in Microsoft Graph.", odataError.Message);
-        }
         catch (Exception ex)
         {
             throw new UserServiceException("An unexpected error occurred while updating the user.", ex.Message);
@@ -132,9 +118,9 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
         {
             await client.DeleteUserAsync(username);
         }
-        catch (ODataError odataError) 
+        catch (ODataError odataError) when (odataError.ResponseStatusCode == (int)HttpStatusCode.NotFound)
         {
-            throw new UserServiceException("Failed to delete the user in Microsoft Graph.", odataError.Message);
+            throw new UserDoesNotExistException(username);
         }
         catch (Exception ex)
         {
@@ -308,9 +294,9 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
             await client.UpdateUserAsync(username, userUpdate);
             return newPassword;
         }
-        catch (ODataError odataError)
+        catch (ODataError odataError ) when (odataError.ResponseStatusCode == (int)HttpStatusCode.NotFound)
         {
-            throw new UserServiceException("Failed to update the user password in Microsoft Graph.", odataError.Message);
+            throw new UserDoesNotExistException(username);
         }
         catch (Exception ex)
         {

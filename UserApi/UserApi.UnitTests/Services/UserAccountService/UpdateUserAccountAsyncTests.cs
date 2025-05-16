@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -88,17 +89,15 @@ public class UpdateUserAccountAsyncTests : UserAccountServiceTestsBase
     }
 
     [Test]
-    public void Should_throw_UserServiceException_on_ODataError()
+    public void Should_throw_UserDoesNotExistException_on_ODataError404()
     {
+        var error = new ODataError { ResponseStatusCode = (int)HttpStatusCode.NotFound };
         // Arrange
         GraphClient
-            .Setup(client => client.GetUsersAsync(It.IsAny<string>(), CancellationToken.None))
-            .ReturnsAsync([_existingUser]);
-        
-        GraphClient
-            .Setup(client => client.UpdateUserAsync(_userId.ToString(), It.IsAny<User>())).ThrowsAsync(new ODataError());
+            .Setup(client => client.GetUserAsync(It.IsAny<string>()))
+            .ThrowsAsync(error);
 
         // Act & Assert
-        Assert.ThrowsAsync<UserServiceException>(async () => await Service.UpdateUserAccountAsync(_userId, FirstName, LastName, ContactEmail));
+        Assert.ThrowsAsync<UserDoesNotExistException>(async () => await Service.UpdateUserAccountAsync(_userId, FirstName, LastName, ContactEmail));
     }
 }

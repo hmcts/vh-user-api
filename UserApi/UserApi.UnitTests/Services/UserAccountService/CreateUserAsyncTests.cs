@@ -71,17 +71,6 @@ public class CreateUserAsyncTests : UserAccountServiceTestsBase
     }
 
     [Test]
-    public void Should_throw_UserServiceException_on_ODataError()
-    {
-        // Arrange
-        GraphClient.Setup(x => x.CreateUserAsync(It.IsAny<User>()))
-            .ThrowsAsync(new ODataError());
-
-        // Act & Assert
-       Assert.ThrowsAsync<UserServiceException>(async () => await Service.CreateUserAsync(FirstName, LastName, RecoveryEmail, false));
-    }
-
-    [Test]
     public void Should_throw_UserServiceException_on_unexpected_error()
     {
         // Arrange

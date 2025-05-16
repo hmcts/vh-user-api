@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -34,12 +35,23 @@ public class GetUserByFilterAsyncTests : UserAccountServiceTestsBase
     }
 
     [Test]
-    public void Should_return_user_exception_for_other_responses()
+    public void Should_return_null_and_not_throw_when_user_does_not_exist_exception()
     {
         // Arrange
         GraphClient.Setup(client => client.GetUsersAsync(_filter, CancellationToken.None))
-            .ThrowsAsync(new ODataError());
+            .ThrowsAsync(new ODataError{ResponseStatusCode = 404});
         // Act
-       Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetUserByFilterAsync(_filter));
+       Assert.DoesNotThrowAsync(async () => await Service.GetUserByFilterAsync(_filter));
+    }
+    
+    [Test]
+    public void Should_return_UserServiceException_exception()
+    {
+        // Arrange
+        GraphClient.Setup(client => client.GetUsersAsync(_filter, CancellationToken.None))
+            .ThrowsAsync(new Exception());
+        // Act
+        Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetUserByFilterAsync(_filter));
     }
 }
+

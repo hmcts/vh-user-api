@@ -88,7 +88,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration aad
     /// because it returns a polymorphic collection, that can't use a filter, and the path is capped 100 results per page, regardless of the $top parameter,
     /// which leads to high request volume and worse performance when groups contain thousands of users.
     ///
-    /// By using a raw query to the `members/microsoft.graph.user` endpoint and manually handling pagination with $top=999,
+    /// By using a raw query to the `members/microsoft.graph.user` endpoint and manually handling pagination with $top=999, we effectively half the request time
     /// The request is still authenticated and executed using the Graph SDK's RequestAdapter for consistency with the rest of the system.
     /// If Microsoft Graph adds support for $top > 100 on the standard SDK navigation builders in the future, this may be revisited, along with using caches and delta queries
     /// for a much more efficient solution.
@@ -97,7 +97,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration aad
     {
         var users = new List<User>();
 
-        var accessUri = $"{aadConfig.GraphApiBaseUri}/groups/{groupId}/members/microsoft.graph.user" +
+        var accessUri = $"{aadConfig.GraphApiBaseUri}v1.0/groups/{groupId}/members/microsoft.graph.user" +
                                (filter != null ? $"?$filter={filter}" : string.Empty) +
                                "&$count=true" +
                                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname" +
@@ -227,7 +227,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration aad
     {
         var reference = new ReferenceCreate
         {
-            OdataId = $"{aadConfig.GraphApiBaseUri}directoryObjects/{userId}"
+            OdataId = $"{aadConfig.GraphApiBaseUri}v1.0/directoryObjects/{userId}"
         };
         await client.Groups[groupId].Members.Ref.PostAsync(reference);
     }
