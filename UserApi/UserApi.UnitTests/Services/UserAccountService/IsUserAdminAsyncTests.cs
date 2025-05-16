@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Graph.Models;
@@ -36,7 +35,7 @@ public class IsUserAdminAsyncTests : UserAccountServiceTestsBase
     }
 
     [Test]
-    public async Task Should_throw_UserServiceException_on_unexpected_responses()
+    public void Should_throw_UserServiceException_on_unexpected_responses()
     {
         // Arrange
         GraphClient.Setup(client => client.GetRoleAssignmentsAsync(It.IsAny<string>()))

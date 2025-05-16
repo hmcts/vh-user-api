@@ -19,10 +19,13 @@ namespace UserApi.Services.Clients;
 /// This class is responsible for interfacing with Microsoft Graph API to manage users and groups.
 /// Should only be consumed via the Service layer (UserAccountService).
 /// </summary>
-/// <param name="client"></param>
+/// <param name="client">GraphServiceClient</param>
+/// <param name="aadConfig">AzureAdConfiguration</param>
 [ExcludeFromCodeCoverage]
-public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration config) : IGraphUserClient
+public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration aadConfig) : IGraphUserClient
 {
+    private readonly string[] UserSelectArray =
+        ["id", "displayName", "userPrincipalName", "givenName", "surname", "otherMails", "mobilePhone"];
     public async Task<User> CreateUserAsync(User user)
     {
         return await client.Users.PostAsync(user);
@@ -42,7 +45,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
     {
         return await client.Users[identifier].GetAsync(config =>
         {
-            config.QueryParameters.Select = ["id", "displayName", "userPrincipalName", "givenName", "surname", "otherMails", "mobilePhone"];
+            config.QueryParameters.Select = UserSelectArray;
         });
     }
     
@@ -53,7 +56,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
         {
             config.QueryParameters.Filter = filter;
             config.QueryParameters.Top = 999;
-            config.QueryParameters.Select = ["id", "displayName", "userPrincipalName", "givenName", "surname", "otherMails", "mobilePhone"];
+            config.QueryParameters.Select = UserSelectArray;
         }, cancellationToken);
 
         while (page != null)
@@ -82,18 +85,19 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
     /// Retrieves users from a specific Azure AD group using a raw request for performance reasons.
     ///
     /// This implementation intentionally bypasses the standard Graph SDK navigation methods (e.g. client.Groups[groupId].Members)
-    /// because that path is capped at 100 results per page, regardless of the $top parameter, which leads to high request volume
-    /// and worse performance when groups contain hundreds or thousands of users.
+    /// because it returns a polymorphic collection, that can't use a filter, and the path is capped 100 results per page, regardless of the $top parameter,
+    /// which leads to high request volume and worse performance when groups contain thousands of users.
     ///
     /// By using a raw query to the `members/microsoft.graph.user` endpoint and manually handling pagination with $top=999,
     /// The request is still authenticated and executed using the Graph SDK's RequestAdapter for consistency with the rest of the system.
-    /// If Microsoft Graph adds support for $top > 100 on the standard SDK navigation builders in the future, this may be revisited.
+    /// If Microsoft Graph adds support for $top > 100 on the standard SDK navigation builders in the future, this may be revisited, along with using caches and delta queries
+    /// for a much more efficient solution.
     /// </summary>
-    public async Task<List<User>> GetUsersInGroupAsync(string groupId, string? filter = null, CancellationToken cancellationToken = default)
+    public async Task<List<User>> GetUsersInGroupAsync(string groupId, string filter = null, CancellationToken cancellationToken = default)
     {
         var users = new List<User>();
 
-        var accessUri = $"{config.GraphApiBaseUri}/groups/{groupId}/members/microsoft.graph.user" +
+        var accessUri = $"{aadConfig.GraphApiBaseUri}/groups/{groupId}/members/microsoft.graph.user" +
                                (filter != null ? $"?$filter={filter}" : string.Empty) +
                                "&$count=true" +
                                "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname" +
@@ -132,7 +136,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
         var page = await client.Directory.DeletedItems.GraphUser.GetAsync(config =>
         {
             config.QueryParameters.Filter = filter;
-            config.QueryParameters.Select = new[] { "userPrincipalName" };
+            config.QueryParameters.Select = ["userPrincipalName"];
         });
 
         while (page != null)
@@ -145,9 +149,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
             if (string.IsNullOrEmpty(page.OdataNextLink))
                 break;
 
-            page = await client.RequestAdapter.SendAsync(
-                new RequestInformation
-                {
+            page = await client.RequestAdapter.SendAsync(new RequestInformation {
                     HttpMethod = Method.GET,
                     URI = new Uri(page.OdataNextLink)
                 },
@@ -184,7 +186,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
         return groups;
     }
 
-    public async Task<Group?> GetGroupByNameAsync(string displayName)
+    public async Task<Group> GetGroupByNameAsync(string displayName)
     {
         var response = await client.Groups.GetAsync(config =>
         {
@@ -195,7 +197,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
         return response?.Value?.FirstOrDefault();
     }
 
-    public async Task<Group?> GetGroupByIdAsync(string groupId)
+    public async Task<Group> GetGroupByIdAsync(string groupId)
     {
         return await client.Groups[groupId].GetAsync(config =>
         {
@@ -225,7 +227,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
     {
         var reference = new ReferenceCreate
         {
-            OdataId = $"{config.GraphApiBaseUri}directoryObjects/{userId}"
+            OdataId = $"{aadConfig.GraphApiBaseUri}directoryObjects/{userId}"
         };
         await client.Groups[groupId].Members.Ref.PostAsync(reference);
     }

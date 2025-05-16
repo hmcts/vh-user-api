@@ -8,7 +8,7 @@ using UserApi.Services.Interfaces;
 namespace UserApi.Services.Clients;
 
 [ExcludeFromCodeCoverage]
-internal class GraphUserClientStub() : IGraphUserClient
+internal class GraphUserClientStub : IGraphUserClient
 {
     public Task<User> CreateUserAsync(User user)
     {
@@ -27,7 +27,7 @@ internal class GraphUserClientStub() : IGraphUserClient
 
     public Task<List<User>> GetUsersAsync(string filter, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new System.Collections.Generic.List<User>());
+        return Task.FromResult(new List<User>());
     }
 
     public Task<User> GetUserAsync(string identifier)
@@ -37,7 +37,7 @@ internal class GraphUserClientStub() : IGraphUserClient
 
     public Task<List<string>> GetDeletedUsernamesAsync(string filter)
     {
-        return Task.FromResult(new System.Collections.Generic.List<string>());
+        return Task.FromResult(new List<string>());
     }
 
     public Task<List<User>> GetUsersInGroupAsync(string groupId, string filter = null, CancellationToken cancellationToken = default)
@@ -72,7 +72,7 @@ internal class GraphUserClientStub() : IGraphUserClient
     {
         return Task.FromResult(new List<UnifiedRoleAssignment>
         {
-            new UnifiedRoleAssignment { Id = "1", PrincipalId = principalId, RoleDefinitionId = "adminRole" }
+            new() { Id = "1", PrincipalId = principalId, RoleDefinitionId = "adminRole" }
         });
     }
 

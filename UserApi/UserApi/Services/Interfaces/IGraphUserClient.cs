@@ -13,7 +13,7 @@ public interface IGraphUserClient
     Task<List<User>> GetUsersAsync(string filter, CancellationToken cancellationToken = default);
     Task<User> GetUserAsync(string identifier);
     Task<List<string>> GetDeletedUsernamesAsync(string filter);
-    Task<List<User>> GetUsersInGroupAsync(string groupId, string? filter = null, CancellationToken cancellationToken = default);
+    Task<List<User>> GetUsersInGroupAsync(string groupId, string filter = null, CancellationToken cancellationToken = default);
     Task<List<Group>> GetGroupsForUserAsync(string userId);
     Task<Group> GetGroupByNameAsync(string displayName);
     Task<Group> GetGroupByIdAsync(string groupId);
