@@ -276,7 +276,7 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
     
     public async Task<List<User>> GetJudgesAsync(string username = null)
     {
-        var filter = "givenName ne null and not(startsWith(givenName, 'TP'))";
+        var filter = $"givenName ne null and not(startsWith(givenName, '{PerformanceTestUserFirstName}'))";
         var judges = await client.GetUsersInGroupAsync(settings.AdGroup.VirtualRoomJudge, filter);
         if (settings.IsLive)
         {
