@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace UserApi.Services.Clients;
 /// Should only be consumed via the Service layer (UserAccountService).
 /// </summary>
 /// <param name="client"></param>
+[ExcludeFromCodeCoverage]
 public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration config) : IGraphUserClient
 {
     public async Task<User> CreateUserAsync(User user)
@@ -35,12 +37,7 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
     {
         await client.Users[userPrincipalName].DeleteAsync();
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="identifier"></param>
-    /// <returns></returns>
+    
     public async Task<User> GetUserAsync(string identifier)
     {
         return await client.Users[identifier].GetAsync(config =>
@@ -81,6 +78,53 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
         return users;
     }
 
+    /// <summary>
+    /// Retrieves users from a specific Azure AD group using a raw request for performance reasons.
+    ///
+    /// This implementation intentionally bypasses the standard Graph SDK navigation methods (e.g. client.Groups[groupId].Members)
+    /// because that path is capped at 100 results per page, regardless of the $top parameter, which leads to high request volume
+    /// and worse performance when groups contain hundreds or thousands of users.
+    ///
+    /// By using a raw query to the `members/microsoft.graph.user` endpoint and manually handling pagination with $top=999,
+    /// The request is still authenticated and executed using the Graph SDK's RequestAdapter for consistency with the rest of the system.
+    /// If Microsoft Graph adds support for $top > 100 on the standard SDK navigation builders in the future, this may be revisited.
+    /// </summary>
+    public async Task<List<User>> GetUsersInGroupAsync(string groupId, string? filter = null, CancellationToken cancellationToken = default)
+    {
+        var users = new List<User>();
+
+        var accessUri = $"{config.GraphApiBaseUri}/groups/{groupId}/members/microsoft.graph.user" +
+                               (filter != null ? $"?$filter={filter}" : string.Empty) +
+                               "&$count=true" +
+                               "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname" +
+                               "&$top=999";
+
+        while (!string.IsNullOrEmpty(accessUri))
+        {
+            var requestInfo = new RequestInformation { HttpMethod = Method.GET, URI = new Uri(accessUri) };
+
+            requestInfo.Headers.Add("ConsistencyLevel", "eventual");
+
+            var stream = await client.RequestAdapter.SendPrimitiveAsync<Stream>(
+                requestInfo,
+                errorMapping: null,
+                cancellationToken);
+
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync(cancellationToken);
+
+            var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
+            var rawUsers = JsonConvert.DeserializeObject<List<User>>(jsonObject["value"]?.ToString() ?? "[]");
+            users.AddRange(rawUsers);
+
+            accessUri = jsonObject.TryGetValue("@odata.nextLink", out var nextLink)
+                ? nextLink.ToString()
+                : null;
+        }
+
+        return users;
+    }
+
     public async Task<List<string>> GetDeletedUsernamesAsync(string filter)
     {
         var deletedUsers = new List<string>();
@@ -111,58 +155,6 @@ public class GraphUserClient(GraphServiceClient client, AzureAdConfiguration con
         }
         return deletedUsers;
     }
-
-    /// <summary>
-    /// Retrieves users from a specific Azure AD group using a raw request for performance reasons.
-    ///
-    /// This implementation intentionally bypasses the standard Graph SDK navigation methods (e.g. client.Groups[groupId].Members)
-    /// because that path is capped at 100 results per page, regardless of the $top parameter, which leads to high request volume
-    /// and worse performance when groups contain hundreds or thousands of users.
-    ///
-    /// By using a raw query to the `members/microsoft.graph.user` endpoint and manually handling pagination with $top=999,
-    /// The request is still authenticated and executed using the Graph SDK's RequestAdapter for consistency with the rest of the system.
-    /// If Microsoft Graph adds support for $top > 100 on the standard SDK navigation builders in the future, this may be revisited.
-    /// </summary>
-    public async Task<List<User>> GetUsersInGroupAsync(string groupId, string? filter = null, CancellationToken cancellationToken = default)
-    {
-        var users = new List<User>();
-
-        var accessUri = $"{config.GraphApiBaseUri}/groups/{groupId}/members/microsoft.graph.user" +
-                               (filter != null ? $"?$filter={filter}" : "") +
-                               "&$count=true" +
-                               "&$select=id,otherMails,userPrincipalName,displayName,givenName,surname" +
-                               "&$top=999";
-
-        while (!string.IsNullOrEmpty(accessUri))
-        {
-            var requestInfo = new RequestInformation
-            {
-                HttpMethod = Method.GET,
-                URI = new Uri(accessUri)
-            };
-
-            requestInfo.Headers.Add("ConsistencyLevel", "eventual");
-
-            var stream = await client.RequestAdapter.SendPrimitiveAsync<Stream>(
-                requestInfo,
-                errorMapping: null,
-                cancellationToken);
-
-            using var reader = new StreamReader(stream);
-            var json = await reader.ReadToEndAsync(cancellationToken);
-
-            var jsonObject = JsonConvert.DeserializeObject<JObject>(json);
-            var rawUsers = JsonConvert.DeserializeObject<List<User>>(jsonObject["value"]?.ToString() ?? "[]");
-            users.AddRange(rawUsers);
-
-            accessUri = jsonObject.TryGetValue("@odata.nextLink", out var nextLink)
-                ? nextLink.ToString()
-                : null;
-        }
-
-        return users;
-    }
-
 
     public async Task<List<Group>> GetGroupsForUserAsync(string userId)
     {
