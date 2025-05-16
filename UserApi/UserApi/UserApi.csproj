@@ -60,10 +60,6 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Extensions\StringExtensions.cs" />
-  </ItemGroup>
-
   <PropertyGroup>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
