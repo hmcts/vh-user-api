@@ -9,7 +9,7 @@ using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using static Testing.Common.Helpers.UserApiUriFactory.UserEndpoints;
 
-namespace UserApi.IntegrationTests.Controllers
+namespace UserApi.AcceptanceTests.Controllers
 {
     public class UserController : ControllerTestsBase
     {

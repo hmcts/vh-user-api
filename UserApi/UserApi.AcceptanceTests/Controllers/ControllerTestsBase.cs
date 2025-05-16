@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Testing.Common.Configuration;
 using UserApi.Common.Security;
 
-namespace UserApi.IntegrationTests.Controllers;
+namespace UserApi.AcceptanceTests.Controllers;
 
 [Parallelizable(ParallelScope.None)]
 public abstract class ControllerTestsBase
