@@ -1,6 +1,6 @@
 using System;
 
-namespace UserApi.Services
+namespace UserApi.Services.Exceptions
 {
     public class UserExistsException(string message, string username) : Exception(message)
     {

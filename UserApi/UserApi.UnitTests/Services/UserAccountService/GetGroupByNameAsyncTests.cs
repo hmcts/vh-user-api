@@ -1,57 +1,57 @@
-using System.Net;
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using Moq;
 using NUnit.Framework;
-using Testing.Common.Helpers;
 using UserApi.Security;
-using UserApi.Services.Models;
 
 namespace UserApi.UnitTests.Services.UserAccountService;
 
-public class GetGroupByNameAsyncTests : UserAccountServiceTests
+public class GetGroupByNameAsyncTests : UserAccountServiceTestsBase
 {
     private const string GroupName = "testGroup";
 
     [Test]
     public async Task Should_get_group_by_given_name()
     {
-        var accessUri = GetAccessUri();
-        var group = new Group { DisplayName = GroupName };
-        var groupResponse = new GraphQueryResponse<Group>
-        {
-            Value = [group]
-        };
+        // Arrange
+        var group = new Group { Id = "1", DisplayName = GroupName };
+        GraphClient.Setup(x => x.GetGroupByNameAsync(GroupName))
+            .ReturnsAsync(group);
 
-        var accessToken = await GraphApiSettings.GetAccessToken();
-        SecureHttpRequest
-            .Setup(s => s.GetAsync(accessToken, accessUri))
-            .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(groupResponse, HttpStatusCode.OK));
+        // Act
+        var result = await Service.GetGroupByNameAsync(GroupName);
 
-        var response = await Service.GetGroupByNameAsync(GroupName);
-
-        response.Should().NotBeNull();
-        response.DisplayName.Should().Be(GroupName);
-        SecureHttpRequest.Verify(s => s.GetAsync(accessToken, accessUri), Times.Once);
+        // Assert
+        result.Should().NotBeNull();
+        result.DisplayName.Should().Be(GroupName);
+        GraphClient.Verify(x => x.GetGroupByNameAsync(GroupName), Times.Once);
     }
 
     [Test]
-    public void Should_return_user_exception_for_other_responses()
+    public void Should_throw_UserServiceException_on_ODataError()
     {
-        const string reason = "User not authorised";
+        // Arrange
+        GraphClient.Setup(x => x.GetGroupByNameAsync(GroupName)).ThrowsAsync(new ODataError());
 
-        SecureHttpRequest
-            .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
-
-        var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByNameAsync(GroupName));
-
-        response.Should().NotBeNull();
-        response!.Message.Should().Be($"Failed to get group by name {GroupName}: {reason}");
-        response.Reason.Should().Be(reason);
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByNameAsync(GroupName));
+        exception.Should().NotBeNull();
     }
-    
-    private string GetAccessUri() => 
-        $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups?$filter=displayName eq '{GroupName}'";
+
+    [Test]
+    public void Should_throw_UserServiceException_on_unexpected_error()
+    {
+        // Arrange
+        const string errorMessage = "Unexpected error";
+        GraphClient.Setup(x => x.GetGroupByNameAsync(GroupName))
+            .ThrowsAsync(new Exception(errorMessage));
+
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByNameAsync(GroupName));
+        exception.Should().NotBeNull();
+        exception!.Message.Should().Be($"An unexpected error occurred while retrieving the group {GroupName}.: {errorMessage}");
+    }
 }

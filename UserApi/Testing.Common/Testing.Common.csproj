@@ -12,7 +12,7 @@
     <PackageReference Include="Bogus" Version="35.6.1" />
     <PackageReference Include="FluentAssertions" Version="7.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Graph" Version="5.77.0" />
     <PackageReference Include="NBuilder" Version="6.1.0" />
     <PackageReference Include="Polly" Version="8.5.1" />
   </ItemGroup>

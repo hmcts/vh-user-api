@@ -92,7 +92,7 @@ namespace UserApi.Tests.Logging
                 });
             
             // Act
-            _mockLogger.Object.LogErrorAddUserToGroupvalidation(errors);
+            _mockLogger.Object.LogErrorAddUserToGroupValidation(errors);
         }
 
         [Test]
