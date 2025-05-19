@@ -27,12 +27,27 @@ internal class GraphUserClientStub : IGraphUserClient
 
     public Task<List<User>> GetUsersAsync(string filter, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new List<User>());
+        return Task.FromResult(new List<User>
+        {
+            new (){
+                Id = "1",
+                DisplayName = "Test User",
+                GivenName = "Test",
+                Surname = "User"
+            }
+        });
     }
 
     public Task<User> GetUserAsync(string identifier)
     {
-        return Task.FromResult(new User());
+        return Task.FromResult(new User
+        {
+            Id = "1",
+            DisplayName = "Test User",
+            GivenName = "Test",
+            Surname = "User",
+            UserPrincipalName = identifier,
+        });
     }
 
     public Task<List<string>> GetDeletedUsernamesAsync(string filter)
