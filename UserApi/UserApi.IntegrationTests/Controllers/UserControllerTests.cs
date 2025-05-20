@@ -30,12 +30,12 @@ namespace UserApi.IntegrationTests.Controllers
                 Encoding.UTF8, "application/json");
 
             var createUserResponse = await SendPostRequestAsync(CreateUser, createUserHttpRequest);
-
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>(createUserResponse.Content.ReadAsStringAsync().Result);
             TestContext.WriteLine($"Response:{ApiRequestHelper.Serialise(createUserModel)}");
             createUserModel.Should().NotBeNull();
             createUserModel.UserId.Should().NotBeNullOrEmpty();
+            _newUserId = createUserModel.UserId;
             createUserModel.Username.ToLower().Should()
                 .Be($@"{createUserRequest.FirstName}.{createUserRequest.LastName}@{TestConfig.Instance.Settings.ReformEmail}".ToLower());
             createUserModel.OneTimePassword.Should().NotBeNullOrEmpty();
@@ -138,11 +138,11 @@ namespace UserApi.IntegrationTests.Controllers
                 createUserResponse.Content.ReadAsStringAsync().Result
             );
 
-            const int RETRIES = 5;
+            const int retries = 5;
 
             var policy = Policy
                 .HandleResult<HttpResponseMessage>(message => !message.IsSuccessStatusCode)
-                .WaitAndRetryAsync(RETRIES, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                .WaitAndRetryAsync(retries, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
             
             var getResponse = await policy.ExecuteAsync(async () => await SendGetRequestAsync(GetUserByAdUserName(createUserModel.Username)));
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -159,7 +159,6 @@ namespace UserApi.IntegrationTests.Controllers
         {
             // Create User
             var createUserResponse = await CreateAdUser($"Automation_{_name.FirstName()}@hmcts.net");
-            
             createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
             var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>
             (
@@ -204,6 +203,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task should_return_ok_and_updated_user_when_updating_an_account_successfully()
         {
             var existingUser = await CreateNewUser($"Automation_{_name.FirstName()}@hmcts.net");
+            _newUserId = existingUser.UserId;
             var userId = Guid.Parse(existingUser.UserId);
             var username = existingUser.Username;
             var updateUserRequest = new UpdateUserAccountRequest
@@ -227,6 +227,7 @@ namespace UserApi.IntegrationTests.Controllers
         public async Task should_return_ok_and_updated_user_when_updating_an_account_contact_email_successfully()
         {
             var newUser = await CreateNewUser($"Automation_{_name.FirstName()}@hmcts.net");
+            _newUserId = newUser.UserId;
             var existingUser = await GetUser(newUser.UserId);
             var userId = Guid.Parse(existingUser.UserId);
             var updateUserRequest = new UpdateUserAccountRequest
@@ -267,9 +268,7 @@ namespace UserApi.IntegrationTests.Controllers
         {
             var getResponse = await SendGetRequestAsync(GetJudgesByUsername());
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            var judges = ApiRequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content
-                .ReadAsStringAsync().Result);
-
+            var judges = ApiRequestHelper.Deserialise<IEnumerable<UserResponse>>(getResponse.Content.ReadAsStringAsync().Result);
             judges.Count().Should().BeGreaterThan(0);
         }
        
@@ -280,8 +279,7 @@ namespace UserApi.IntegrationTests.Controllers
             TestContext.WriteLine($"Attempting to delete account {_newUserId}");
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GraphApiToken);
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete,
-                $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, $@"https://graph.microsoft.com/v1.0/users/{_newUserId}");
             await client.SendAsync(httpRequestMessage);
             _newUserId = null;
         }

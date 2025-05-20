@@ -1,78 +1,87 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using Moq;
 using NUnit.Framework;
-using Testing.Common.Helpers;
-using UserApi.Services;
-using UserApi.Services.Models;
+using UserApi.Security;
+using UserApi.Services.Exceptions;
 
-namespace UserApi.UnitTests.Services.UserAccountService
+namespace UserApi.UnitTests.Services.UserAccountService;
+
+public class CreateUserAsyncTests : UserAccountServiceTestsBase
 {
-    public class CreateUserAsyncTests: UserAccountServiceTests
+    private const string FirstName = "Test";
+    private const string LastName = "User";
+    private const string RecoveryEmail = "testuser@example.com";
+
+    [Test]
+    public async Task Should_create_user_successfully()
     {
-        private const string RecoveryEmail = "test'email@a.com";
-        private NewAdUserAccount _newAdUserAccount;
-
-        [SetUp]
-        public new void Setup()
+        // Arrange
+        var newUser = new User
         {
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(GraphQueryResponse, HttpStatusCode.OK));
+            DisplayName = $"{FirstName} {LastName}",
+            UserPrincipalName = "test.user@example.com",
+            Id = "12345"
+        };
 
-            _newAdUserAccount = new NewAdUserAccount { Username = "TestUser", UserId = "TestUserId", OneTimePassword = "OTPwd" };
-            IdentityServiceApiClient.Setup(i => i.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(_newAdUserAccount); 
-        }
+        GraphClient.Setup(x => x.CreateUserAsync(It.IsAny<User>()))
+            .ReturnsAsync(newUser);
 
-        [Test]
-        public async Task Should_create_new_user_account_successfully()
-        {
-            var existingUsers = new[] { "existing.user", "existing.user1" };
-            IdentityServiceApiClient.Setup(x => x.GetUsernamesStartingWithAsync(It.IsAny<string>(), null, null, null))
-                .ReturnsAsync(existingUsers.Select(username => username + Domain));
+        // Act
+        var result = await Service.CreateUserAsync(FirstName, LastName, RecoveryEmail, false);
 
-            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')";
+        // Assert
+        result.Should().NotBeNull();
+        result.Username.Should().Be(newUser.UserPrincipalName);
+        result.UserId.Should().Be(newUser.Id);
+        GraphClient.Verify(x => x.CreateUserAsync(It.IsAny<User>()), Times.Once);
+    }
 
-            GraphQueryResponse.Value = new List<GraphUserResponse>();
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(GraphQueryResponse, HttpStatusCode.OK));
+    [Test]
+    public void Should_throw_InvalidEmailException_for_invalid_recovery_email()
+    {
+        // Arrange
+        const string invalidEmail = "invalid-email";
 
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<InvalidEmailException>(async () =>
+            await Service.CreateUserAsync(FirstName, LastName, invalidEmail, false));
+        exception.Should().NotBeNull();
+        exception!.Message.Should().Be("Recovery email is not a valid email");
+    }
 
-            var response = await Service.CreateUserAsync("fName", "lName", RecoveryEmail, false);
+    [Test]
+    public void Should_throw_UserExistsException_when_user_with_recovery_email_exists()
+    {
+        // Arrange
+        var existingUser = new User { UserPrincipalName = "existing.user@example.com" };
+        GraphClient.Setup(x => x.GetUsersAsync(It.IsAny<string>(), CancellationToken.None))
+            .ReturnsAsync(new List<User> { existingUser });
 
-            response.Should().NotBeNull();
-            response.Username.Should().Be(_newAdUserAccount.Username);
-            response.UserId.Should().Be(_newAdUserAccount.UserId);
-            response.OneTimePassword.Should().Be(_newAdUserAccount.OneTimePassword);
-            SecureHttpRequest.Verify(s => s.GetAsync(It.IsAny<string>(), AccessUri), Times.Exactly(1));
-            IdentityServiceApiClient.Verify(i => i.CreateUserAsync(It.IsAny<string>(), "fName", "lName", "fName lName", RecoveryEmail, false), Times.Once);
-        }
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<UserExistsException>(async () =>
+            await Service.CreateUserAsync(FirstName, LastName, RecoveryEmail, false));
+        exception.Should().NotBeNull();
+        exception!.Message.Should().Be("User with recovery email already exists");
+    }
 
-        [Test]
-        public void Should_return_user_already_exists_with_recovery_email()
-        {
-            Filter = $"otherMails/any(c:c eq '{RecoveryEmail.Replace("'", "''")}')"; 
+    [Test]
+    public void Should_throw_UserServiceException_on_unexpected_error()
+    {
+        // Arrange
+        const string errorMessage = "Unexpected error";
+        GraphClient.Setup(x => x.CreateUserAsync(It.IsAny<User>()))
+            .ThrowsAsync(new Exception(errorMessage));
 
-
-            var response = Assert.ThrowsAsync<UserExistsException>(async () => await Service.CreateUserAsync("fName", "lName", RecoveryEmail, false));
-
-
-            response.Message.Should().Be("User with recovery email already exists");
-        }
-
-        //Recovery email is not a valid email
-        [Test]
-        public void Should_return_recovery_email_is_not_valid()
-        {
-            var invalidRecoveryEmail = "email.@email.com";
-            Filter = $"otherMails/any(c:c eq '{invalidRecoveryEmail.Replace("'", "''")}')";
-
-            var response = Assert.ThrowsAsync<InvalidEmailException>(async () => await Service.CreateUserAsync("fName", "lName", invalidRecoveryEmail, false));
-
-            response.Message.Should().Be("Recovery email is not a valid email");
-        }
+        // Act & Assert
+        var exception = Assert.ThrowsAsync<UserServiceException>(async () =>
+            await Service.CreateUserAsync(FirstName, LastName, RecoveryEmail, false));
+        exception.Should().NotBeNull();
+        exception!.Message.Should().Be($"An unexpected error occurred while creating the user.: {errorMessage}");
     }
 }

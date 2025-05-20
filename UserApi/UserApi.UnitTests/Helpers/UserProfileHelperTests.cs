@@ -5,9 +5,9 @@ using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using UserApi.Helper;
-using UserApi.Services;
 using System.Threading.Tasks;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using UserApi.Services.Interfaces;
 
 namespace UserApi.UnitTests.Helpers
 {
@@ -18,7 +18,7 @@ namespace UserApi.UnitTests.Helpers
 
         private const string Filter = "some filter";
         private Settings _settings;
-        protected const string Domain = "@hearings.test.server.net";
+        private const string Domain = "@hearings.test.server.net";
 
         [SetUp]
         public void Setup()

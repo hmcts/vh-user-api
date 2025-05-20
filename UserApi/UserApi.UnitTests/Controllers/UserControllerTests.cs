@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using NUnit.Framework;
 using Testing.Common.Assertions;
@@ -18,6 +19,8 @@ using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Controllers;
 using UserApi.Services;
+using UserApi.Services.Exceptions;
+using UserApi.Services.Interfaces;
 using UserApi.Services.Models;
 using UserApi.Validations;
 namespace UserApi.UnitTests.Controllers;
@@ -309,10 +312,10 @@ public class UserAccountsControllerTests
     [Test]
     public async Task Should_get_users_for_group_by_group_id_from_api()
     {
-        var userList = new List<UserResponse>()
+        var userList = new List<User>()
         {
-            new UserResponse { DisplayName = "firstname lastname", FirstName = "firstname", LastName = "lastname", Email = "firstname.lastname@hearings.test.server.net" },
-            new UserResponse { DisplayName = "firstname1 lastname1", FirstName = "firstname1", LastName = "lastname1", Email = "firstname1.lastname1@hearings.test.server.net"}
+            new User { DisplayName = "firstname lastname", GivenName = "firstname", Surname = "lastname", Mail = "firstname.lastname@hearings.test.server.net" },
+            new User { DisplayName = "firstname1 lastname1", GivenName = "firstname1", Surname = "lastname1", Mail = "firstname1.lastname1@hearings.test.server.net"}
         };
         _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>())).ReturnsAsync(userList);
 
@@ -334,29 +337,28 @@ public class UserAccountsControllerTests
     [Test]
     public async Task GetJudgesByUsername_Should_get_users_for_group_by_group_id_from_api()
     {
-        var response = new List<UserResponse>();
-        var user = new UserResponse
+        var response = new List<User>();
+        var user = new User
         {
             DisplayName = "firstname lastname",
-            FirstName = "firstname",
-            LastName = "lastname",
-            Email = "firstname.lastname@hearings.test.server.net"
+            GivenName = "firstname",
+            Surname = "lastname",
+            Mail = "firstname.lastname@hearings.test.server.net"
         };
         response.Add(user);
 
-        var user2 = new UserResponse
+        var user2 = new User
         {
             DisplayName = "firstname1 lastname1",
-            FirstName = "firstname1",
-            LastName = "lastname1",
-            Email = "firstname1.lastname1@hearings.test.server.net"
+            GivenName = "firstname1",
+            Surname = "lastname1",
+            Mail = "firstname1.lastname1@hearings.test.server.net"
         };
         response.Add(user2);
 
         var term = "firstname";
 
-        _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>()))
-            .ReturnsAsync(response.AsEnumerable());
+        _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>())).ReturnsAsync(response);
 
         var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername(term);
         var actualResponse = (List<UserResponse>)actionResult.Value;
@@ -368,63 +370,13 @@ public class UserAccountsControllerTests
     [Test]
     public async Task GetJudgesByUsername_Should_get_empty_user_response_without_judges()
     {
-        _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>()))
-            .ReturnsAsync((IEnumerable<UserResponse>)null);
+        _userAccountService.Setup(x => x.GetJudgesAsync(It.IsAny<string>())).ReturnsAsync(new List<User>());
 
         var actionResult = (OkObjectResult)await _controller.GetJudgesByUsername("username");
         var actualResponse = (List<UserResponse>)actionResult.Value;
         actualResponse!.Count.Should().Be(0);
     }
-
-    [Test]
-    public async Task Should_get_ejudiciary_judges_for_group_by_group_id_from_api()
-    {
-        var response = new List<UserResponse>();
-        var user = new UserResponse
-        {
-            DisplayName = "firstname lastname",
-            FirstName = "firstname",
-            LastName = "lastname",
-            Email = "firstname.lastname@hearings.test.server.net"
-        };
-
-        response.Add(user);
-
-        var user2 = new UserResponse
-        {
-            DisplayName = "firstname1 lastname1",
-            FirstName = "firstname1",
-            LastName = "lastname1",
-            Email = "firstname1.lastname1@hearings.test.server.net"
-        };
-        response.Add(user2);
-
-        var term = "firstname";
-        _userAccountService.Setup(x => x.GetEjudiciaryJudgesAsync(term)).ReturnsAsync(response.Where(x => x.Email.Contains(term)).ToList());
-
-        var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername(term);
-        var actualResponse = (List<UserResponse>)actionResult.Value;
-        actualResponse!.Count.Should().Be(2);
-        actualResponse[0].DisplayName.Should().BeSameAs(user.DisplayName);
-        actualResponse[1].DisplayName.Should().BeSameAs(user2.DisplayName);
-
-        term = "firstname1";
-        _userAccountService.Setup(x => x.GetEjudiciaryJudgesAsync(term)).ReturnsAsync(response.Where(x => x.Email.Contains(term)).ToList());
-
-        actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername(term);
-        actualResponse = (List<UserResponse>)actionResult.Value;
-        actualResponse!.Count.Should().Be(1);
-        actualResponse[0].DisplayName.Should().BeSameAs(user2.DisplayName);
-    }
-
-    [Test]
-    public async Task Should_get_empty_ejudiciary_judges_response_without_judges()
-    {
-        var actionResult = (OkObjectResult)await _controller.GetEjudiciaryJudgesByUsername("firstname1");
-        var actualResponse = (List<UserResponse>)actionResult.Value;
-        actualResponse!.Count.Should().Be(0);
-    }
-
+    
     [Test]
     public async Task Should_return_bad_request_for_update_user()
     {

@@ -1,59 +1,70 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using Moq;
 using NUnit.Framework;
-using Testing.Common.Helpers;
 using UserApi.Security;
 
-namespace UserApi.UnitTests.Services.UserAccountService
+namespace UserApi.UnitTests.Services.UserAccountService;
+
+public class GetGroupByIdAsyncTests : UserAccountServiceTestsBase
 {
-    public class GetGroupByIdAsyncTests: UserAccountServiceTests
+    private const string GroupId = "testId";
+
+    [Test]
+    public async Task Should_get_group_by_given_id()
     {
-        private const string GroupId = "testId";
+        // Arrange
+        var group = new Group { Id = GroupId, DisplayName = "Test Group" };
+        GraphClient.Setup(x => x.GetGroupByIdAsync(GroupId))
+            .ReturnsAsync(group);
 
-        [Test]
-        public async Task Should_get_group_by_given_id()
-        {
-            var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
-            var group = new Microsoft.Graph.Group() { Id = GroupId };
+        // Act
+        var result = await Service.GetGroupByIdAsync(GroupId);
 
-            var accessToken = await GraphApiSettings.GetAccessToken();
-            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(group, HttpStatusCode.OK));
+        // Assert
+        result.Should().NotBeNull();
+        result.Id.Should().Be(GroupId);
+        result.DisplayName.Should().Be("Test Group");
+        GraphClient.Verify(x => x.GetGroupByIdAsync(GroupId), Times.Once);
+    }
 
-            var response = await Service.GetGroupByIdAsync(GroupId);
+    [Test]
+    public async Task Should_return_null_when_no_matching_group_by_given_id()
+    {
+        // Arrange
+        GraphClient.Setup(x => x.GetGroupByIdAsync(GroupId))
+            .ReturnsAsync((Group)null);
 
-            response.Should().NotBeNull();
-            response.Id.Should().Be(GroupId);
-            SecureHttpRequest.Verify(s => s.GetAsync(accessToken, accessUri), Times.Once);
-        }
+        // Act
+        var result = await Service.GetGroupByIdAsync(GroupId);
 
-        [Test]
-        public async Task Should_return_null_when_no_matching_group_by_given_id()
-        {
-            var accessUri = $"{GraphApiSettings.GraphApiBaseUri}v1.0/groups/{GroupId}";
+        // Assert
+        result.Should().BeNull();
+    }
 
-            var accessToken = await GraphApiSettings.GetAccessToken();
-            SecureHttpRequest.Setup(s => s.GetAsync(accessToken, accessUri)).ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage("Not found", HttpStatusCode.NotFound));
+    [Test]
+    public void Should_return_null_on_ODataError404()
+    {
+        // Arrange
+        GraphClient.Setup(x => x.GetGroupByIdAsync(GroupId))
+            .ThrowsAsync(new ODataError{ResponseStatusCode = (int)HttpStatusCode.NotFound});
 
-            var response = await Service.GetGroupByIdAsync(GroupId);
+        // Act & Assert
+        Assert.DoesNotThrow(() => Service.GetGroupByIdAsync(GroupId).Result.Should().BeNull());
+    }
 
-            response.Should().BeNull();
-        }
+    [Test]
+    public void Should_throw_UserServiceException_on_unexpected_error()
+    {
+        // Arrange
+        GraphClient.Setup(x => x.GetGroupByIdAsync(GroupId))
+            .ThrowsAsync(new Exception("error"));
 
-        [Test]
-        public void Should_return_user_exception_for_other_responses()
-        {
-            const string reason = "User not authorised";
-
-            SecureHttpRequest.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(ApiRequestHelper.CreateHttpResponseMessage(reason, HttpStatusCode.Unauthorized));
-
-            var response = Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByIdAsync(GroupId));
-
-            response.Should().NotBeNull();
-            response!.Message.Should().Be($"Failed to get group by id {GroupId}: {reason}");
-            response.Reason.Should().Be(reason);
-        }
+        // Act & Assert
+        Assert.ThrowsAsync<UserServiceException>(async () => await Service.GetGroupByIdAsync(GroupId));
     }
 }
