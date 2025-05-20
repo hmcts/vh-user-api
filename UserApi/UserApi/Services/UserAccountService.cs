@@ -9,6 +9,7 @@ using UserApi.Services.Models;
 using System.Text.RegularExpressions;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
+using UserApi.Contract.Responses;
 using UserApi.Services.Exceptions;
 using UserApi.Services.Interfaces;
 using UserApi.Validations;
@@ -301,6 +302,66 @@ public partial class UserAccountService(IGraphUserClient client, Settings settin
         catch (Exception ex)
         {
             throw new UserServiceException("An unexpected error occurred while updating the user password.", ex.Message);
+        }
+    }
+    
+    public async Task<List<UserForTestResponse>> GetTestUsersAsync(string role)
+    {
+        try
+        {
+            var filter = $"startswith(surname, '{role}') and (givenName eq 'Perf')";
+            var users = await client.GetUsersAsync(filter);
+            return users.Select(e => new UserForTestResponse
+            {
+                UserPrincipalName = e.UserPrincipalName,
+                Mail = e.Mail ?? e.OtherMails?.FirstOrDefault(),
+                GivenName = e.GivenName,
+                Surname = e.Surname,
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"An unexpected error occurred while retrieving test users.", ex.Message);
+        }
+    }
+    
+    public async Task<List<UserForTestResponse>> GetTestJudgesAsync()
+    {
+        try
+        {
+            var filter = $"startswith(userPrincipalName,'{PerformanceTestUserFirstName}')";
+            var judges = await client.GetUsersInGroupAsync(settings.AdGroup.VirtualRoomJudge, filter);
+            return judges.Select(e => new UserForTestResponse
+            {
+                UserPrincipalName = e.UserPrincipalName,
+                Mail = e.Mail ?? e.OtherMails?.FirstOrDefault(),
+                GivenName = e.GivenName,
+                Surname = e.Surname,
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"An unexpected error occurred while retrieving test users.", ex.Message);
+        }
+    }
+    
+    public async Task<List<UserForTestResponse>> GetPerformancePanelMembersAsync()
+    {
+        try
+        {
+            var filter = $"startswith(userPrincipalName,'perfpanelmember')";
+            var panelMembers = await client.GetUsersInGroupAsync(settings.AdGroup.JudicialOfficeHolder, filter);
+            return panelMembers.Select(e => new UserForTestResponse
+            {
+                UserPrincipalName = e.UserPrincipalName,
+                Mail = e.Mail ?? e.OtherMails?.FirstOrDefault(),
+                GivenName = e.GivenName,
+                Surname = e.Surname,
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            throw new UserServiceException($"An unexpected error occurred while retrieving test users.", ex.Message);
         }
     }
     

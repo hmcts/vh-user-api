@@ -6,14 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using UserApi.Contract;
 using UserApi.Contract.Requests;
 using UserApi.Contract.Responses;
 using UserApi.Helper;
 using UserApi.Mappers;
 using UserApi.Security;
-using UserApi.Services;
 using UserApi.Validations;
 using UserApi.Common.Logging;
 using UserApi.Services.Exceptions;
@@ -320,6 +319,23 @@ public class UserController(IUserAccountService userAccountService, Settings set
         }
 
         return Accepted();
+    }
+    [AllowAnonymous]
+    [HttpGet("PerformanceTestAccounts/{testGroup}", Name = "GetPerformanceTestAccounts")]
+    [OpenApiOperation("GetPerformanceTestAccounts")]
+    [ProducesResponseType(typeof(List<UserForTestResponse>), (int) HttpStatusCode.OK)]
+    [ProducesResponseType((int) HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> GetPerformanceTestAccounts([FromRoute] PerformanceTestGroup testGroup)
+    {
+        return testGroup switch
+        {
+            PerformanceTestGroup.Applicant => Ok(await userAccountService.GetTestUsersAsync(PerformanceTestGroup.Applicant.ToString())),
+            PerformanceTestGroup.Interpreter => Ok(await userAccountService.GetTestUsersAsync(PerformanceTestGroup.Interpreter.ToString())),
+            PerformanceTestGroup.Barrister => Ok(await userAccountService.GetTestUsersAsync(PerformanceTestGroup.Barrister.ToString())),
+            PerformanceTestGroup.Judge => Ok(await userAccountService.GetTestJudgesAsync()),
+            PerformanceTestGroup.PanelMember => Ok(await userAccountService.GetPerformancePanelMembersAsync()),
+            _ => BadRequest("Invalid test group")
+        };
     }
 
 }
