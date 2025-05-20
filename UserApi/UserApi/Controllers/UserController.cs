@@ -320,7 +320,7 @@ public class UserController(IUserAccountService userAccountService, Settings set
 
         return Accepted();
     }
-    [AllowAnonymous]
+    
     [HttpGet("PerformanceTestAccounts/{testGroup}", Name = "GetPerformanceTestAccounts")]
     [OpenApiOperation("GetPerformanceTestAccounts")]
     [ProducesResponseType(typeof(List<UserForTestResponse>), (int) HttpStatusCode.OK)]
