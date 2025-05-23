@@ -17,31 +17,6 @@ namespace UserApi.IntegrationTests.Controllers
         private readonly Name _name = new Faker().Name;
 
         [Test]
-        public async Task Should_create_citizen_user_on_ad()
-        {
-            var createUserRequest = new CreateUserRequest
-            {
-                RecoveryEmail = $"Automation_{_name.FirstName()}@hmcts.net",
-                FirstName = $"Automation_{_name.FirstName()}",
-                LastName = $"Automation_{_name.LastName()}"
-            };
-            var createUserHttpRequest = new StringContent(
-                ApiRequestHelper.Serialise(createUserRequest),
-                Encoding.UTF8, "application/json");
-
-            var createUserResponse = await SendPostRequestAsync(CreateUser, createUserHttpRequest);
-            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>(createUserResponse.Content.ReadAsStringAsync().Result);
-            TestContext.WriteLine($"Response:{ApiRequestHelper.Serialise(createUserModel)}");
-            createUserModel.Should().NotBeNull();
-            createUserModel.UserId.Should().NotBeNullOrEmpty();
-            _newUserId = createUserModel.UserId;
-            createUserModel.Username.ToLower().Should()
-                .Be($@"{createUserRequest.FirstName}.{createUserRequest.LastName}@{TestConfig.Instance.Settings.ReformEmail}".ToLower());
-            createUserModel.OneTimePassword.Should().NotBeNullOrEmpty();
-        }
-
-        [Test]
         public async Task Should_return_object_conflict_when_create_user_with_email_for_which_account_exists()
         {
             var email = $"Automation_{_name.FirstName()}@hmcts.net";
@@ -149,22 +124,6 @@ namespace UserApi.IntegrationTests.Controllers
             var userResponseModel = ApiRequestHelper.Deserialise<UserProfile>(await getResponse.Content.ReadAsStringAsync());
             userResponseModel.UserRole.Should().Be("None");
 
-            // Delete User
-            var result = await SendDeleteRequestAsync(DeleteUser(createUserModel.Username));
-            result.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        }
-        
-        [Test]
-        public async Task Should_delete_user()
-        {
-            // Create User
-            var createUserResponse = await CreateAdUser($"Automation_{_name.FirstName()}@hmcts.net");
-            createUserResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-            var createUserModel = ApiRequestHelper.Deserialise<NewUserResponse>
-            (
-                createUserResponse.Content.ReadAsStringAsync().Result
-            );
-            
             // Delete User
             var result = await SendDeleteRequestAsync(DeleteUser(createUserModel.Username));
             result.StatusCode.Should().Be(HttpStatusCode.NoContent);

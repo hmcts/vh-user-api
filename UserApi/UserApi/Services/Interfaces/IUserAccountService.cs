@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Graph.Models;
+using UserApi.Contract.Responses;
 using UserApi.Services.Exceptions;
 using UserApi.Services.Models;
 
@@ -24,4 +25,7 @@ public interface IUserAccountService
     Task<bool> IsUserAdminAsync(string principalId);
     string GetGroupIdFromSettings(string groupName);
     Task AddUserToGroupAsync(string userId, string groupId);
+    Task<List<UserForTestResponse>> GetTestUsersAsync(string role);
+    Task<List<UserForTestResponse>> GetTestJudgesAsync();
+    Task<List<UserForTestResponse>> GetPerformancePanelMembersAsync();
 }

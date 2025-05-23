@@ -35,7 +35,7 @@ public class UserAccountsControllerTests
     private Settings _settings;
     private Mock<ILogger<UserController>> _mockLogger;
     private ActivityListener _activityListener;
-    protected const string Domain = "@hearings.test.server.net";
+    private const string Domain = "@hearings.test.server.net";
 
     [SetUp]
     public void Setup()
@@ -530,4 +530,36 @@ public class UserAccountsControllerTests
         actionResult.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
     }
 
+    [TestCase(PerformanceTestGroup.Interpreter)]
+    [TestCase(PerformanceTestGroup.Judge)]
+    [TestCase(PerformanceTestGroup.PanelMember)]
+    [TestCase(PerformanceTestGroup.Applicant)]
+    [TestCase(PerformanceTestGroup.Barrister)]
+    public async Task Should_return_okresult_when_valid_testgroup(PerformanceTestGroup group)
+    {
+        _userAccountService.Setup(u => u.GetTestJudgesAsync())
+            .ReturnsAsync(new List<UserForTestResponse> { new ()});
+        _userAccountService.Setup(u => u.GetPerformancePanelMembersAsync())
+            .ReturnsAsync(new List<UserForTestResponse> { new ()});
+        _userAccountService.Setup(u => u.GetTestUsersAsync(group.ToString()))
+            .ReturnsAsync(new List<UserForTestResponse> { new ()});
+
+        var actionResult = (OkObjectResult)await _controller.GetPerformanceTestAccounts(group);
+
+        actionResult.Should().NotBeNull();
+        actionResult.StatusCode.Should().Be((int)HttpStatusCode.OK);
+        actionResult.Value.Should().NotBeNull().And.BeAssignableTo<List<UserForTestResponse>>();
+        var response = (List<UserForTestResponse>)actionResult.Value;
+        response.Should().NotBeNull();
+        response.Count.Should().Be(1);
+    }
+    
+    [Test]
+    public async Task Should_return_bad_request_when_not_valid()
+    {
+        var actionResult = (BadRequestObjectResult)await _controller.GetPerformanceTestAccounts((PerformanceTestGroup)5);
+        actionResult.Should().NotBeNull();
+        actionResult.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+        actionResult.Value.Should().Be("Invalid test group");
+    }
 }
